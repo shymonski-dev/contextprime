@@ -11,7 +11,7 @@ Provides comprehensive vector database operations including:
 
 from typing import Dict, List, Any, Optional, Tuple, Union
 from dataclasses import dataclass
-from uuid import UUID, uuid4
+from uuid import UUID, uuid4, uuid5, NAMESPACE_DNS
 import time
 from functools import wraps
 
@@ -82,6 +82,41 @@ def retry_on_connection_error(max_retries: int = 3, delay: float = 1.0):
             raise last_exception
         return wrapper
     return decorator
+
+
+def normalize_point_id(point_id: Optional[Union[str, int, UUID]] = None) -> Union[str, UUID]:
+    """
+    Normalize point ID to be compatible with Qdrant v1.14+.
+
+    Qdrant v1.14+ requires IDs to be either:
+    - Unsigned integers
+    - Valid UUIDs
+
+    Args:
+        point_id: Input ID (str, int, UUID, or None)
+
+    Returns:
+        Normalized ID (UUID or int)
+    """
+    if point_id is None:
+        return str(uuid4())
+
+    if isinstance(point_id, UUID):
+        return str(point_id)
+
+    if isinstance(point_id, int):
+        return point_id
+
+    if isinstance(point_id, str):
+        # Check if it's already a valid UUID string
+        try:
+            return str(UUID(point_id))
+        except ValueError:
+            # Convert arbitrary string to deterministic UUID
+            return str(uuid5(NAMESPACE_DNS, point_id))
+
+    # Fallback: generate random UUID
+    return str(uuid4())
 
 
 class QdrantManager:
@@ -286,7 +321,7 @@ class QdrantManager:
             raise RuntimeError("Qdrant client not initialized")
 
         collection_name = collection_name or self.config.collection_name
-        vector_id = vector_id or str(uuid4())
+        vector_id = normalize_point_id(vector_id)
 
         point = PointStruct(
             id=vector_id,
@@ -333,7 +368,7 @@ class QdrantManager:
 
             points = [
                 PointStruct(
-                    id=v.id or str(uuid4()),
+                    id=normalize_point_id(v.id),
                     vector=v.vector,
                     payload=v.metadata,
                 )
@@ -476,6 +511,7 @@ class QdrantManager:
             raise RuntimeError("Qdrant client not initialized")
 
         collection_name = collection_name or self.config.collection_name
+        vector_id = normalize_point_id(vector_id)
 
         try:
             result = self.client.retrieve(
@@ -527,6 +563,7 @@ class QdrantManager:
             return False
 
         collection_name = collection_name or self.config.collection_name
+        vector_id = normalize_point_id(vector_id)
 
         try:
             # If updating vector, use upsert
@@ -573,6 +610,7 @@ class QdrantManager:
             raise RuntimeError("Qdrant client not initialized")
 
         collection_name = collection_name or self.config.collection_name
+        vector_id = normalize_point_id(vector_id)
 
         try:
             self.client.delete(

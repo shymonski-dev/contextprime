@@ -38,7 +38,7 @@ services:
 
   # Qdrant Vector Database
   qdrant:
-    image: qdrant/qdrant:v1.7.4
+    image: qdrant/qdrant:v1.14.0
     container_name: doctags-qdrant
     ports:
       - "6333:6333"  # HTTP API
