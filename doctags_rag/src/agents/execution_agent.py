@@ -332,8 +332,7 @@ class ExecutionAgent(BaseAgent):
         top_k = parameters.get("top_k", 10)
 
         if not self.retrieval_pipeline:
-            logger.warning("Retrieval pipeline not configured")
-            return []
+            logger.warning("Retrieval pipeline not configured, using simulated results")
 
         # Simulate retrieval (in production would call actual pipeline)
         results = []

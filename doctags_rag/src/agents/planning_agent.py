@@ -410,8 +410,9 @@ class PlanningAgent(BaseAgent):
         # Simple rule-based decomposition
         # In production, this would use an LLM
 
-        # Check for explicit multiple questions
-        if "?" in query:
+        # Check for explicit multiple questions (multiple question marks)
+        question_count = query.count("?")
+        if question_count > 1:
             parts = query.split("?")
             for part in parts:
                 if part.strip():
@@ -419,16 +420,33 @@ class PlanningAgent(BaseAgent):
 
         # Check for "and" separated queries
         elif " and " in query.lower():
-            parts = query.split(" and ")
-            sub_queries = [p.strip() for p in parts if p.strip()]
+            # Remove trailing question mark for splitting
+            query_no_q = query.rstrip("?").strip()
+            parts = query_no_q.split(" and ")
+            sub_queries = [p.strip() + "?" for p in parts if p.strip()]
 
         # Check for comparison queries
-        elif any(word in query.lower() for word in ["compare", "contrast", "versus"]):
-            # Extract entities to compare
-            words = query.split()
-            sub_queries.append(f"Information about {words[1] if len(words) > 1 else 'entity 1'}")
-            sub_queries.append(f"Information about {words[-1] if len(words) > 0 else 'entity 2'}")
-            sub_queries.append("Comparison analysis")
+        elif any(word in query.lower() for word in ["compare", "contrast", "differ", "difference", "versus"]):
+            # Extract key terms for comparison
+            if "differ" in query.lower() or "difference" in query.lower():
+                # e.g., "how does X differ from Y?"
+                words = query.lower().replace("?", "").split()
+                # Simple heuristic: look for "from" keyword
+                if "from" in words:
+                    from_idx = words.index("from")
+                    # Get words before "from" for first entity
+                    entity1 = " ".join(words[max(0, from_idx-2):from_idx])
+                    # Get words after "from" for second entity
+                    entity2 = " ".join(words[from_idx+1:from_idx+3])
+                    sub_queries.append(f"What is {entity1}?")
+                    sub_queries.append(f"What is {entity2}?")
+                    sub_queries.append(f"How do {entity1} and {entity2} differ?")
+            else:
+                # Generic comparison handling
+                words = query.split()
+                sub_queries.append(f"Information about {words[1] if len(words) > 1 else 'entity 1'}")
+                sub_queries.append(f"Information about {words[-1].rstrip('?') if len(words) > 0 else 'entity 2'}")
+                sub_queries.append("Comparison analysis")
 
         # Default: keep as single query
         if not sub_queries:
@@ -451,13 +469,13 @@ class PlanningAgent(BaseAgent):
         Returns:
             Strategy name
         """
-        complexity = analysis["complexity"]
+        complexity = analysis.get("complexity", "simple")
 
-        if analysis["aggregation"]:
+        if analysis.get("aggregation", False):
             return "community_based"
-        elif analysis["comparison"]:
+        elif analysis.get("comparison", False):
             return "graph_hybrid"
-        elif analysis["temporal"]:
+        elif analysis.get("temporal", False):
             return "hybrid"
         elif complexity in ["very_complex", "complex"]:
             return "raptor_hierarchical"
