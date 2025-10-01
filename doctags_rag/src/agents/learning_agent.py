@@ -32,6 +32,24 @@ class LearningMetrics:
     learning_rate: float = 0.1
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    # Make subscriptable for compatibility with BaseAgent metrics
+    actions_completed: int = 0
+    actions_failed: int = 0
+    goals_completed: int = 0
+    goals_failed: int = 0
+    messages_sent: int = 0
+    messages_received: int = 0
+    total_processing_time_ms: float = 0.0
+    average_action_time_ms: float = 0.0
+
+    def __getitem__(self, key: str) -> Any:
+        """Allow dictionary-style access for BaseAgent compatibility."""
+        return getattr(self, key, 0)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        """Allow dictionary-style assignment for BaseAgent compatibility."""
+        setattr(self, key, value)
+
 
 @dataclass
 class Pattern:
