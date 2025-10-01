@@ -66,11 +66,11 @@ def cluster_manager():
 
 @pytest.fixture
 def summary_generator():
-    """Create summary generator instance (no API key for tests)."""
+    """Create summary generator instance using environment API key."""
     return SummaryGenerator(
         provider="openai",
         model="gpt-3.5-turbo",
-        api_key=None  # Will use fallback extractive summarization
+        api_key=None  # Will read from OPENAI_API_KEY environment variable
     )
 
 

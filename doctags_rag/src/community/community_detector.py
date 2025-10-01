@@ -270,6 +270,10 @@ class CommunityDetector:
         # Get adjacency matrix
         adj_matrix = nx.to_scipy_sparse_array(graph)
 
+        # Convert indices to int32 for sklearn 1.6+ compatibility
+        adj_matrix.indices = adj_matrix.indices.astype(np.int32)
+        adj_matrix.indptr = adj_matrix.indptr.astype(np.int32)
+
         # Run spectral clustering
         clustering = SpectralClustering(
             n_clusters=n_clusters,

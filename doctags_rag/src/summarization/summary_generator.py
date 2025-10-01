@@ -11,6 +11,7 @@ Implements multi-level summarization with:
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
+import os
 import re
 import json
 from loguru import logger
@@ -77,6 +78,7 @@ class SummaryGenerator:
         provider: str = "openai",
         model: str = "gpt-3.5-turbo",
         api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
         temperature: float = 0.1,
         max_retries: int = 3
     ):
@@ -86,7 +88,8 @@ class SummaryGenerator:
         Args:
             provider: LLM provider (openai or anthropic)
             model: Model name
-            api_key: API key
+            api_key: API key (defaults to OPENAI_API_KEY env var)
+            base_url: Base URL for API (defaults to OPENAI_BASE_URL env var, supports OpenRouter)
             temperature: Sampling temperature
             max_retries: Max retry attempts
         """
@@ -95,9 +98,15 @@ class SummaryGenerator:
         self.temperature = temperature
         self.max_retries = max_retries
 
+        # Get API configuration from environment if not provided
+        if api_key is None:
+            api_key = os.getenv("OPENAI_API_KEY")
+        if base_url is None:
+            base_url = os.getenv("OPENAI_BASE_URL")
+
         # Initialize client
         if provider == "openai" and OPENAI_AVAILABLE:
-            self.client = OpenAI(api_key=api_key)
+            self.client = OpenAI(api_key=api_key, base_url=base_url)
         elif provider == "anthropic" and ANTHROPIC_AVAILABLE:
             self.client = Anthropic(api_key=api_key)
         else:
