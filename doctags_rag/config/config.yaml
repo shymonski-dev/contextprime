@@ -7,12 +7,12 @@ system:
   environment: "development"
   log_level: "INFO"
 
-# Neo4j Graph Database
+# Neo4j Graph Database (Aura Cloud)
 neo4j:
-  uri: "bolt://localhost:7687"
+  uri: "neo4j+s://fa38c534.databases.neo4j.io"
   username: "neo4j"
-  password: "password"  # Change in production
-  database: "doctags"
+  password: "LJkgSVCGeV13qNsEuHwGpO-cqfDGCCggqxuUpPNeqaM"
+  database: "neo4j"
   max_connection_pool_size: 50
   connection_timeout: 30
 

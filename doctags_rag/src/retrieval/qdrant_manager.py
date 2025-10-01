@@ -28,7 +28,6 @@ from qdrant_client.models import (
     SearchParams,
     UpdateStatus,
     CollectionInfo,
-    ScoreType,
 )
 from qdrant_client.http.exceptions import (
     UnexpectedResponse,

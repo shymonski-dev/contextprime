@@ -93,6 +93,7 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         env_nested_delimiter = "__"
+        extra = "allow"
 
     @classmethod
     def load_from_yaml(cls, config_path: Optional[Path] = None) -> "Settings":

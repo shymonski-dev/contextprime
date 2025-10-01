@@ -39,11 +39,13 @@ from src.core.config import Neo4jConfig, QdrantConfig
 @pytest.fixture(scope="module")
 def neo4j_manager():
     """Create Neo4j manager for testing."""
+    from src.core.config import get_settings
+    settings = get_settings()
     config = Neo4jConfig(
-        uri="bolt://localhost:7687",
-        username="neo4j",
-        password="password",
-        database="doctags_test",
+        uri=settings.neo4j.uri,
+        username=settings.neo4j.username,
+        password=settings.neo4j.password,
+        database=settings.neo4j.database,
     )
     manager = Neo4jManager(config)
     yield manager

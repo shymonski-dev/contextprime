@@ -8,7 +8,7 @@ Generates multi-level summaries including:
 - Representative examples
 """
 
-from typing import Dict, List, Any, Optional, Set
+from typing import Dict, List, Any, Optional, Set, Tuple
 from dataclasses import dataclass, field
 import time
 

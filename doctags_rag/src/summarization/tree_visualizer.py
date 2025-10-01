@@ -8,7 +8,7 @@ Provides multiple visualization methods:
 - Statistics and analysis views
 """
 
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, Any
 from io import StringIO
 import json
 from loguru import logger
