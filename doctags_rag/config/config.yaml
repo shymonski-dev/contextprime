@@ -1,0 +1,161 @@
+# DocTags RAG System Configuration
+
+# System Settings
+system:
+  name: "DocTags RAG"
+  version: "1.0.0"
+  environment: "development"
+  log_level: "INFO"
+
+# Neo4j Graph Database
+neo4j:
+  uri: "bolt://localhost:7687"
+  username: "neo4j"
+  password: "password"  # Change in production
+  database: "doctags"
+  max_connection_pool_size: 50
+  connection_timeout: 30
+
+# Qdrant Vector Database
+qdrant:
+  host: "localhost"
+  port: 6333
+  api_key: null  # Set for cloud deployment
+  collection_name: "doctags_vectors"
+  vector_size: 1536  # For OpenAI embeddings
+  distance_metric: "cosine"
+
+# Pinecone (Alternative Vector DB)
+pinecone:
+  api_key: null  # Set when using Pinecone
+  environment: "gcp-starter"
+  index_name: "doctags-index"
+  dimension: 1536
+  metric: "cosine"
+
+# Document Processing
+document_processing:
+  ocr_engine: "paddleocr"  # paddleocr, tesseract, or docling
+  chunk_size: 1000
+  chunk_overlap: 200
+  preserve_structure: true
+  max_file_size_mb: 100
+  supported_formats:
+    - pdf
+    - docx
+    - html
+    - txt
+    - png
+    - jpg
+
+# PaddleOCR Settings
+paddleocr:
+  use_angle_cls: true
+  lang: "en"
+  use_gpu: false
+  det_db_thresh: 0.3
+  rec_batch_num: 6
+
+# LLM Configuration
+llm:
+  provider: "openai"  # openai, anthropic, or replicate
+  model: "gpt-4-turbo-preview"
+  temperature: 0.1
+  max_tokens: 4000
+  api_key: null  # Set via environment variable
+
+# Embeddings Configuration
+embeddings:
+  provider: "openai"
+  model: "text-embedding-3-small"
+  batch_size: 100
+  api_key: null  # Set via environment variable
+
+# Knowledge Graph Settings
+knowledge_graph:
+  entity_extraction:
+    model: "spacy"
+    spacy_model: "en_core_web_lg"
+    batch_size: 32
+    confidence_threshold: 0.7
+  relationship_extraction:
+    enable: true
+    max_distance: 5  # Max sentence distance for relationships
+  entity_resolution:
+    similarity_threshold: 0.85
+    algorithm: "levenshtein"  # levenshtein, embedding, or hybrid
+
+# Retrieval Settings
+retrieval:
+  hybrid_search:
+    enable: true
+    vector_weight: 0.7
+    graph_weight: 0.3
+  max_results: 10
+  rerank: true
+  confidence_scoring:
+    enable: true
+    min_confidence: 0.5
+
+# Query Routing
+query_routing:
+  enable: true
+  routes:
+    - type: "factual"
+      pattern: "what|when|where|who"
+      strategy: "vector"
+    - type: "relationship"
+      pattern: "how.*related|connection|relationship"
+      strategy: "graph"
+    - type: "complex"
+      pattern: ".*"
+      strategy: "hybrid"
+
+# RAPTOR Summarization
+raptor:
+  enable: true
+  tree_depth: 3
+  summary_model: "gpt-3.5-turbo"
+  chunk_summary_size: 200
+  section_summary_size: 500
+
+# Community Detection
+community_detection:
+  algorithm: "louvain"  # louvain or leiden
+  resolution: 1.0
+  min_community_size: 3
+  generate_summaries: true
+
+# Agentic Features
+agents:
+  enable_feedback_loop: true
+  self_critique: true
+  max_iterations: 3
+  confidence_threshold: 0.8
+  reinforcement_learning:
+    enable: false  # Enable after initial deployment
+    learning_rate: 0.001
+
+# API Settings
+api:
+  host: "0.0.0.0"
+  port: 8000
+  cors_origins: ["*"]
+  rate_limit: 100  # requests per minute
+
+# Monitoring
+monitoring:
+  metrics_port: 9090
+  enable_prometheus: true
+  log_queries: true
+  log_performance: true
+
+# Testing
+testing:
+  test_data_path: "data/test"
+  benchmark_dataset: "swe-bench"
+  evaluation_metrics:
+    - retrieval_accuracy
+    - answer_relevance
+    - hallucination_rate
+    - latency

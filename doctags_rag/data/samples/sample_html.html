@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DocTags RAG System Documentation">
+    <meta name="author" content="Research Team">
+    <title>DocTags RAG System - Technical Documentation</title>
+</head>
+<body>
+    <h1>DocTags RAG System</h1>
+
+    <h2>Overview</h2>
+    <p>
+        The DocTags RAG (Retrieval-Augmented Generation) System is an advanced document
+        processing and retrieval platform that combines knowledge graphs with vector embeddings
+        for enhanced information retrieval.
+    </p>
+
+    <h2>Key Features</h2>
+
+    <h3>Document Processing</h3>
+    <p>
+        Our system supports multiple document formats and preserves document structure
+        throughout the processing pipeline. This ensures that contextual relationships
+        are maintained during retrieval.
+    </p>
+
+    <ul>
+        <li>PDF document parsing with OCR support</li>
+        <li>Microsoft Word (DOCX) format support</li>
+        <li>HTML and Markdown processing</li>
+        <li>Image OCR using PaddleOCR</li>
+        <li>Structure-preserving chunking</li>
+    </ul>
+
+    <h3>Dual Indexing Architecture</h3>
+    <p>
+        The system employs a sophisticated dual indexing strategy:
+    </p>
+
+    <ol>
+        <li><strong>Vector Database (Qdrant)</strong>: Stores document embeddings for semantic similarity search</li>
+        <li><strong>Graph Database (Neo4j)</strong>: Maintains document structure and relationships</li>
+        <li><strong>Hybrid Retrieval</strong>: Combines results from both indexes for optimal performance</li>
+    </ol>
+
+    <h2>Architecture Components</h2>
+
+    <h3>Processing Pipeline</h3>
+    <p>
+        Documents flow through a multi-stage processing pipeline:
+    </p>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Stage</th>
+                <th>Component</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Parser</td>
+                <td>Extracts text and structure from various formats</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>DocTags Processor</td>
+                <td>Converts to structured DocTags format</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Chunker</td>
+                <td>Creates context-aware chunks</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Embedder</td>
+                <td>Generates vector embeddings</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>Indexer</td>
+                <td>Stores in dual indexes</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Knowledge Graph</h3>
+    <p>
+        The Neo4j knowledge graph stores documents, sections, and entities with their relationships.
+        This enables sophisticated graph traversal queries and relationship-based retrieval.
+    </p>
+
+    <h2>Usage Examples</h2>
+
+    <h3>Basic Document Processing</h3>
+    <pre><code>
+from doctags_rag.processing import create_pipeline
+
+# Create pipeline
+pipeline = create_pipeline(
+    chunk_size=1000,
+    chunk_overlap=200
+)
+
+# Process document
+result = pipeline.process_file("document.pdf")
+
+if result.success:
+    print(f"Created {len(result.chunks)} chunks")
+    </code></pre>
+
+    <h3>Hybrid Retrieval</h3>
+    <pre><code>
+from doctags_rag.retrieval import HybridRetriever
+
+# Initialize retriever
+retriever = HybridRetriever()
+
+# Perform search
+results = retriever.search(
+    query="What are the key features?",
+    top_k=10
+)
+
+for result in results:
+    print(result.content)
+    print(f"Score: {result.score}")
+    </code></pre>
+
+    <h2>Performance Considerations</h2>
+
+    <p>
+        The system is optimized for both accuracy and performance:
+    </p>
+
+    <ul>
+        <li><strong>Batch Processing</strong>: Process multiple documents in parallel</li>
+        <li><strong>Caching</strong>: Cache embeddings and frequently accessed data</li>
+        <li><strong>Incremental Updates</strong>: Add new documents without reprocessing everything</li>
+        <li><strong>Scalability</strong>: Distributed processing for large document collections</li>
+    </ul>
+
+    <h2>Configuration</h2>
+
+    <p>
+        The system is highly configurable through YAML configuration files.
+        Key configuration options include:
+    </p>
+
+    <ul>
+        <li>Database connection parameters</li>
+        <li>Chunk size and overlap settings</li>
+        <li>OCR language and quality settings</li>
+        <li>Embedding model selection</li>
+        <li>Retrieval weights and thresholds</li>
+    </ul>
+
+    <h2>Conclusion</h2>
+
+    <p>
+        The DocTags RAG System provides a comprehensive solution for document processing
+        and retrieval. By combining structure preservation with semantic search capabilities,
+        it delivers superior retrieval performance compared to traditional approaches.
+    </p>
+
+    <footer>
+        <p>&copy; 2024 DocTags RAG System. All rights reserved.</p>
+    </footer>
+</body>
+</html>

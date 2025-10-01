@@ -1,0 +1,181 @@
+{
+  "timestamp": "2025-10-01T18:05:29.292782",
+  "codebase": {
+    "total_files": 67,
+    "total_lines": 35680,
+    "by_component": {
+      "Core Configuration": {
+        "files": 1,
+        "lines": 196,
+        "file_names": [
+          "config.py"
+        ]
+      },
+      "Retrieval System": {
+        "files": 9,
+        "lines": 5335,
+        "file_names": [
+          "reranker.py",
+          "cache_manager.py",
+          "query_router.py",
+          "query_expansion.py",
+          "hybrid_retriever.py",
+          "iterative_refiner.py",
+          "qdrant_manager.py",
+          "advanced_pipeline.py",
+          "confidence_scorer.py"
+        ]
+      },
+      "Document Processing": {
+        "files": 6,
+        "lines": 4028,
+        "file_names": [
+          "doctags_processor.py",
+          "ocr_engine.py",
+          "chunker.py",
+          "utils.py",
+          "pipeline.py",
+          "document_parser.py"
+        ]
+      },
+      "Knowledge Graph": {
+        "files": 7,
+        "lines": 4613,
+        "file_names": [
+          "kg_pipeline.py",
+          "entity_resolver.py",
+          "entity_extractor.py",
+          "relationship_extractor.py",
+          "graph_builder.py",
+          "neo4j_manager.py",
+          "graph_queries.py"
+        ]
+      },
+      "RAPTOR Summarization": {
+        "files": 7,
+        "lines": 4355,
+        "file_names": [
+          "tree_storage.py",
+          "summary_generator.py",
+          "tree_builder.py",
+          "hierarchical_retriever.py",
+          "raptor_pipeline.py",
+          "tree_visualizer.py",
+          "cluster_manager.py"
+        ]
+      },
+      "Community Detection": {
+        "files": 9,
+        "lines": 4373,
+        "file_names": [
+          "community_summarizer.py",
+          "community_detector.py",
+          "community_storage.py",
+          "community_visualizer.py",
+          "global_query_handler.py",
+          "community_pipeline.py",
+          "cross_document_analyzer.py",
+          "document_clusterer.py",
+          "graph_analyzer.py"
+        ]
+      },
+      "Agentic System": {
+        "files": 11,
+        "lines": 5017,
+        "file_names": [
+          "agentic_pipeline.py",
+          "evaluation_agent.py",
+          "coordinator.py",
+          "feedback_aggregator.py",
+          "memory_system.py",
+          "learning_agent.py",
+          "base_agent.py",
+          "performance_monitor.py",
+          "reinforcement_learning.py",
+          "planning_agent.py",
+          "execution_agent.py"
+        ]
+      },
+      "Tests": {
+        "files": 7,
+        "lines": 4357,
+        "file_names": [
+          "test_processing.py",
+          "test_community.py",
+          "test_advanced_retrieval.py",
+          "test_indexing.py",
+          "test_summarization.py",
+          "test_knowledge_graph.py",
+          "test_agents.py"
+        ]
+      },
+      "Demo Scripts": {
+        "files": 10,
+        "lines": 3406,
+        "file_names": [
+          "demo_agentic.py",
+          "example_usage.py",
+          "build_sample_kg.py",
+          "demo_community.py",
+          "demo_advanced_retrieval.py",
+          "demo_raptor.py",
+          "verify_agentic_setup.py",
+          "setup_databases.py",
+          "demo_processing.py",
+          "quick_test_processing.py"
+        ]
+      }
+    },
+    "file_list": []
+  },
+  "dependencies": {
+    "total_required": 26,
+    "installed": [
+      "numpy",
+      "pydantic",
+      "networkx",
+      "fastapi",
+      "uvicorn"
+    ],
+    "missing": [
+      "pandas",
+      "loguru",
+      "neo4j",
+      "qdrant_client",
+      "openai",
+      "anthropic",
+      "spacy",
+      "scikit-learn",
+      "sentence_transformers",
+      "rapidfuzz",
+      "nltk",
+      "diskcache",
+      "umap",
+      "hdbscan",
+      "python_louvain",
+      "leidenalg",
+      "igraph",
+      "pyvis",
+      "matplotlib",
+      "pytest",
+      "paddleocr"
+    ],
+    "install_percentage": 19.230769230769234
+  },
+  "structure": {
+    "requirements.txt": true,
+    "config.yaml": true,
+    "docker-compose.yml": true,
+    "src/": true,
+    "tests/": true,
+    "scripts/": true,
+    "docs/": true,
+    "data/": true
+  },
+  "summary": {
+    "total_lines": 35680,
+    "total_files": 67,
+    "components": 9,
+    "phases_complete": 6
+  }
+}
