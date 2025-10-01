@@ -329,12 +329,18 @@ class ClusterManager:
                     metadata={'original_label': int(label)}
                 )
                 clusters.append(cluster)
+            else:
+                # Mark as outliers
+                labels[cluster_indices] = -1
+
+        outliers = np.where(labels == -1)[0].tolist()
 
         return ClusteringResult(
             clusters=clusters,
             labels=labels,
             method=ClusteringMethod.KMEANS,
-            num_clusters=len(clusters)
+            num_clusters=len(clusters),
+            outliers=outliers
         )
 
     def _cluster_hierarchical(

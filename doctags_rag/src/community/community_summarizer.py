@@ -12,6 +12,7 @@ from typing import Dict, List, Any, Optional, Set, Tuple
 from dataclasses import dataclass, field
 import time
 
+import numpy as np
 import networkx as nx
 from openai import OpenAI
 from loguru import logger
@@ -270,7 +271,7 @@ class CommunitySummarizer:
             return f"Community ({len(members)} entities)"
 
         # Use top entities to create title
-        top_entities = [entity for entity, score in key_entities[:3]]
+        top_entities = [str(entity) for entity, score in key_entities[:3]]
 
         if len(top_entities) == 1:
             return f"{top_entities[0]} Community"
@@ -292,7 +293,7 @@ class CommunitySummarizer:
         if not key_entities:
             return f"A community of {size} entities with {num_rels} relationships."
 
-        top_entities = [entity for entity, score in key_entities[:5]]
+        top_entities = [str(entity) for entity, score in key_entities[:5]]
         entities_str = ", ".join(top_entities[:3])
 
         if len(top_entities) > 3:
@@ -371,7 +372,7 @@ class CommunitySummarizer:
 
         # Key entities
         if key_entities:
-            top_5 = [entity for entity, score in key_entities[:5]]
+            top_5 = [str(entity) for entity, score in key_entities[:5]]
             summary_parts.append(
                 f"The most central entities are: {', '.join(top_5)}."
             )
@@ -408,7 +409,7 @@ class CommunitySummarizer:
         context_parts.append(f"Community size: {len(members)} entities")
 
         # Key entities
-        top_entities = [f"{entity} (importance: {score:.3f})"
+        top_entities = [f"{str(entity)} (importance: {score:.3f})"
                        for entity, score in key_entities[:10]]
         context_parts.append(f"Key entities:\n" + "\n".join([f"- {e}" for e in top_entities]))
 
@@ -477,7 +478,7 @@ class CommunitySummarizer:
     ) -> List[str]:
         """Extract topics from key entities."""
         # Simple approach: use entity names as topics
-        topics = [entity for entity, score in key_entities[:10]]
+        topics = [str(entity) for entity, score in key_entities[:10]]
         return topics
 
     def _identify_cross_community_relationships(

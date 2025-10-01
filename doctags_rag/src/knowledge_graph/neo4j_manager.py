@@ -597,14 +597,14 @@ class Neo4jManager:
             rel_types = "|".join(relationship_types)
 
         if direction == "outgoing":
-            pattern = f"-[r:{rel_types}]->"
+            pattern = f"-[r:{rel_types}*1..{max_depth}]->"
         elif direction == "incoming":
-            pattern = f"<-[r:{rel_types}]-"
+            pattern = f"<-[r:{rel_types}*1..{max_depth}]-"
         else:
-            pattern = f"-[r:{rel_types}]-"
+            pattern = f"-[r:{rel_types}*1..{max_depth}]-"
 
         query = f"""
-        MATCH path = (start){pattern}*1..{max_depth}(end)
+        MATCH path = (start){pattern}(end)
         WHERE elementId(start) = $start_node_id
         RETURN path
         LIMIT $limit
