@@ -357,9 +357,20 @@ class GraphBuilder:
             {"entities": entity_data}
         )
 
+        # Check for empty results
+        if not result:
+            logger.warning(f"No entity nodes created for doc {doc_id} - query returned empty result")
+            return entity_node_ids
+
+        # Safe key access to avoid KeyError
         for r in result:
-            entity_node_ids[r["entity_key"]] = r["node_id"]
-            self.entity_node_map[r["entity_key"]] = r["node_id"]
+            entity_key = r.get("entity_key")
+            node_id = r.get("node_id")
+            if entity_key and node_id:
+                entity_node_ids[entity_key] = node_id
+                self.entity_node_map[entity_key] = node_id
+            else:
+                logger.warning(f"Incomplete result record in doc {doc_id}: {r}")
 
         return entity_node_ids
 

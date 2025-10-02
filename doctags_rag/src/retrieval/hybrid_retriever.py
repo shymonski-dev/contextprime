@@ -243,6 +243,12 @@ class HybridRetriever:
         """
         import time
 
+        if query_vector is not None and not isinstance(query_vector, list):
+            try:
+                query_vector = list(query_vector)
+            except TypeError as err:
+                raise ValueError("query_vector must be an iterable of floats") from err
+
         start_time = time.time()
 
         # Detect query type and strategy
@@ -270,6 +276,17 @@ class HybridRetriever:
         graph_results = []
 
         can_use_vector = query_vector is not None and len(query_vector) > 0
+        requires_embedding = strategy in {
+            SearchStrategy.VECTOR_ONLY,
+            SearchStrategy.GRAPH_ONLY,
+            SearchStrategy.HYBRID
+        }
+
+        if requires_embedding and not can_use_vector:
+            raise ValueError(
+                f"Retrieval strategy '{strategy.value}' requires a query embedding. "
+                "Provide query_vector or configure embedding support."
+            )
 
         if strategy in [SearchStrategy.VECTOR_ONLY, SearchStrategy.HYBRID]:
             if can_use_vector:

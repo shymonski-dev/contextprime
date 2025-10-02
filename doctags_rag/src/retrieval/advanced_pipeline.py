@@ -230,6 +230,30 @@ class AdvancedRetrievalPipeline:
                 logger.error(f"Failed to generate query embedding: {embed_err}")
                 query_vector = None
 
+        if query_vector is not None and not isinstance(query_vector, list):
+            try:
+                # Handle numpy arrays or other sequences
+                query_vector = list(query_vector)
+            except TypeError:
+                query_vector = None
+
+        has_embedding = query_vector is not None and len(query_vector) > 0
+        requires_embedding = strategy in {
+            RetrievalStrategy.VECTOR_ONLY,
+            RetrievalStrategy.GRAPH_ONLY,
+            RetrievalStrategy.HYBRID,
+            RetrievalStrategy.MULTI_STAGE
+        }
+
+        if requires_embedding and not has_embedding:
+            message = (
+                "No query embedding available for retrieval. Supply a pre-computed "
+                "query_vector, configure an embedding_function, or choose a retrieval "
+                "strategy that does not require embeddings."
+            )
+            logger.error(message)
+            raise ValueError(message)
+
         initial_results, search_metrics = self.hybrid_retriever.search(
             query_vector=query_vector,
             query_text=query_for_retrieval,
