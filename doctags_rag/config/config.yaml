@@ -92,11 +92,19 @@ retrieval:
     vector_weight: 0.7
     graph_weight: 0.3
     graph_vector_index: "chunk_embeddings"
+    cache:
+      enable: true
+      max_size: 128
+      ttl_seconds: 600
   max_results: 10
   rerank: true
   confidence_scoring:
     enable: true
     min_confidence: 0.1
+  rerank:
+    enable: false
+    model_name: "castorini/monot5-base-msmarco-10k"
+    top_n: 50
 
 # Query Routing
 query_routing:

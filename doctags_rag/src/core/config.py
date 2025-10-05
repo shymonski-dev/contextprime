@@ -7,7 +7,7 @@ import os
 import yaml
 from typing import Dict, Any, Optional
 from pathlib import Path
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, ConfigDict
 from pydantic_settings import BaseSettings
 from loguru import logger
 
@@ -61,18 +61,28 @@ class EmbeddingsConfig(BaseModel):
 
 class RetrievalConfig(BaseModel):
     """Retrieval configuration."""
+    model_config = ConfigDict(populate_by_name=True)
     hybrid_search: Dict[str, Any] = Field(default_factory=lambda: {
         "enable": True,
         "vector_weight": 0.7,
         "graph_weight": 0.3,
         "graph_vector_index": "chunk_embeddings",
+        "cache": {
+            "enable": True,
+            "max_size": 128,
+            "ttl_seconds": 600,
+        },
     })
     max_results: int = Field(default=10)
-    rerank: bool = Field(default=True)
     confidence_scoring: Dict[str, Any] = Field(default_factory=lambda: {
         "enable": True,
         "min_confidence": 0.1
     })
+    rerank_settings: Dict[str, Any] = Field(default_factory=lambda: {
+        "enable": False,
+        "model_name": "castorini/monot5-base-msmarco-10k",
+        "top_n": 50,
+    }, alias="rerank")
 
 
 class Settings(BaseSettings):

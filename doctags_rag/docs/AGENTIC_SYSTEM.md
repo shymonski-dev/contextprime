@@ -59,7 +59,7 @@ the agentic stack can reason over fresh content.
    pipeline.close()
    ```
 
-2. **Smoke-test hybrid retrieval** – confirm the dual index sees the content:
+2. **Smoke-test hybrid retrieval** – confirm the dual index sees the content (with cache enabled by default):
    ```python
    from src.embeddings import OpenAIEmbeddingModel
    from src.retrieval.hybrid_retriever import HybridRetriever
@@ -80,6 +80,8 @@ the agentic stack can reason over fresh content.
        print(item.metadata.get("title"), item.score)
    retriever.close()
    ```
+
+   _Tip:_ Set `retrieval.hybrid_search.cache.enable` in `config/config.yaml` to toggle the in-memory cache, and `retrieval.rerank.enable` if you want MonoT5 reranking (requires `torch` and `transformers`).
 
 3. **Run the agentic pipeline** – leverage the indexed data for reasoning:
    ```python

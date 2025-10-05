@@ -9,15 +9,18 @@ Combines Neo4j graph database and Qdrant vector database for hybrid search:
 - Confidence scoring
 """
 
-from typing import Dict, List, Any, Optional, Tuple, Set
-from dataclasses import dataclass, field
+from typing import Dict, List, Any, Optional, Tuple, Set, Hashable
+from dataclasses import dataclass, field, replace
 from enum import Enum
 import re
-from collections import defaultdict
+import time
+import copy
+from collections import defaultdict, OrderedDict
 
 from loguru import logger
 
 from ..knowledge_graph.neo4j_manager import Neo4jManager, SearchResult as Neo4jResult
+from ..retrieval.rerankers import MonoT5Reranker
 from .qdrant_manager import QdrantManager, SearchResult as QdrantResult
 from ..core.config import get_settings
 
@@ -63,6 +66,14 @@ class SearchMetrics:
     graph_time_ms: float
     fusion_time_ms: float
     total_time_ms: float
+    cache_hit: bool = False
+
+
+@dataclass
+class _CacheEntry:
+    results: List[HybridSearchResult]
+    timestamp: float
+    strategy: SearchStrategy
 
 
 class HybridRetriever:
@@ -120,6 +131,12 @@ class HybridRetriever:
         hybrid_cfg = getattr(_settings.retrieval, "hybrid_search", {}) or {}
         self.default_graph_vector_index = hybrid_cfg.get("graph_vector_index")
 
+        cache_cfg = hybrid_cfg.get("cache", {}) if isinstance(hybrid_cfg, dict) else {}
+        self.cache_enabled = cache_cfg.get("enable", True)
+        self.cache_max_size = int(cache_cfg.get("max_size", 128))
+        self.cache_ttl = float(cache_cfg.get("ttl_seconds", 600))
+        self._cache: "OrderedDict[Hashable, _CacheEntry]" = OrderedDict()
+
         # Query routing patterns
         self.routing_patterns = {
             QueryType.FACTUAL: [
@@ -140,9 +157,22 @@ class HybridRetriever:
         confidence_cfg = getattr(_settings.retrieval, "confidence_scoring", {}) or {}
         self.min_confidence_threshold = confidence_cfg.get("min_confidence", 0.1)
 
+        rerank_cfg = getattr(_settings.retrieval, "rerank_settings", {}) or {}
+        self.reranker_top_n = int(rerank_cfg.get("top_n", 50))
+        self.reranker: Optional[MonoT5Reranker] = None
+        if rerank_cfg.get("enable", False):
+            model_name = rerank_cfg.get("model_name", "castorini/monot5-base-msmarco-10k")
+            device = rerank_cfg.get("device")
+            try:
+                self.reranker = MonoT5Reranker(model_name=model_name, device=device)
+                logger.info("MonoT5 reranker initialised: %s", model_name)
+            except Exception as err:  # pragma: no cover - optional dependency failures
+                logger.warning("Failed to initialise reranker (%s); continuing without reranking", err)
+
         logger.info(
             f"Hybrid retriever initialized (vector: {self.vector_weight:.2f}, "
-            f"graph: {self.graph_weight:.2f}, min_conf={self.min_confidence_threshold:.2f})"
+            f"graph: {self.graph_weight:.2f}, min_conf={self.min_confidence_threshold:.2f}, "
+            f"cache={'on' if self.cache_enabled else 'off'})"
         )
 
     def _ensure_neo4j(self) -> Optional[Neo4jManager]:
@@ -285,6 +315,29 @@ class HybridRetriever:
             total_time_ms=0,
         )
 
+        cache_key: Optional[Hashable] = None
+        if self.cache_enabled:
+            cache_key = self._build_cache_key(
+                query_text=query_text,
+                query_vector=query_vector,
+                strategy=strategy,
+                top_k=top_k,
+                filters=filters,
+                collection_name=collection_name,
+                vector_index_name=vector_index_name,
+            )
+            cached_entry = self._cache_get(cache_key)
+            if cached_entry:
+                metrics.cache_hit = True
+                metrics.combined_results = len(cached_entry.results)
+                metrics.total_time_ms = (time.time() - start_time) * 1000
+                logger.info(
+                    "Cache hit for query '%s' (strategy=%s)",
+                    query_text,
+                    strategy.value,
+                )
+                return self._clone_results(cached_entry.results)[:top_k], metrics
+
         # Execute searches based on strategy
         vector_results = []
         graph_results = []
@@ -348,8 +401,22 @@ class HybridRetriever:
             r for r in combined_results if r.confidence >= threshold
         ]
 
+        if self.reranker and filtered_results:
+            try:
+                rerank_top_n = min(len(filtered_results), self.reranker_top_n)
+                filtered_results = self.reranker.rerank(
+                    query_text,
+                    filtered_results,
+                    top_k=rerank_top_n,
+                )
+            except Exception as err:  # pragma: no cover - reranker optional
+                logger.warning("Reranker failed: %s", err)
+
         metrics.combined_results = len(filtered_results)
         metrics.total_time_ms = (time.time() - start_time) * 1000
+
+        if self.cache_enabled and cache_key is not None:
+            self._cache_set(cache_key, filtered_results, strategy)
 
         logger.info(
             f"Search completed: {metrics.combined_results} results "
@@ -559,6 +626,74 @@ class HybridRetriever:
             )
             for r in results
         ]
+
+    def _build_cache_key(
+        self,
+        *,
+        query_text: str,
+        query_vector: Optional[List[float]],
+        strategy: SearchStrategy,
+        top_k: int,
+        filters: Optional[Dict[str, Any]],
+        collection_name: Optional[str],
+        vector_index_name: Optional[str],
+    ) -> Hashable:
+        return (
+            strategy.value,
+            top_k,
+            query_text,
+            self._hash_vector(query_vector),
+            self._to_hashable(filters),
+            collection_name,
+            vector_index_name,
+        )
+
+    def _hash_vector(self, vector: Optional[List[float]]) -> Optional[Tuple[float, ...]]:
+        if vector is None:
+            return None
+        return tuple(round(float(x), 4) for x in vector)
+
+    def _to_hashable(self, value: Any) -> Any:
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            return tuple(sorted((k, self._to_hashable(v)) for k, v in value.items()))
+        if isinstance(value, (list, tuple, set)):
+            return tuple(self._to_hashable(v) for v in value)
+        return value
+
+    def _cache_get(self, key: Hashable) -> Optional[_CacheEntry]:
+        if not self.cache_enabled:
+            return None
+        entry = self._cache.get(key)
+        if entry is None:
+            return None
+        if self.cache_ttl > 0 and (time.time() - entry.timestamp) > self.cache_ttl:
+            del self._cache[key]
+            return None
+        self._cache.move_to_end(key)
+        return entry
+
+    def _cache_set(
+        self,
+        key: Hashable,
+        results: List[HybridSearchResult],
+        strategy: SearchStrategy,
+    ) -> None:
+        if not self.cache_enabled:
+            return
+        cloned = self._clone_results(results)
+        self._cache[key] = _CacheEntry(
+            results=cloned,
+            timestamp=time.time(),
+            strategy=strategy,
+        )
+        self._cache.move_to_end(key)
+        while len(self._cache) > self.cache_max_size:
+            self._cache.popitem(last=False)
+
+    def _clone_results(self, results: List[HybridSearchResult]) -> List[HybridSearchResult]:
+        return [copy.deepcopy(r) for r in results]
 
     def _calculate_confidence(
         self,
