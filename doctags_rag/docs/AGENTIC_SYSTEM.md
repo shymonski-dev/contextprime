@@ -39,6 +39,70 @@ All components have been fully implemented with production-ready code:
 - Detailed README and usage guides
 - Verification scripts
 
+## End-to-End Verification with Document Ingestion
+
+Once Neo4j and Qdrant are running (via `docker-compose up neo4j qdrant`), the
+new `DocumentIngestionPipeline` stitches DocTags processing into both stores so
+the agentic stack can reason over fresh content.
+
+1. **Ingest documents** – run a short script after activating the virtual env:
+   ```python
+   from pathlib import Path
+
+   from src.pipelines import DocumentIngestionPipeline
+
+   pipeline = DocumentIngestionPipeline()
+
+   samples = [Path("data/samples/sample_text.txt"), Path("data/samples/sample_markdown.md")]
+   report = pipeline.process_files(samples)
+   print(report.to_dict())
+   pipeline.close()
+   ```
+
+2. **Smoke-test hybrid retrieval** – confirm the dual index sees the content:
+   ```python
+   from src.embeddings import OpenAIEmbeddingModel
+   from src.retrieval.hybrid_retriever import HybridRetriever
+
+   embedder = OpenAIEmbeddingModel("text-embedding-3-small")
+   retriever = HybridRetriever()
+   query = "What is covered in the sample document?"
+   query_vector = embedder.encode([query])[0]
+
+   results, metrics = retriever.search(
+       query_text=query,
+       query_vector=query_vector,
+       top_k=5,
+       strategy="hybrid",
+   )
+   print(metrics)
+   for item in results:
+       print(item.metadata.get("title"), item.score)
+   retriever.close()
+   ```
+
+3. **Run the agentic pipeline** – leverage the indexed data for reasoning:
+   ```python
+   import asyncio
+   from src.agents.agentic_pipeline import AgenticPipeline, AgenticMode
+
+   agentic = AgenticPipeline(mode=AgenticMode.FAST)
+
+   async def main():
+       result = await agentic.process_query("Summarise the onboarding packet")
+       print(result.answer)
+       print(result.assessment.overall_score)
+
+   asyncio.run(main())
+   ```
+
+4. **Inspect communities & monitoring** – optionally run
+   `CommunityPipeline.run(load_from_neo4j=True)` to validate global insights, and
+   review agent logs/metrics under `data/agentic/`.
+
+These checks ensure ingestion, retrieval, and agentic reasoning remain aligned
+after changes.
+
 ## File Structure
 
 ```

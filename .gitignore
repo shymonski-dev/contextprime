@@ -180,7 +180,7 @@ config/secrets.yaml
 # Large model files
 models/
 checkpoints/
-embeddings/
+/embeddings/
 
 # Runtime data
 .claude/

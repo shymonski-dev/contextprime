@@ -101,13 +101,24 @@ class HybridRetriever:
         self._neo4j_init_failed = False
         self._qdrant_init_failed = False
 
-        self.vector_weight = vector_weight
-        self.graph_weight = graph_weight
+        if vector_weight < 0 or graph_weight < 0:
+            raise ValueError("vector_weight and graph_weight must be non-negative")
 
-        # Normalize weights
-        total_weight = self.vector_weight + self.graph_weight
-        self.vector_weight /= total_weight
-        self.graph_weight /= total_weight
+        # Normalise weights while keeping sensible defaults when misconfigured
+        total_weight = vector_weight + graph_weight
+        if total_weight == 0:
+            logger.warning(
+                "Hybrid retriever received zero total weight; defaulting to vector=0.7, graph=0.3"
+            )
+            vector_weight, graph_weight = 0.7, 0.3
+            total_weight = vector_weight + graph_weight
+
+        self.vector_weight = vector_weight / total_weight
+        self.graph_weight = graph_weight / total_weight
+
+        self.default_collection_name = getattr(_settings.qdrant, "collection_name", None)
+        hybrid_cfg = getattr(_settings.retrieval, "hybrid_search", {}) or {}
+        self.default_graph_vector_index = hybrid_cfg.get("graph_vector_index")
 
         # Query routing patterns
         self.routing_patterns = {
@@ -126,9 +137,12 @@ class HybridRetriever:
             ],
         }
 
+        confidence_cfg = getattr(_settings.retrieval, "confidence_scoring", {}) or {}
+        self.min_confidence_threshold = confidence_cfg.get("min_confidence", 0.1)
+
         logger.info(
             f"Hybrid retriever initialized (vector: {self.vector_weight:.2f}, "
-            f"graph: {self.graph_weight:.2f})"
+            f"graph: {self.graph_weight:.2f}, min_conf={self.min_confidence_threshold:.2f})"
         )
 
     def _ensure_neo4j(self) -> Optional[Neo4jManager]:
@@ -221,7 +235,7 @@ class HybridRetriever:
         top_k: int = 10,
         strategy: Optional[SearchStrategy] = None,
         filters: Optional[Dict[str, Any]] = None,
-        min_confidence: float = 0.5,
+        min_confidence: Optional[float] = None,
         vector_index_name: Optional[str] = None,
         collection_name: Optional[str] = None
     ) -> Tuple[List[HybridSearchResult], SearchMetrics]:
@@ -234,7 +248,7 @@ class HybridRetriever:
             top_k: Number of results to return
             strategy: Search strategy (auto-detected if None)
             filters: Optional filters for both databases
-            min_confidence: Minimum confidence threshold
+            min_confidence: Minimum confidence threshold (defaults to config value)
             vector_index_name: Neo4j vector index name
             collection_name: Qdrant collection name
 
@@ -291,8 +305,9 @@ class HybridRetriever:
         if strategy in [SearchStrategy.VECTOR_ONLY, SearchStrategy.HYBRID]:
             if can_use_vector:
                 vector_start = time.time()
+                effective_collection = collection_name or self.default_collection_name
                 vector_results = self._search_vector(
-                    query_vector, top_k, filters, collection_name
+                    query_vector, top_k, filters, effective_collection
                 )
                 metrics.vector_time_ms = (time.time() - vector_start) * 1000
                 metrics.vector_results = len(vector_results)
@@ -302,8 +317,9 @@ class HybridRetriever:
         if strategy in [SearchStrategy.GRAPH_ONLY, SearchStrategy.HYBRID]:
             if can_use_vector:
                 graph_start = time.time()
+                effective_index = vector_index_name or self.default_graph_vector_index
                 graph_results = self._search_graph(
-                    query_vector, query_text, top_k, filters, vector_index_name
+                    query_vector, query_text, top_k, filters, effective_index
                 )
                 metrics.graph_time_ms = (time.time() - graph_start) * 1000
                 metrics.graph_results = len(graph_results)
@@ -324,8 +340,12 @@ class HybridRetriever:
         metrics.fusion_time_ms = (time.time() - fusion_start) * 1000
 
         # Apply confidence filtering
+        threshold = (
+            min_confidence if min_confidence is not None else self.min_confidence_threshold
+        )
+
         filtered_results = [
-            r for r in combined_results if r.confidence >= min_confidence
+            r for r in combined_results if r.confidence >= threshold
         ]
 
         metrics.combined_results = len(filtered_results)
@@ -333,7 +353,7 @@ class HybridRetriever:
 
         logger.info(
             f"Search completed: {metrics.combined_results} results "
-            f"in {metrics.total_time_ms:.2f}ms"
+            f"in {metrics.total_time_ms:.2f}ms (threshold={threshold:.2f})"
         )
 
         return filtered_results[:top_k], metrics

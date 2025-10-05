@@ -17,6 +17,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from loguru import logger
 
+from ..retrieval.hybrid_retriever import SearchStrategy
+
 from .base_agent import BaseAgent, AgentRole, AgentMessage, AgentState
 from .planning_agent import PlanStep, StepType
 
@@ -52,7 +54,8 @@ class ExecutionAgent(BaseAgent):
         retrieval_pipeline: Optional[Any] = None,
         graph_queries: Optional[Any] = None,
         raptor_pipeline: Optional[Any] = None,
-        community_pipeline: Optional[Any] = None
+        community_pipeline: Optional[Any] = None,
+        embedding_model: Optional[Any] = None
     ):
         """
         Initialize execution agent.
@@ -82,6 +85,8 @@ class ExecutionAgent(BaseAgent):
         self.graph_queries = graph_queries
         self.raptor_pipeline = raptor_pipeline
         self.community_pipeline = community_pipeline
+
+        self.embedding_model = embedding_model
 
         # Execution statistics
         self.steps_executed = 0
@@ -331,19 +336,65 @@ class ExecutionAgent(BaseAgent):
         strategy = parameters.get("strategy", "hybrid")
         top_k = parameters.get("top_k", 10)
 
-        if not self.retrieval_pipeline:
-            logger.warning("Retrieval pipeline not configured, using simulated results")
+        if self.retrieval_pipeline and self.embedding_model and hasattr(self.retrieval_pipeline, "search"):
+            try:
+                vector = self.embedding_model.encode([query], show_progress_bar=False)[0]
+                strategy_enum = self._resolve_strategy(strategy)
+                results, metrics = self.retrieval_pipeline.search(
+                    query_vector=vector,
+                    query_text=query,
+                    top_k=top_k,
+                    strategy=strategy_enum,
+                )
+                if results:
+                    logger.debug(
+                        "Hybrid retrieval returned %s results (strategy=%s, threshold=%.2f)",
+                        len(results),
+                        strategy_enum.value,
+                        getattr(self.retrieval_pipeline, "min_confidence_threshold", 0.0),
+                    )
+                    return [
+                        {
+                            "content": item.content,
+                            "score": item.score,
+                            "confidence": item.confidence,
+                            "source": item.source,
+                            "metadata": item.metadata,
+                            "graph_context": item.graph_context,
+                        }
+                        for item in results
+                    ]
+            except Exception as err:  # pragma: no cover - network/driver errors
+                logger.warning(
+                    "Hybrid retrieval failed (%s); falling back to simulated results",
+                    err,
+                )
 
-        # Simulate retrieval (in production would call actual pipeline)
-        results = []
+        logger.warning("Retrieval pipeline not configured, using simulated results")
+
+        simulated = []
         for i in range(min(top_k, 5)):
-            results.append({
+            simulated.append({
                 "content": f"Retrieved content {i} for query: {query}",
                 "score": 0.9 - (i * 0.1),
                 "metadata": {"source": f"doc_{i}", "strategy": strategy}
             })
 
-        return results
+        return simulated
+
+    def _resolve_strategy(self, strategy: Any) -> SearchStrategy:
+        if isinstance(strategy, SearchStrategy):
+            return strategy
+
+        mapping = {
+            "vector": SearchStrategy.VECTOR_ONLY,
+            "vector_only": SearchStrategy.VECTOR_ONLY,
+            "graph": SearchStrategy.GRAPH_ONLY,
+            "graph_only": SearchStrategy.GRAPH_ONLY,
+            "hybrid": SearchStrategy.HYBRID,
+        }
+
+        return mapping.get(str(strategy).lower(), SearchStrategy.HYBRID)
 
     async def _execute_graph_query(
         self,

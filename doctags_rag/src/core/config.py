@@ -64,13 +64,14 @@ class RetrievalConfig(BaseModel):
     hybrid_search: Dict[str, Any] = Field(default_factory=lambda: {
         "enable": True,
         "vector_weight": 0.7,
-        "graph_weight": 0.3
+        "graph_weight": 0.3,
+        "graph_vector_index": "chunk_embeddings",
     })
     max_results: int = Field(default=10)
     rerank: bool = Field(default=True)
     confidence_scoring: Dict[str, Any] = Field(default_factory=lambda: {
         "enable": True,
-        "min_confidence": 0.5
+        "min_confidence": 0.1
     })
 
 

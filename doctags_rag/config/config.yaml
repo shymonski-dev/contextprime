@@ -7,11 +7,11 @@ system:
   environment: "development"
   log_level: "INFO"
 
-# Neo4j Graph Database (Aura Cloud)
+# Neo4j Graph Database (Local Docker)
 neo4j:
-  uri: "neo4j+s://fa38c534.databases.neo4j.io"
+  uri: "bolt://localhost:7687"
   username: "neo4j"
-  password: "LJkgSVCGeV13qNsEuHwGpO-cqfDGCCggqxuUpPNeqaM"
+  password: "password"
   database: "neo4j"
   max_connection_pool_size: 50
   connection_timeout: 30
@@ -91,11 +91,12 @@ retrieval:
     enable: true
     vector_weight: 0.7
     graph_weight: 0.3
+    graph_vector_index: "chunk_embeddings"
   max_results: 10
   rerank: true
   confidence_scoring:
     enable: true
-    min_confidence: 0.5
+    min_confidence: 0.1
 
 # Query Routing
 query_routing:

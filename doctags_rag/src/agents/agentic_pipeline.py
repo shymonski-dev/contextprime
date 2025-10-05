@@ -27,6 +27,8 @@ from .feedback_aggregator import FeedbackAggregator, AggregatedFeedback
 from .reinforcement_learning import RLModule, RLState, RewardSignal
 from .memory_system import MemorySystem
 from .performance_monitor import PerformanceMonitor
+from ..retrieval.hybrid_retriever import HybridRetriever
+from ..embeddings import OpenAIEmbeddingModel
 
 
 class AgenticMode(Enum):
@@ -107,13 +109,30 @@ class AgenticPipeline:
         # Initialize coordinator
         self.coordinator = AgentCoordinator()
 
+        # Initialize retrieval components if not provided
+        if retrieval_pipeline is None:
+            try:
+                retrieval_pipeline = HybridRetriever()
+            except Exception as err:  # pragma: no cover - external services
+                logger.warning(f"Hybrid retriever unavailable: {err}")
+                retrieval_pipeline = None
+
+        embedding_model = None
+        if retrieval_pipeline is not None:
+            try:
+                embedding_model = OpenAIEmbeddingModel()
+            except Exception as err:  # pragma: no cover - missing API key
+                logger.warning(f"Embedding model unavailable: {err}")
+                embedding_model = None
+
         # Initialize agents
         self.planner = PlanningAgent()
         self.executor = ExecutionAgent(
             retrieval_pipeline=retrieval_pipeline,
             graph_queries=graph_queries,
             raptor_pipeline=raptor_pipeline,
-            community_pipeline=community_pipeline
+            community_pipeline=community_pipeline,
+            embedding_model=embedding_model,
         )
         self.evaluator = EvaluationAgent()
         self.learner = LearningAgent(

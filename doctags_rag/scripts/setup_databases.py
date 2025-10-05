@@ -70,6 +70,15 @@ def setup_neo4j(manager: Neo4jManager) -> bool:
             similarity_function="cosine"
         )
 
+        # Chunk embeddings index
+        manager.initialize_vector_index(
+            index_name="chunk_embeddings",
+            label="Chunk",
+            property_name="embedding",
+            dimensions=1536,
+            similarity_function="cosine"
+        )
+
         # Entity embeddings index (if using entity embeddings)
         manager.initialize_vector_index(
             index_name="entity_embeddings",
