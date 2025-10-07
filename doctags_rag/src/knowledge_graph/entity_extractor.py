@@ -137,14 +137,21 @@ class EntityExtractor:
         self.settings = get_settings()
 
         # Load spaCy model
+        self.available = True
+        self._spacy_unavailable_reason: Optional[str] = None
+
         try:
             self.nlp = spacy.load(spacy_model)
             logger.info(f"Loaded spaCy model: {spacy_model}")
-        except OSError:
-            logger.warning(f"Model {spacy_model} not found. Downloading...")
-            import subprocess
-            subprocess.run(["python", "-m", "spacy", "download", spacy_model])
-            self.nlp = spacy.load(spacy_model)
+        except OSError as err:
+            guidance = (
+                f"spaCy model '{spacy_model}' is not installed. "
+                f"Run `python -m spacy download {spacy_model}` to enable entity extraction."
+            )
+            logger.warning(guidance)
+            self.available = False
+            self.nlp = None
+            self._spacy_unavailable_reason = str(err)
 
         # Add custom components
         if custom_patterns:
@@ -158,6 +165,10 @@ class EntityExtractor:
     def _add_custom_patterns(self, patterns: List[Dict[str, Any]]) -> None:
         """Add custom entity patterns to spaCy pipeline."""
         from spacy.matcher import Matcher
+
+        if not self.available or self.nlp is None:
+            logger.warning("Cannot add custom patterns because spaCy model is unavailable")
+            return
 
         if "custom_entity_matcher" not in self.nlp.pipe_names:
             matcher = Matcher(self.nlp.vocab)
@@ -215,6 +226,17 @@ class EntityExtractor:
         Returns:
             EntityExtractionResult with extracted entities
         """
+        if not self.available or self.nlp is None:
+            logger.warning(
+                "Entity extraction requested but spaCy model is unavailable; returning no entities"
+            )
+            return EntityExtractionResult(
+                entities=[],
+                document_id=document_id,
+                metadata={"disabled": True, "reason": getattr(self, "_spacy_unavailable_reason", None)},
+                statistics={}
+            )
+
         # Process with spaCy
         doc = self.nlp(text)
 
@@ -284,6 +306,20 @@ class EntityExtractor:
         Returns:
             List of EntityExtractionResult
         """
+        if not self.available or self.nlp is None:
+            logger.warning(
+                "Batch entity extraction requested but spaCy model is unavailable; returning empty results"
+            )
+            return [
+                EntityExtractionResult(
+                    entities=[],
+                    document_id=doc_id,
+                    metadata={"disabled": True, "reason": getattr(self, "_spacy_unavailable_reason", None)},
+                    statistics={}
+                )
+                for _, doc_id in texts
+            ]
+
         results = []
 
         for i in range(0, len(texts), self.batch_size):
@@ -513,17 +549,27 @@ Return only the JSON array, no other text."""
         # Sort by confidence (descending)
         entities.sort(key=lambda e: e.confidence, reverse=True)
 
-        # Remove exact duplicates
-        seen = set()
+        # Remove exact duplicates and repeated mentions
+        seen_spans = set()
+        seen_text_type = set()
         unique_entities = []
 
         for entity in entities:
             # Create a normalized key
-            key = (entity.text.lower(), entity.type, entity.start_char, entity.end_char)
+            span_key = (entity.text.lower(), entity.type, entity.start_char, entity.end_char)
+            text_key = (entity.text.lower(), entity.type)
 
-            if key not in seen:
-                seen.add(key)
-                unique_entities.append(entity)
+            if span_key in seen_spans:
+                continue
+
+            seen_spans.add(span_key)
+
+            # Only keep first occurrence per text/type combination
+            if text_key in seen_text_type:
+                continue
+
+            seen_text_type.add(text_key)
+            unique_entities.append(entity)
 
         # Remove overlapping entities (keep higher confidence)
         final_entities = []

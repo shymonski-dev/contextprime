@@ -1,11 +1,12 @@
 # Core Dependencies
-python-dotenv==1.0.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
+python-dotenv==1.0.1
+pydantic==2.11.0
+pydantic-settings==2.4.0
+python-multipart==0.0.9
 
 # Document Processing
-paddleocr==2.7.0
-paddlepaddle==3.2.0
+paddleocr==2.7.0; platform_machine != "aarch64"
+paddlepaddle==3.2.0; platform_machine != "aarch64"
 pdf2image==1.16.3
 PyPDF2==3.0.1
 python-docx==1.1.0
@@ -14,28 +15,29 @@ lxml==5.0.0
 
 # OCR and Image Processing
 pillow==10.1.0
-opencv-python==4.8.1.78
+opencv-python==4.6.0.66
 pytesseract==0.3.10
 
 # Graph Database
 neo4j==5.15.0
-py2neo==2021.2.3
+py2neo==2021.2.4
 
 # Vector Database
 qdrant-client==1.7.0
 pinecone-client==3.0.0
 
 # Embeddings and LLMs
-openai==1.10.0
-langchain==0.1.0
-langchain-community==0.0.10
-langchain-openai==0.0.3
-sentence-transformers==2.2.2
+openai==1.40.2
+langchain==0.2.3
+langchain-community==0.2.3
+langchain-openai==0.1.7
+sentence-transformers==2.6.1
 transformers==4.36.2
+sentencepiece==0.1.99
 
 # Knowledge Graph Tools
 networkx==3.2.1
-spacy==3.7.2
+spacy==3.8.7
 scikit-learn==1.3.2
 rapidfuzz==3.5.2
 
@@ -48,8 +50,12 @@ matplotlib==3.8.2
 
 # RAPTOR Summarization Dependencies
 umap-learn==0.5.5
-hdbscan==0.8.33
+hdbscan==0.8.39; platform_machine != "aarch64"
 anthropic==0.18.0
+langdetect==1.0.9
+
+# PDF Utilities
+PyMuPDF==1.23.8
 
 # Advanced Retrieval Dependencies
 nltk==3.8.1
@@ -58,7 +64,7 @@ diskcache==5.6.3
 # API Framework
 fastapi==0.108.0
 uvicorn==0.25.0
-httpx==0.25.2
+httpx==0.27.0
 
 # Data Processing
 numpy==1.24.3

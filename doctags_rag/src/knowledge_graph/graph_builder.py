@@ -363,9 +363,14 @@ class GraphBuilder:
             return entity_node_ids
 
         # Safe key access to avoid KeyError
-        for r in result:
+        for index, r in enumerate(result):
             entity_key = r.get("entity_key")
             node_id = r.get("node_id")
+
+            # Some drivers/tests may drop the projected key; fall back to ordered entity list
+            if not entity_key and index < len(entity_data):
+                entity_key = entity_data[index]["key"]
+
             if entity_key and node_id:
                 entity_node_ids[entity_key] = node_id
                 self.entity_node_map[entity_key] = node_id

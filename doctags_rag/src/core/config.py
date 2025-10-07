@@ -59,6 +59,12 @@ class EmbeddingsConfig(BaseModel):
     api_key: Optional[str] = Field(default=None)
 
 
+class PathsConfig(BaseModel):
+    """Filesystem paths used by the application."""
+
+    models_dir: str = Field(default="models")
+
+
 class RetrievalConfig(BaseModel):
     """Retrieval configuration."""
     model_config = ConfigDict(populate_by_name=True)
@@ -95,6 +101,7 @@ class Settings(BaseSettings):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     embeddings: EmbeddingsConfig = Field(default_factory=EmbeddingsConfig)
     retrieval: RetrievalConfig = Field(default_factory=RetrievalConfig)
+    paths: PathsConfig = Field(default_factory=PathsConfig)
 
     # System settings
     environment: str = Field(default="development")
@@ -125,9 +132,10 @@ class Settings(BaseSettings):
         settings = cls(**settings_dict)
 
         # Override API keys from environment if present
-        if os.getenv("OPENAI_API_KEY"):
-            settings.llm.api_key = os.getenv("OPENAI_API_KEY")
-            settings.embeddings.api_key = os.getenv("OPENAI_API_KEY")
+        openai_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI__API_KEY")
+        if openai_key:
+            settings.llm.api_key = openai_key
+            settings.embeddings.api_key = openai_key
 
         if os.getenv("ANTHROPIC_API_KEY"):
             if settings.llm.provider == "anthropic":
@@ -138,6 +146,34 @@ class Settings(BaseSettings):
 
         if os.getenv("QDRANT_API_KEY"):
             settings.qdrant.api_key = os.getenv("QDRANT_API_KEY")
+
+        env_overrides = {
+            "QDRANT_HOST": ("qdrant", "host"),
+            "QDRANT__HOST": ("qdrant", "host"),
+            "QDRANT_PORT": ("qdrant", "port"),
+            "QDRANT__PORT": ("qdrant", "port"),
+            "NEO4J_URI": ("neo4j", "uri"),
+            "NEO4J__URI": ("neo4j", "uri"),
+        }
+
+        for env_name, (section, field) in env_overrides.items():
+            value = os.getenv(env_name)
+            if value is not None:
+                target = getattr(settings, section)
+                if field == "port":
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        logger.warning(f"Invalid integer for {env_name}: {value}")
+                        continue
+                setattr(target, field, value)
+
+        project_root = Path(__file__).resolve().parents[2]
+        models_dir = Path(settings.paths.models_dir).expanduser()
+        if not models_dir.is_absolute():
+            models_dir = project_root / models_dir
+        models_dir.mkdir(parents=True, exist_ok=True)
+        settings.paths.models_dir = str(models_dir)
 
         # Setup logging
         logger.remove()

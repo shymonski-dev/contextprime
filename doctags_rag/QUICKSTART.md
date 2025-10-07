@@ -119,6 +119,13 @@ config = PipelineConfig(
 )
 ```
 
+### Semantic Chunking
+
+Semantic chunking requires a local embedding model. Set the environment variable `DOCTAGS_SEMANTIC_MODEL`
+to the name of a Sentence Transformers model (for example `sentence-transformers/all-MiniLM-L6-v2`) before
+launching the API or pipeline. When the model is not configured, the system automatically falls back to
+structure-aware chunking and the web UI disables the semantic option.
+
 ## Access Structured Data
 
 ### Parsed Elements
@@ -302,3 +309,14 @@ streaming = StreamingPipeline(config)
 ## Full Documentation
 
 See `/PROCESSING_IMPLEMENTATION.md` for complete technical documentation.
+
+### Web Interface Demo
+
+You can test the pipeline through the bundled FastAPI web UI without writing code:
+
+```bash
+cd doctags_rag
+uvicorn src.api.main:app --reload
+```
+
+Open http://127.0.0.1:8000/ in your browser to access the interface. Upload a document, adjust chunking settings, and inspect the generated DocTags metadata, chunk previews, and markdown reconstruction on the right-hand side. Processed documents are stored in memory for the current session only.

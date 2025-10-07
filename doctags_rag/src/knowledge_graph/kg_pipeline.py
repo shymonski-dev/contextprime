@@ -82,8 +82,10 @@ class KnowledgeGraphPipeline:
         self.settings = get_settings()
 
         # Initialize components
-        self.neo4j_manager = neo4j_manager or Neo4jManager()
-        self.graph_builder = GraphBuilder(neo4j_manager=self.neo4j_manager)
+        self.neo4j_manager = neo4j_manager
+        self.graph_builder: Optional[GraphBuilder] = None
+        self._graph_disabled = False
+        self._graph_disable_reason: Optional[str] = None
 
         if self.config.extract_entities:
             self.entity_extractor = EntityExtractor(
@@ -203,7 +205,29 @@ class KnowledgeGraphPipeline:
 
         # Stage 4: Graph construction
         logger.debug(f"Building graph for {doc_id}")
-        build_result = self.graph_builder.build_document_graph(
+        graph_builder = self._get_graph_builder()
+
+        if graph_builder is None:
+            logger.warning(
+                "Neo4j unavailable, skipping graph build for %s (reason: %s)",
+                doc_id,
+                self._graph_disable_reason or "unknown",
+            )
+
+            return GraphBuildResult(
+                nodes_created=0,
+                relationships_created=0,
+                entities_linked=0,
+                documents_processed=1,
+                statistics={
+                    "graph_disabled": True,
+                    "graph_disable_reason": self._graph_disable_reason,
+                    "entities": len(entity_result.entities),
+                    "relationships": len(relationship_result.relationships),
+                },
+            )
+
+        build_result = graph_builder.build_document_graph(
             doc_metadata=metadata,
             chunks=chunk_metas,
             entity_result=entity_result,
@@ -257,10 +281,12 @@ class KnowledgeGraphPipeline:
                 continue
 
         # Create cross-document links
-        if len(results) > 1:
+        if len(results) > 1 and self._get_graph_builder():
             logger.info("Creating cross-document links")
             doc_ids = [doc["doc_id"] for doc in documents]
-            self.graph_builder.create_cross_document_links(doc_ids)
+            graph_builder = self._get_graph_builder()
+            if graph_builder:
+                graph_builder.create_cross_document_links(doc_ids)
 
         # Aggregate results
         processing_time = (datetime.now() - start_time).total_seconds()
@@ -315,7 +341,13 @@ class KnowledgeGraphPipeline:
         DETACH DELETE d, c
         """
 
-        self.neo4j_manager.execute_write_query(query, {"doc_id": doc_id})
+        graph_builder = self._get_graph_builder()
+        if not graph_builder:
+            raise RuntimeError(
+                "Neo4j is not available; cannot update existing graph documents"
+            )
+
+        graph_builder.neo4j_manager.execute_write_query(query, {"doc_id": doc_id})
 
         # Process document as new
         return self.process_document(text, doc_id, doc_metadata, chunks)
@@ -341,7 +373,13 @@ class KnowledgeGraphPipeline:
         RETURN count(d) as deleted_count
         """
 
-        result = self.neo4j_manager.execute_write_query(query, {"doc_id": doc_id})
+        graph_builder = self._get_graph_builder()
+        if not graph_builder:
+            raise RuntimeError(
+                "Neo4j is not available; cannot delete graph documents"
+            )
+
+        result = graph_builder.neo4j_manager.execute_write_query(query, {"doc_id": doc_id})
         deleted = result[0]["deleted_count"] > 0 if result else False
 
         if deleted:
@@ -414,6 +452,38 @@ class KnowledgeGraphPipeline:
 
         return chunks
 
+    def _get_graph_builder(self) -> Optional[GraphBuilder]:
+        """Lazily initialize the graph builder when Neo4j is available."""
+        if self._graph_disabled:
+            return None
+
+        if self.graph_builder:
+            return self.graph_builder
+
+        manager = self.neo4j_manager
+
+        if manager is None:
+            try:
+                manager = Neo4jManager()
+                self.neo4j_manager = manager
+            except Exception as err:  # pragma: no cover - depends on environment
+                reason = str(err)
+                logger.warning(f"Neo4j unavailable during initialization: {reason}")
+                self._graph_disabled = True
+                self._graph_disable_reason = reason
+                return None
+
+        try:
+            self.graph_builder = GraphBuilder(neo4j_manager=manager)
+        except Exception as err:  # pragma: no cover - depends on environment
+            reason = str(err)
+            logger.warning(f"Failed to initialize graph builder: {reason}")
+            self._graph_disabled = True
+            self._graph_disable_reason = reason
+            return None
+
+        return self.graph_builder
+
     def _aggregate_statistics(
         self,
         results: List[GraphBuildResult]
@@ -435,7 +505,14 @@ class KnowledgeGraphPipeline:
 
     def get_pipeline_statistics(self) -> Dict[str, Any]:
         """Get overall pipeline statistics."""
-        graph_stats = self.graph_builder.get_statistics()
+        graph_builder = self._get_graph_builder()
+        if graph_builder is None:
+            graph_stats = {
+                "graph_disabled": True,
+                "reason": self._graph_disable_reason,
+            }
+        else:
+            graph_stats = graph_builder.get_statistics()
 
         stats = {
             "graph_stats": graph_stats,

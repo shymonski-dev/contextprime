@@ -406,22 +406,65 @@ python -c "import nltk; nltk.download('wordnet'); nltk.download('omw-1.4')"
 
 ## 🐳 Docker Deployment
 
+The compose file ships with services for Neo4j, Qdrant, and the DocTags API.
+The application image builds from `doctags_rag/Dockerfile` and mounts the
+repo-local `models/` directory so large Hugging Face checkpoints remain outside
+the container.
+
+> **Note**: On ARM64 builds the Docker image skips heavy optional packages that
+> lack wheels (`paddleocr`, `paddlepaddle`, `hdbscan`). OCR and RAPTOR features
+> will be disabled in that environment unless you install those dependencies
+> manually.
+
+> **Tip**: `python-multipart` and `langdetect` are now bundled in the base
+> requirements so FastAPI form uploads and language detection work out of the
+> box.
+>
+> **MonoT5 reminder**: Install `sentencepiece` (already pinned in
+> `requirements.txt`) before enabling the reranker, otherwise the tokenizer
+> cannot initialise.
+>
+> **Embedding reminder**: All bundled collections use OpenAI
+> `text-embedding-3-small` (1536‑d). When running ad-hoc retrieval tests, prefer
+> `src.embeddings.openai_embeddings.OpenAIEmbeddingModel` so your query vectors
+> match the stored dimensionality.
+
 ```bash
-# Start databases
-docker-compose up -d neo4j qdrant
+# 1) Build the DocTags application image
+docker compose build app
 
-# Stop databases
-docker-compose down
+# 2) (Optional) Download MonoT5 weights into ./doctags_rag/models
+docker compose run --rm app python scripts/download_models.py
 
-# Stop and remove data
-docker-compose down -v
+# 3) Launch the full stack
+docker compose up -d neo4j qdrant app
+
+# 4) Follow application logs
+docker compose logs -f app
+
+# 5) Stop all services
+docker compose down
+
+# 6) Tear down services and remove persistent volumes
+docker compose down -v
 ```
 
 Access points:
+- DocTags API/UI: http://localhost:8000
 - Neo4j Browser: http://localhost:7474
 - Neo4j Bolt: bolt://localhost:7687
 - Qdrant API: http://localhost:6333
 - Qdrant Dashboard: http://localhost:6333/dashboard
+
+The app container reads environment variables from `doctags_rag/.env`. Set
+your `OPENAI_API_KEY` (or alternate providers) there before booting the stack.
+The `./doctags_rag/models` and `./doctags_rag/data` directories are mounted into
+the container; any ingested artifacts or downloaded reranker weights persist
+across rebuilds.
+
+> **Container networking**: when you target services from inside Docker, use the
+> compose service names (e.g. `qdrant`, `neo4j`). The bundled `.env` already sets
+> `QDRANT_HOST=qdrant` for you.
 
 ---
 

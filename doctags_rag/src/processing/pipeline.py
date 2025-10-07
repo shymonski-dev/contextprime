@@ -13,13 +13,14 @@ Orchestrates the complete document processing workflow:
 Supports batch processing, error handling, and progress tracking.
 """
 
-from typing import Dict, List, Any, Optional, Callable, Union
+from typing import Dict, List, Any, Optional, Callable, Union, Tuple
 from dataclasses import dataclass, field
 from pathlib import Path
 from enum import Enum
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import traceback
+import os
 
 from loguru import logger
 
@@ -79,6 +80,7 @@ class PipelineConfig:
     chunk_size: int = 1000
     chunk_overlap: int = 200
     chunking_method: str = 'structure'  # 'structure' or 'semantic'
+    semantic_model: Optional[str] = None
 
     # Processing settings
     max_file_size_mb: float = 100.0
@@ -104,6 +106,9 @@ class DocumentProcessingPipeline:
     Orchestrates all processing stages with error handling,
     progress tracking, and batch processing support.
     """
+
+    _SEMANTIC_MODEL_CACHE: Dict[str, Any] = {}
+    _SEMANTIC_MODEL_ERRORS: Dict[str, str] = {}
 
     def __init__(self, config: Optional[PipelineConfig] = None):
         """
@@ -165,15 +170,55 @@ class DocumentProcessingPipeline:
         self.doctags_processor = DocTagsProcessor()
 
         # Chunker
+        self.actual_chunking_method = 'structure'
+        self.semantic_chunking_error: Optional[str] = None
+        self.semantic_model_name: Optional[str] = None
+
         if self.config.chunking_method == 'semantic':
-            self.chunker = SemanticChunker(
-                chunk_size=self.config.chunk_size
+            model_name = (
+                self.config.semantic_model
+                or os.getenv('DOCTAGS_SEMANTIC_MODEL')
             )
+            self.semantic_model_name = model_name
+
+            if not model_name:
+                self.semantic_chunking_error = (
+                    "Semantic chunking requested but no semantic model configured. "
+                    "Set PipelineConfig.semantic_model or DOCTAGS_SEMANTIC_MODEL."
+                )
+                logger.warning(self.semantic_chunking_error)
+                self.chunker = StructurePreservingChunker(
+                    chunk_size=self.config.chunk_size,
+                    chunk_overlap=self.config.chunk_overlap
+                )
+            else:
+                embeddings_model, error = self._get_semantic_model(model_name)
+                if embeddings_model is None:
+                    self.semantic_chunking_error = error or (
+                        "Semantic chunking unavailable for unknown reason"
+                    )
+                    logger.warning(
+                        f"Semantic chunker unavailable ({self.semantic_chunking_error}); "
+                        "falling back to structure-preserving chunks"
+                    )
+                    self.chunker = StructurePreservingChunker(
+                        chunk_size=self.config.chunk_size,
+                        chunk_overlap=self.config.chunk_overlap
+                    )
+                else:
+                    self.chunker = SemanticChunker(
+                        chunk_size=self.config.chunk_size,
+                        embeddings_model=embeddings_model
+                    )
+                    self.actual_chunking_method = 'semantic'
         else:
             self.chunker = StructurePreservingChunker(
                 chunk_size=self.config.chunk_size,
                 chunk_overlap=self.config.chunk_overlap
             )
+
+        if self.actual_chunking_method != 'semantic':
+            self.actual_chunking_method = 'structure'
 
         logger.info("Pipeline initialized successfully")
 
@@ -267,6 +312,10 @@ class DocumentProcessingPipeline:
                     'num_tags': len(doctags_doc.tags),
                     'num_chunks': len(chunks),
                     'file_type': parsed_doc.metadata.get('extension', 'unknown'),
+                    'chunking_method': self.actual_chunking_method,
+                    'chunking_method_requested': self.config.chunking_method,
+                    'semantic_chunking_error': self.semantic_chunking_error,
+                    'semantic_model': self.semantic_model_name,
                 }
             )
 
@@ -425,15 +474,18 @@ class DocumentProcessingPipeline:
         Returns:
             List of file paths
         """
-        files = []
+        files: List[Path] = []
 
-        if recursive:
-            pattern = '**/*'
-        else:
-            pattern = '*'
+        candidates = directory.rglob('*') if recursive else directory.glob('*')
+        supported = {ext.lower() for ext in self.config.supported_formats}
 
-        for ext in self.config.supported_formats:
-            files.extend(directory.glob(f'{pattern}.{ext}'))
+        for candidate in candidates:
+            if not candidate.is_file():
+                continue
+
+            ext = candidate.suffix.lstrip('.').lower()
+            if ext in supported:
+                files.append(candidate)
 
         return sorted(files)
 
@@ -595,3 +647,51 @@ def create_pipeline(
     )
 
     return DocumentProcessingPipeline(config)
+
+    @classmethod
+    def _get_semantic_model(cls, model_name: str) -> Tuple[Optional[Any], Optional[str]]:
+        """Return cached semantic model or load it lazily."""
+        if model_name in cls._SEMANTIC_MODEL_CACHE:
+            return cls._SEMANTIC_MODEL_CACHE[model_name], None
+
+        if model_name in cls._SEMANTIC_MODEL_ERRORS:
+            return None, cls._SEMANTIC_MODEL_ERRORS[model_name]
+
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError:
+            error = "sentence-transformers package is not installed"
+            cls._SEMANTIC_MODEL_ERRORS[model_name] = error
+            return None, error
+
+        try:
+            model = SentenceTransformer(model_name)
+        except Exception as err:  # pragma: no cover - depends on environment
+            error = str(err)
+            cls._SEMANTIC_MODEL_ERRORS[model_name] = error
+            return None, error
+
+        cls._SEMANTIC_MODEL_CACHE[model_name] = model
+        return model, None
+
+    @classmethod
+    def semantic_support_status(cls, model_name: Optional[str] = None) -> Dict[str, Any]:
+        """Report semantic chunking availability for diagnostics."""
+        configured_name = model_name or os.getenv('DOCTAGS_SEMANTIC_MODEL')
+        if not configured_name:
+            return {
+                'available': False,
+                'reason': 'Set DOCTAGS_SEMANTIC_MODEL or PipelineConfig.semantic_model to enable semantic chunking.'
+            }
+
+        model, error = cls._get_semantic_model(configured_name)
+        if model is None:
+            return {
+                'available': False,
+                'reason': error
+            }
+
+        return {
+            'available': True,
+            'model': configured_name
+        }

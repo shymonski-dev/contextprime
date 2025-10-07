@@ -17,19 +17,43 @@ python scripts/setup_databases.py
 
 ### Docker Management
 ```bash
-# Start databases
-docker-compose up -d neo4j qdrant
+# Build the DocTags application image
+docker compose build app
 
-# Stop databases
-docker-compose down
+# (Optional) Download MonoT5 weights into ./doctags_rag/models
+docker compose run --rm app python scripts/download_models.py
+
+# Start application + databases
+docker compose up -d neo4j qdrant app
 
 # View logs
+docker compose logs -f app
 docker logs doctags-neo4j
 docker logs doctags-qdrant
 
+# Stop services
+docker compose down
+
 # Reset everything (WARNING: deletes all data)
-docker-compose down -v
+docker compose down -v
 ```
+
+*ARM64 reminder*: the app container omits `paddleocr`, `paddlepaddle`, and
+`hdbscan` to avoid long source builds. Install them manually if you need OCR or
+RAPTOR summarization inside Docker.
+
+Form uploads require `python-multipart`, and language detection relies on
+`langdetect`; both are included in the base image now.
+
+Inside the container, reach services via their compose names:
+- Neo4j → `bolt://neo4j:7687`
+- Qdrant → `http://qdrant:6333`
+
+Retrieval queries should use the OpenAI embedding model (`text-embedding-3-small`)
+to match the 1536‑dimension vectors stored in both Qdrant and Neo4j.
+
+MonoT5 reranking requires the `sentencepiece` package (included in
+requirements); ensure it is installed before enabling the reranker.
 
 ### Database Access
 ```bash

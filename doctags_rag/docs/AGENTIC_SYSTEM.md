@@ -81,7 +81,10 @@ the agentic stack can reason over fresh content.
    retriever.close()
    ```
 
-   _Tip:_ Set `retrieval.hybrid_search.cache.enable` in `config/config.yaml` to toggle the in-memory cache, and `retrieval.rerank.enable` if you want MonoT5 reranking (requires `torch` and `transformers`).
+   _Tip:_ Set `retrieval.hybrid_search.cache.enable` in `config/config.yaml` to toggle the in-memory cache. To enable MonoT5 reranking:
+   - Install `torch` and `transformers` inside the virtual environment.
+   - Run `python scripts/download_models.py` (or add `--force` to refresh) to populate the repo-local cache under `paths.models_dir` (defaults to `./models`).
+   - Flip `retrieval.rerank.enable` to `true` once the weights are present.
 
 3. **Run the agentic pipeline** – leverage the indexed data for reasoning:
    ```python

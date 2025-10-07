@@ -7,6 +7,10 @@ system:
   environment: "development"
   log_level: "INFO"
 
+# Local Paths
+paths:
+  models_dir: "models"
+
 # Neo4j Graph Database (Local Docker)
 neo4j:
   uri: "bolt://localhost:7687"

@@ -1,0 +1,28 @@
+# Version-controlled project artifacts
+.git
+
+# Python caches and build outputs
+__pycache__
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.dylib
+*.egg-info
+.pytest_cache
+.benchmarks
+build
+dist
+
+# Local environments and IDE files
+venv
+.env
+.DS_Store
+.idea
+.vscode
+
+# Runtime caches not required in the image
+.numba_cache
+
+# Large or optional assets mounted at runtime
+models/
