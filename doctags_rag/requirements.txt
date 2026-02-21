@@ -5,7 +5,7 @@ pydantic-settings==2.4.0
 python-multipart==0.0.22
 
 # Document Processing
-paddleocr==2.7.0; platform_machine != "aarch64"
+paddleocr==3.4.0; platform_machine != "aarch64"
 paddlepaddle==3.2.0; platform_machine != "aarch64"
 pdf2image==1.16.3
 PyPDF2==3.0.1
