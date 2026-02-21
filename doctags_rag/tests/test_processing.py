@@ -62,6 +62,13 @@ class TestFileTypeDetector:
         assert FileTypeDetector.is_supported(pdf_file, ['pdf', 'docx'])
         assert not FileTypeDetector.is_supported(pdf_file, ['docx', 'html'])
 
+    def test_is_supported_uppercase_extension(self, tmp_path):
+        """Ensure uppercase extensions are recognised."""
+        pdf_file = tmp_path / "REPORT.PDF"
+        pdf_file.write_bytes(b'%PDF-1.4\n')
+
+        assert FileTypeDetector.is_supported(pdf_file, ['pdf'])
+
 
 class TestTextCleaner:
     """Test text cleaning utilities."""
@@ -446,6 +453,37 @@ This section contains information about the second topic.
         assert result.doctags_doc is not None
         assert result.chunks is not None
         assert len(result.chunks) > 0
+
+    def test_semantic_chunking_without_model_falls_back(self, tmp_path):
+        """Semantic chunking should fall back to structure when no model configured."""
+        text_file = tmp_path / "semantic.txt"
+        text_file.write_text("Paragraph one. Paragraph two.", encoding='utf-8')
+
+        config = PipelineConfig(
+            chunk_size=100,
+            chunk_overlap=20,
+            chunking_method='semantic',
+            semantic_model=None,
+            enable_ocr=False,
+        )
+        pipeline = DocumentProcessingPipeline(config)
+        result = pipeline.process_file(text_file)
+
+        assert result.success
+        metadata = result.metadata
+        assert metadata.get('chunking_method') == 'structure'
+        assert metadata.get('semantic_chunking_error')
+
+    def test_find_supported_files_handles_uppercase_extensions(self, tmp_path):
+        """Uppercase extensions should be detected as supported."""
+        doc_dir = tmp_path
+        upper_file = doc_dir / "WHITEPAPER.PDF"
+        upper_file.write_bytes(b'%PDF-1.4\n')
+
+        pipeline = DocumentProcessingPipeline()
+        files = pipeline._find_supported_files(doc_dir, recursive=False)
+
+        assert upper_file in files
 
     def test_process_html_file(self, tmp_path):
         """Test processing an HTML file."""

@@ -1,5 +1,5 @@
 """
-CRAG-Style Confidence Scoring System for DocTags RAG.
+CRAG-Style Confidence Scoring System for Contextprime.
 
 Implements comprehensive confidence assessment for retrieved chunks:
 - Multi-signal retrieval quality scoring
@@ -77,7 +77,7 @@ class ConfidenceScore:
 @dataclass
 class ConfidenceThresholds:
     """Configurable thresholds for confidence levels."""
-    correct_threshold: float = 0.75
+    correct_threshold: float = 0.69
     ambiguous_threshold: float = 0.45
     semantic_weight: float = 0.30
     keyword_weight: float = 0.25
@@ -128,7 +128,8 @@ class ConfidenceScorer:
             'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be',
             'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will',
             'would', 'should', 'could', 'may', 'might', 'can', 'this', 'that',
-            'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they'
+            'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they',
+            'what', 'who', 'where', 'when', 'why', 'how'
         }
 
         logger.info("Confidence scorer initialized")
@@ -269,6 +270,10 @@ class ConfidenceScorer:
         # Combine Jaccard and recall with weights
         score = 0.4 * jaccard + 0.6 * recall
 
+        # If every query keyword is present in the content, treat as high lexical alignment.
+        if query_words and query_words.issubset(content_words):
+            score = max(score, 0.85)
+
         return min(1.0, score)
 
     def _score_entity_match(self, query: str, content: str) -> float:
@@ -343,6 +348,10 @@ class ConfidenceScorer:
 
         # Bonus for having author information
         if metadata.get("author"):
+            score += 0.1
+
+        # Bonus for explicit verification signal
+        if metadata.get("verified") is True:
             score += 0.1
 
         # Bonus for recent documents

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Contextprime Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body data-theme="light">
+    <div class="wwc-app">
+      <header class="wwc-header">
+        <div class="wwc-brand">
+          <div class="logo">☁️</div>
+          <div>
+            <h1>Contextprime Studio</h1>
+            <p>Operate document ingestion, hybrid retrieval, and agentic reasoning in one console.</p>
+          </div>
+        </div>
+        <div class="header-controls">
+          <div class="access-token-control">
+            <label for="accessTokenInput">Access token</label>
+            <input
+              id="accessTokenInput"
+              type="password"
+              autocomplete="off"
+              placeholder="Set token for protected routes"
+            />
+          </div>
+          <button id="clearAccessToken" class="secondary compact-button" type="button">Clear token</button>
+          <button id="themeToggle" class="mode-toggle" aria-label="Toggle dark mode">
+            <span class="toggle-track"></span>
+            <span class="toggle-icon sun">☀️</span>
+            <span class="toggle-icon moon">🌙</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="status-bar">
+        <div id="serviceStatus" class="status-grid"></div>
+      </section>
+      <section class="compliance-banner" id="transparencyNotice">
+        <strong>Transparency notice:</strong> You are interacting with an artificial intelligence system.
+        Review generated output before making important decisions.
+      </section>
+
+      <main class="wwc-main">
+        <section class="card" id="neo4jRecoveryPanel">
+          <div class="card-header">
+            <h2>Neo4j Password Recovery</h2>
+            <span class="tag neutral">Admin</span>
+          </div>
+          <p class="lead">
+            Verify the active Neo4j password and optionally save it to the local environment file used by the
+            stable test command.
+          </p>
+          <form id="neo4jRecoveryForm" class="wwc-form">
+            <div class="form-row">
+              <label for="neo4jRecoveryPassword">Neo4j Password</label>
+              <input
+                id="neo4jRecoveryPassword"
+                type="password"
+                autocomplete="off"
+                placeholder="Enter active Neo4j password"
+                required
+              />
+            </div>
+            <label class="switch">
+              <input id="neo4jPersistEnv" type="checkbox" checked />
+              <span class="slider"></span>
+              <span class="switch-label">Save to local .env for stable test runner</span>
+            </label>
+            <div class="neo4j-recovery-actions">
+              <button class="secondary" type="submit">Verify Password</button>
+              <button id="neo4jRecoveryRefresh" class="secondary" type="button">Check Connectivity</button>
+            </div>
+          </form>
+          <div id="neo4jRecoveryStatus" class="hint">Checking Neo4j password status…</div>
+        </section>
+
+        <section class="card" id="uploadPanel">
+          <div class="card-header">
+            <h2>Document Ingestion</h2>
+            <span class="tag">Contextprime</span>
+          </div>
+          <p class="lead">
+            Add source material to Contextprime's knowledge fabric. OCR, chunking, and metadata
+            extraction run automatically.
+          </p>
+          <form id="uploadForm" class="wwc-form">
+            <div class="form-row">
+              <label for="fileInput">Document</label>
+              <input id="fileInput" type="file" name="file" required />
+            </div>
+
+            <div class="form-grid">
+              <div class="form-row">
+                <label for="chunkSize">Chunk Size</label>
+                <input id="chunkSize" type="number" min="200" max="4000" step="100" value="1000" />
+                <span class="hint">Characters per chunk</span>
+              </div>
+              <div class="form-row">
+                <label for="chunkOverlap">Overlap</label>
+                <input id="chunkOverlap" type="number" min="0" max="800" step="50" value="200" />
+                <span class="hint">Shared characters between chunks</span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label for="chunkMethod">Chunking Method</label>
+              <select id="chunkMethod">
+                <option value="structure" selected>Structure aware</option>
+                <option value="semantic">Semantic (requires embeddings)</option>
+              </select>
+              <span class="hint" id="chunkMethodHint">
+                Structure aware preserves headings. Semantic uses embeddings when configured.
+              </span>
+            </div>
+
+            <div class="toggle-row">
+              <label class="switch">
+                <input id="enableOcr" type="checkbox" checked />
+                <span class="slider"></span>
+                <span class="switch-label">Enable OCR</span>
+              </label>
+              <label class="switch">
+                <input id="extractEntities" type="checkbox" />
+                <span class="slider"></span>
+                <span class="switch-label">Extract entities</span>
+              </label>
+              <label class="switch">
+                <input id="buildRaptor" type="checkbox" />
+                <span class="slider"></span>
+                <span class="switch-label">RAPTOR summary</span>
+              </label>
+            </div>
+
+            <button class="primary" type="submit">Process Document</button>
+          </form>
+          <div id="statusBanner" class="status-banner hidden">
+            <span id="statusText">Processing…</span>
+          </div>
+          <p class="footnote">
+            Uploads are stored in persistent local storage. Recent items stay hot in memory for faster browsing.
+          </p>
+        </section>
+
+        <section class="two-column">
+          <article class="card" id="documentsPanel">
+            <div class="card-header">
+              <h2>Knowledge Inventory</h2>
+              <span class="tag neutral">Ingested</span>
+            </div>
+            <div class="document-layout">
+              <div id="documentContainer" class="document-container">
+                <div class="document-empty">No documents processed yet.</div>
+              </div>
+              <div id="detailContainer" class="detail" hidden>
+                <div class="detail-block">
+                  <h3>Document Details</h3>
+                  <div id="documentMeta" class="meta-grid"></div>
+                </div>
+                <div class="detail-block">
+                  <h3>Markdown Reconstruction</h3>
+                  <pre id="markdownPreview" class="markdown-preview"></pre>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card" id="searchPanel">
+            <div class="card-header">
+              <h2>Hybrid Search</h2>
+              <span class="tag accent">RAG</span>
+            </div>
+            <p class="lead">
+              Blend Qdrant vectors with Neo4j signals. Powered by Contextprime fusion weights and
+              optional MonoT5 reranking.
+            </p>
+            <form id="searchForm" class="wwc-form">
+              <div class="form-row">
+                <label for="searchQuery">Query</label>
+                <textarea id="searchQuery" rows="2" placeholder="Ask anything about the onboarding packet" required></textarea>
+              </div>
+              <div class="form-grid">
+                <div class="form-row">
+                  <label for="searchTopK">Top K</label>
+                  <input id="searchTopK" type="number" min="1" max="20" value="5" />
+                </div>
+                <div class="form-row">
+                  <label for="searchStrategy">Strategy</label>
+                  <select id="searchStrategy">
+                    <option value="hybrid" selected>Hybrid</option>
+                    <option value="vector">Vector only</option>
+                    <option value="graph">Graph only</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label for="searchGraphPolicy">Graph Policy</label>
+                  <select id="searchGraphPolicy">
+                    <option value="standard" selected>Standard</option>
+                    <option value="adaptive">Adaptive</option>
+                    <option value="local">Local</option>
+                    <option value="global">Global</option>
+                    <option value="drift">Drift</option>
+                    <option value="community">Community</option>
+                  </select>
+                </div>
+              </div>
+              <div class="toggle-row">
+                <label class="switch">
+                  <input id="searchRerank" type="checkbox" checked />
+                  <span class="slider"></span>
+                  <span class="switch-label">Apply MonoT5 rerank</span>
+                </label>
+                <label class="switch">
+                  <input id="searchIncludeContext" type="checkbox" checked />
+                  <span class="slider"></span>
+                  <span class="switch-label">Include graph context</span>
+                </label>
+                <label class="switch">
+                  <input id="searchExpandQuery" type="checkbox" />
+                  <span class="slider"></span>
+                  <span class="switch-label">Expand query variants</span>
+                </label>
+              </div>
+              <button class="primary" type="submit">Run Hybrid Search</button>
+            </form>
+            <div id="searchMetrics" class="metrics-panel hidden"></div>
+            <div id="searchTrendPanel" class="trend-panel hidden">
+              <div class="trend-panel-header">
+                <h3>Benchmark Trends</h3>
+                <button id="trendRefresh" class="secondary" type="button">Refresh</button>
+              </div>
+              <div id="trendSummaryText" class="hint">No trend summary available yet.</div>
+              <div id="trendLinks" class="trend-links"></div>
+            </div>
+            <div id="searchResults" class="result-list"></div>
+            <div id="searchFeedbackPanel" class="feedback-panel hidden">
+              <div class="feedback-panel-header">
+                <h3>Result Feedback</h3>
+                <span id="feedbackQueryId" class="hint"></span>
+              </div>
+              <div class="feedback-choice-row">
+                <button id="searchFeedbackHelpful" class="secondary" type="button">Helpful</button>
+                <button id="searchFeedbackNeedsWork" class="secondary" type="button">Needs improvement</button>
+              </div>
+              <div class="form-row">
+                <label for="searchFeedbackComment">Comment</label>
+                <textarea
+                  id="searchFeedbackComment"
+                  rows="2"
+                  placeholder="Optional note about evidence quality"
+                ></textarea>
+              </div>
+              <div class="feedback-submit-row">
+                <button id="searchFeedbackSubmit" class="secondary" type="button">Submit Feedback</button>
+                <span id="searchFeedbackStatus" class="hint"></span>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="card" id="agenticPanel">
+          <div class="card-header">
+            <h2>Agentic Reasoning</h2>
+            <span class="tag hybrid">Agentic</span>
+          </div>
+          <p class="lead">
+            Deploy the Contextprime agentic pipeline for orchestrated retrieval, evaluation, and
+            learning.
+          </p>
+          <form id="agenticForm" class="wwc-form">
+            <div class="form-row">
+              <label for="agenticQuery">Question</label>
+              <textarea id="agenticQuery" rows="3" placeholder="Summarise the onboarding packet" required></textarea>
+            </div>
+            <div class="form-grid">
+              <div class="form-row">
+                <label for="agenticIterations">Max Iterations</label>
+                <input id="agenticIterations" type="number" min="1" max="5" value="3" />
+              </div>
+              <div class="form-row">
+                <label class="switch inline">
+                  <input id="agenticReasoningToggle" type="checkbox" checked />
+                  <span class="slider"></span>
+                  <span class="switch-label">Return reasoning</span>
+                </label>
+              </div>
+            </div>
+            <button class="primary" type="submit">Run Agentic Pipeline</button>
+          </form>
+          <div id="agenticOutput" class="agentic-output hidden">
+            <div class="agentic-meta">
+              <span id="agenticScore" class="chip">Score: --</span>
+              <span id="agenticConfidence" class="chip secondary">Confidence: --</span>
+            </div>
+            <h3>Answer</h3>
+            <p id="agenticAnswer" class="agentic-answer"></p>
+            <div id="agenticReasoning" class="agentic-reasoning hidden">
+              <h3>Reasoning Trail</h3>
+              <ol id="agenticReasoningList"></ol>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="wwc-footer">
+        © Contextprime - Bringing structure preservation and cross-document intelligence together.
+      </footer>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

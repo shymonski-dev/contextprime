@@ -1,8 +1,8 @@
-# DocTags RAG System Configuration
+# Contextprime Configuration
 
 # System Settings
 system:
-  name: "DocTags RAG"
+  name: "Contextprime"
   version: "1.0.0"
   environment: "development"
   log_level: "INFO"
@@ -15,7 +15,7 @@ paths:
 neo4j:
   uri: "bolt://localhost:7687"
   username: "neo4j"
-  password: "password"
+  password: ""  # Set via environment variable
   database: "neo4j"
   max_connection_pool_size: 50
   connection_timeout: 30
@@ -96,12 +96,61 @@ retrieval:
     vector_weight: 0.7
     graph_weight: 0.3
     graph_vector_index: "chunk_embeddings"
+    graph_policy:
+      mode: "standard"  # standard, local, global, drift, community, adaptive
+      local_seed_k: 8
+      local_max_depth: 2
+      local_neighbor_limit: 80
+      global_scan_nodes: 1500
+      global_max_terms: 8
+      drift_local_weight: 0.65
+      drift_global_weight: 0.35
+      community_scan_nodes: 500
+      community_max_terms: 8
+      community_top_communities: 5
+      community_members_per_community: 6
+      community_vector_weight: 0.45
+      community_summary_weight: 0.35
+      community_member_weight: 0.20
+      community_version: null
+    lexical:
+      enable: true
+      weight: 0.2
+      max_scan_points: 1500
+      scan_ratio: 0.02
+      max_scan_cap: 20000
+      page_size: 200
+      bm25_k1: 1.2
+      bm25_b: 0.75
+    corrective:
+      enable: false
+      min_results: 3
+      min_average_confidence: 0.55
+      top_k_multiplier: 2.0
+      force_hybrid: true
+      max_variants: 2
+      max_initial_variants: 3
+    context_pruning:
+      enable: false
+      max_sentences_per_result: 4
+      max_chars_per_result: 900
+      min_sentence_tokens: 3
+      context_selector:
+        enable: false
+        model_path: "models/context_selector.json"
+        min_score: 0.2
+        min_results: 1
     cache:
       enable: true
       max_size: 128
       ttl_seconds: 600
+    request_budget:
+      max_top_k: 12
+      max_query_variants: 3
+      max_corrective_variants: 2
+      max_total_variant_searches: 5
+      max_search_time_ms: 4500
   max_results: 10
-  rerank: true
   confidence_scoring:
     enable: true
     min_confidence: 0.1
@@ -153,8 +202,44 @@ agents:
 api:
   host: "0.0.0.0"
   port: 8000
-  cors_origins: ["*"]
+  cors_origins: []
   rate_limit: 100  # requests per minute
+  trust_proxy_headers: false
+
+# Access Control
+security:
+  require_access_token: true
+  auth_mode: "token"  # token or jwt
+  access_token: null  # Set via SECURITY__ACCESS_TOKEN
+  token_header: "Authorization"
+  jwt_secret: null  # Set via SECURITY__JWT_SECRET
+  jwt_algorithm: "HS256"
+  jwt_issuer: null
+  jwt_audience: null
+  jwt_subject_claim: "sub"
+  jwt_roles_claim: "roles"
+  jwt_scopes_claim: "scopes"
+  jwt_enforce_permissions: true
+  jwt_required_read_scopes:
+    - "api:read"
+  jwt_required_write_scopes:
+    - "api:write"
+  jwt_admin_roles:
+    - "admin"
+    - "owner"
+  jwt_support_legacy_token_fallback: false
+  exempt_paths:
+    - "/api/health"
+    - "/api/readiness"
+
+# Startup Readiness
+startup_readiness:
+  enabled: true
+  timeout_seconds: 60
+  check_interval_seconds: 2
+  required_services:
+    - "neo4j"
+    - "qdrant"
 
 # Monitoring
 monitoring:

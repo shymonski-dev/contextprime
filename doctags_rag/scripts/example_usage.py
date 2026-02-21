@@ -332,7 +332,7 @@ def example_health_monitoring():
 
 def main():
     """Run all examples."""
-    logger.info("DocTags RAG - Dual Indexing Infrastructure Examples\n")
+    logger.info("Contextprime - Dual Indexing Infrastructure Examples\n")
 
     try:
         # Run examples

@@ -1,4 +1,4 @@
-# DocTags RAG Phase 4 Completion Report
+# Contextprime Phase 4 Completion Report
 **Date:** October 2, 2025, 07:50
 **Session:** Phase 4 - Integration Testing
 **Starting Point:** 96% test pass rate (200/208 tests) - Post Phase 3
@@ -449,11 +449,11 @@ Successfully completed Phase 4 integration testing, validating all cross-compone
 
 ```bash
 # API Configuration
-OPENAI_API_KEY=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
+OPENAI_API_KEY=<redacted>
 OPENAI_BASE_URL=https://openrouter.ai/api/v1
 
 # Neo4j Aura Cloud
-NEO4J_URI=neo4j+s://6a72eea7.databases.neo4j.io
+NEO4J_URI=neo4j+s://<your_neo4j_host>
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=<configured in .env>
 

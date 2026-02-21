@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# QuickStart Script for DocTags RAG Dual Indexing Infrastructure
+# QuickStart Script for Contextprime Dual Indexing Infrastructure
 # This script sets up and validates the complete system
 
 set -e
 
 echo "======================================"
-echo "DocTags RAG - QuickStart Setup"
+echo "Contextprime - QuickStart Setup"
 echo "======================================"
 echo ""
 

@@ -11,6 +11,7 @@ This pipeline coordinates all agents to provide:
 
 import time
 import asyncio
+import hashlib
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
 from enum import Enum
@@ -27,7 +28,7 @@ from .feedback_aggregator import FeedbackAggregator, AggregatedFeedback
 from .reinforcement_learning import RLModule, RLState, RewardSignal
 from .memory_system import MemorySystem
 from .performance_monitor import PerformanceMonitor
-from ..retrieval.hybrid_retriever import HybridRetriever
+from ..retrieval.hybrid_retriever import HybridRetriever, SearchStrategy as HybridSearchStrategy
 from ..embeddings import OpenAIEmbeddingModel
 
 
@@ -265,7 +266,19 @@ class AgenticPipeline:
                 iteration += 1
                 self.total_improvement_iterations += 1
 
-            # Stage 6: Learning
+            # Stage 6: Generator-driven retrieval feedback
+            (
+                all_results,
+                assessment,
+                feedback_retrieval_metadata,
+            ) = await self._apply_generator_feedback_loop(
+                query=query,
+                results=all_results,
+                assessment=assessment,
+                min_quality_threshold=min_quality_threshold,
+            )
+
+            # Stage 7: Learning
             learning_start = time.time()
             learning_insights = {}
 
@@ -283,7 +296,7 @@ class AgenticPipeline:
 
             learning_time = (time.time() - learning_start) * 1000
 
-            # Stage 7: Feedback Aggregation
+            # Stage 8: Feedback Aggregation
             feedback = await self.feedback_aggregator.aggregate_feedback(
                 query=query,
                 agent_feedback={
@@ -293,11 +306,12 @@ class AgenticPipeline:
                 },
                 system_metrics={
                     "latency_ms": (time.time() - start_time) * 1000,
-                    "iteration_count": iteration
+                    "iteration_count": iteration,
+                    "generator_feedback_retrieval": feedback_retrieval_metadata,
                 }
             )
 
-            # Stage 8: Memory Update
+            # Stage 9: Memory Update
             self.memory_system.remember_episode(
                 query=query,
                 plan=plan.__dict__,
@@ -334,7 +348,10 @@ class AgenticPipeline:
                 learning_time_ms=learning_time,
                 mode=self.mode,
                 iteration=iteration,
-                improved=improved
+                improved=improved,
+                metadata={
+                    "generator_feedback_retrieval": feedback_retrieval_metadata,
+                },
             )
 
             self.queries_processed += 1
@@ -454,6 +471,174 @@ class AgenticPipeline:
         # Periodically save
         if self.queries_processed % 10 == 0:
             self.rl_module.save_qtable()
+
+    async def _apply_generator_feedback_loop(
+        self,
+        query: str,
+        results: List[Dict[str, Any]],
+        assessment: QualityAssessment,
+        min_quality_threshold: float,
+    ) -> tuple[List[Dict[str, Any]], QualityAssessment, Dict[str, Any]]:
+        """
+        Trigger one additional retrieval pass when answer quality is weak.
+
+        The generator identifies missing evidence, runs focused retrieval,
+        then keeps the improved result set when quality increases.
+        """
+        metadata: Dict[str, Any] = {
+            "applied": False,
+            "accepted": False,
+            "queries": [],
+            "added_results": 0,
+            "score_before": float(assessment.overall_score),
+            "score_after": float(assessment.overall_score),
+        }
+
+        quality_gate = max(0.55, min_quality_threshold)
+        if assessment.overall_score >= quality_gate and len(results) >= 3:
+            return results, assessment, metadata
+
+        retrieval = getattr(self.executor, "retrieval_pipeline", None)
+        embedding_model = getattr(self.executor, "embedding_model", None)
+        if retrieval is None or embedding_model is None or not hasattr(retrieval, "search"):
+            return results, assessment, metadata
+
+        feedback_queries = self._build_feedback_queries(query, assessment)
+        if not feedback_queries:
+            return results, assessment, metadata
+
+        metadata["applied"] = True
+        metadata["queries"] = feedback_queries
+
+        extra_results: List[Dict[str, Any]] = []
+        for feedback_query in feedback_queries:
+            try:
+                vector = embedding_model.encode([feedback_query], show_progress_bar=False)[0]
+                retrieved, _ = retrieval.search(
+                    query_vector=vector,
+                    query_text=feedback_query,
+                    top_k=4,
+                    strategy=HybridSearchStrategy.HYBRID,
+                )
+            except TypeError:
+                vector = embedding_model.encode([feedback_query])[0]
+                retrieved, _ = retrieval.search(
+                    query_vector=vector,
+                    query_text=feedback_query,
+                    top_k=4,
+                    strategy=HybridSearchStrategy.HYBRID,
+                )
+            except Exception as err:
+                logger.warning(f"Generator feedback retrieval failed for query '{feedback_query}': {err}")
+                continue
+
+            for item in retrieved:
+                extra_results.append(
+                    {
+                        "content": item.content,
+                        "score": item.score,
+                        "confidence": item.confidence,
+                        "source": item.source,
+                        "metadata": item.metadata,
+                        "graph_context": item.graph_context,
+                        "id": item.id,
+                    }
+                )
+
+        if not extra_results:
+            return results, assessment, metadata
+
+        merged_results = self._merge_results(results, extra_results)
+        metadata["added_results"] = max(0, len(merged_results) - len(results))
+        if metadata["added_results"] <= 0:
+            return results, assessment, metadata
+
+        new_assessment = await self.evaluator.evaluate_results(query, merged_results)
+        metadata["score_after"] = float(new_assessment.overall_score)
+
+        if new_assessment.overall_score > assessment.overall_score:
+            metadata["accepted"] = True
+            return merged_results, new_assessment, metadata
+
+        # Keep larger evidence set if quality is close and new evidence was found.
+        if (
+            len(merged_results) > len(results)
+            and new_assessment.overall_score >= assessment.overall_score - 0.02
+        ):
+            metadata["accepted"] = True
+            return merged_results, new_assessment, metadata
+
+        return results, assessment, metadata
+
+    def _build_feedback_queries(
+        self,
+        query: str,
+        assessment: QualityAssessment,
+    ) -> List[str]:
+        """Build focused follow-up retrieval queries from assessment feedback."""
+        candidates: List[str] = [
+            f"{query} supporting evidence",
+            f"{query} source details",
+        ]
+
+        for weakness in assessment.weaknesses[:2]:
+            weakness_text = str(weakness).strip()
+            if not weakness_text:
+                continue
+            candidates.append(f"{query} {weakness_text}")
+
+        for suggestion in assessment.improvement_suggestions[:2]:
+            suggestion_text = str(suggestion).strip()
+            if not suggestion_text:
+                continue
+            candidates.append(f"{query} {suggestion_text}")
+
+        deduped: List[str] = []
+        seen = set()
+        for candidate in candidates:
+            normalized = " ".join(candidate.split())
+            if not normalized:
+                continue
+            key = normalized.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped.append(normalized)
+            if len(deduped) >= 2:
+                break
+        return deduped
+
+    def _merge_results(
+        self,
+        base_results: List[Dict[str, Any]],
+        extra_results: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """Merge result dictionaries with stable deduplication."""
+        merged: Dict[str, Dict[str, Any]] = {}
+
+        for result in list(base_results) + list(extra_results):
+            content = str(result.get("content", "")).strip()
+            result_id = result.get("id")
+            if result_id:
+                key = str(result_id)
+            else:
+                key = hashlib.md5(content[:500].lower().encode("utf-8")).hexdigest()
+
+            if key not in merged:
+                merged[key] = dict(result)
+                continue
+
+            existing_score = float(merged[key].get("score", 0.0))
+            candidate_score = float(result.get("score", 0.0))
+            if candidate_score > existing_score:
+                merged[key] = dict(result)
+
+        ordered = sorted(
+            merged.values(),
+            key=lambda item: float(item.get("score", 0.0)),
+            reverse=True,
+        )
+        return ordered
 
     def _generate_answer(
         self,

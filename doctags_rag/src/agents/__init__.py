@@ -1,5 +1,5 @@
 """
-Agentic feedback loop system for DocTags RAG.
+Agentic feedback loop system for Contextprime.
 
 This module implements a comprehensive multi-agent system with:
 - Base agent architecture

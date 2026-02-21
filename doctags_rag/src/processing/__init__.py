@@ -1,5 +1,5 @@
 """
-Document Processing Module for DocTags RAG System.
+Document Processing Module for Contextprime.
 
 Provides comprehensive document processing capabilities:
 - Multi-format parsing (PDF, DOCX, HTML, TXT, images)

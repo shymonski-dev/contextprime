@@ -184,3 +184,18 @@ checkpoints/
 
 # Runtime data
 .claude/
+
+# Repository runtime artifacts
+/backups/
+/data/
+/doctags_rag/.numba_cache/
+/doctags_rag/reports/
+/doctags_rag/data/agentic/
+/doctags_rag/data/feedback/
+/doctags_rag/data/storage/
+
+# Local scratch files
+large_test.txt
+test_api_client.py
+test_endpoint.py
+test_upload.txt

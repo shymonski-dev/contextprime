@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-DocTags RAG System - Comprehensive Launch and Test Script
+Contextprime - Comprehensive Launch and Test Script
 
 This script:
 1. Verifies all dependencies
@@ -198,7 +198,7 @@ def run_basic_tests() -> bool:
 
 def show_system_info():
     """Display comprehensive system information."""
-    print_header("DocTags RAG System Information")
+    print_header("Contextprime Information")
 
     # Count implementation files
     src_path = Path(__file__).parent / 'doctags_rag' / 'src'
@@ -276,7 +276,7 @@ def main():
 {Colors.BOLD}{Colors.BLUE}
 ╔═══════════════════════════════════════════════════════════════════════════╗
 ║                                                                           ║
-║                        DocTags RAG System v1.0                            ║
+║                           Contextprime v1.0                                ║
 ║                                                                           ║
 ║     Ultimate RAG combining IBM structure preservation with Microsoft     ║
 ║        cross-document intelligence for advanced agentic reasoning        ║

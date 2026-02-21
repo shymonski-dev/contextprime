@@ -1,5 +1,5 @@
 """
-Enhanced Query Routing System for DocTags RAG.
+Enhanced Query Routing System for Contextprime.
 
 Implements intelligent query routing with:
 - Query type classification

@@ -1,0 +1,36 @@
+name: Marketplace Action Smoke
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Smoke Test Marketplace Action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run local marketplace action
+        uses: ./
+        with:
+          run-security-gate: "true"
+          run-readiness-gate: "true"
+          run-full-tests: "false"
+          full-tests-skip-build: "true"
+          install-tooling: "true"
+          install-project-dependencies: "false"
+          create-env-from-example: "true"

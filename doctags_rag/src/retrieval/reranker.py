@@ -1,5 +1,5 @@
 """
-Advanced Result Reranking System for DocTags RAG.
+Advanced Result Reranking System for Contextprime.
 
 Implements multi-strategy reranking:
 - Cross-encoder reranking

@@ -1,7 +1,7 @@
 # Advanced Retrieval Implementation Summary
 
 ## Overview
-Successfully implemented comprehensive advanced retrieval features for the DocTags RAG system, following industry best practices and research from systems like CRAG (Corrective Retrieval Augmented Generation).
+Successfully implemented comprehensive advanced retrieval features for the Contextprime system, following industry best practices and research from systems like CRAG (Corrective Retrieval Augmented Generation).
 
 ## Components Implemented
 

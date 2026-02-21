@@ -112,6 +112,10 @@ class EntityExtractor:
     - Batch processing
     """
 
+    _SPACY_MODEL_CACHE: Dict[str, Language] = {}
+    _SPACY_MODEL_ERRORS: Dict[str, str] = {}
+    _SPACY_LOAD_SIGNATURES: Dict[str, int] = {}
+
     def __init__(
         self,
         spacy_model: str = "en_core_web_lg",
@@ -140,18 +144,20 @@ class EntityExtractor:
         self.available = True
         self._spacy_unavailable_reason: Optional[str] = None
 
-        try:
-            self.nlp = spacy.load(spacy_model)
-            logger.info(f"Loaded spaCy model: {spacy_model}")
-        except OSError as err:
+        self.nlp, load_error = self._load_spacy_model(
+            spacy_model,
+            use_cache=not bool(custom_patterns),
+        )
+        if self.nlp is None:
             guidance = (
                 f"spaCy model '{spacy_model}' is not installed. "
                 f"Run `python -m spacy download {spacy_model}` to enable entity extraction."
             )
             logger.warning(guidance)
             self.available = False
-            self.nlp = None
-            self._spacy_unavailable_reason = str(err)
+            self._spacy_unavailable_reason = load_error
+        else:
+            logger.info(f"Loaded spaCy model: {spacy_model}")
 
         # Add custom components
         if custom_patterns:
@@ -161,6 +167,42 @@ class EntityExtractor:
         self.llm_client = None
         if use_llm:
             self._initialize_llm()
+
+    @classmethod
+    def _load_spacy_model(
+        cls,
+        model_name: str,
+        *,
+        use_cache: bool = True,
+    ) -> Tuple[Optional[Language], Optional[str]]:
+        """Load spaCy model with optional process-level caching."""
+        loader_signature = id(spacy.load)
+
+        if use_cache:
+            cached_signature = cls._SPACY_LOAD_SIGNATURES.get(model_name)
+            if cached_signature is not None and cached_signature != loader_signature:
+                cls._SPACY_MODEL_CACHE.pop(model_name, None)
+                cls._SPACY_MODEL_ERRORS.pop(model_name, None)
+                cls._SPACY_LOAD_SIGNATURES.pop(model_name, None)
+
+            if model_name in cls._SPACY_MODEL_CACHE:
+                return cls._SPACY_MODEL_CACHE[model_name], None
+
+            if model_name in cls._SPACY_MODEL_ERRORS:
+                return None, cls._SPACY_MODEL_ERRORS[model_name]
+
+        try:
+            model = spacy.load(model_name)
+        except OSError as err:
+            if use_cache:
+                cls._SPACY_MODEL_ERRORS[model_name] = str(err)
+                cls._SPACY_LOAD_SIGNATURES[model_name] = loader_signature
+            return None, str(err)
+
+        if use_cache:
+            cls._SPACY_MODEL_CACHE[model_name] = model
+            cls._SPACY_LOAD_SIGNATURES[model_name] = loader_signature
+        return model, None
 
     def _add_custom_patterns(self, patterns: List[Dict[str, Any]]) -> None:
         """Add custom entity patterns to spaCy pipeline."""
@@ -632,6 +674,10 @@ Return only the JSON array, no other text."""
             patterns: List of pattern strings to match
             case_sensitive: Whether matching should be case-sensitive
         """
+        if not self.available or self.nlp is None:
+            logger.warning("Cannot add custom entity type because spaCy model is unavailable")
+            return
+
         from spacy.matcher import PhraseMatcher
 
         matcher = PhraseMatcher(self.nlp.vocab, attr="LOWER" if not case_sensitive else "TEXT")

@@ -1,4 +1,4 @@
-"""High level orchestration pipelines for DocTags RAG."""
+"""High level orchestration pipelines for Contextprime."""
 
 from .document_ingestion import (
     DocumentIngestionConfig,

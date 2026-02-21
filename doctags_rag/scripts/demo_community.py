@@ -448,7 +448,7 @@ def main():
     logger.info("Starting Community Detection System Demo")
 
     print("\n" + "="*80)
-    print("DocTags RAG - Community Detection System Demo")
+    print("Contextprime - Community Detection System Demo")
     print("="*80)
 
     # Create sample graph

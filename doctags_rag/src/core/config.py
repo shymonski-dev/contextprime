@@ -1,13 +1,13 @@
 """
-Configuration management for DocTags RAG system.
+Configuration management for Contextprime system.
 Handles loading and validation of configuration from YAML and environment variables.
 """
 
 import os
 import yaml
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from pathlib import Path
-from pydantic import BaseModel, Field, validator, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict
 from pydantic_settings import BaseSettings
 from loguru import logger
 
@@ -16,7 +16,7 @@ class Neo4jConfig(BaseModel):
     """Neo4j database configuration."""
     uri: str = Field(default="bolt://localhost:7687")
     username: str = Field(default="neo4j")
-    password: str = Field(default="password")
+    password: str = Field(default="")
     database: str = Field(default="doctags")
     max_connection_pool_size: int = Field(default=50)
     connection_timeout: int = Field(default=30)
@@ -65,6 +65,51 @@ class PathsConfig(BaseModel):
     models_dir: str = Field(default="models")
 
 
+class APIConfig(BaseModel):
+    """Public web server configuration."""
+
+    host: str = Field(default="0.0.0.0")
+    port: int = Field(default=8000)
+    cors_origins: List[str] = Field(default_factory=list)
+    rate_limit: int = Field(default=100)
+    rate_limit_window_seconds: int = Field(default=60)
+    rate_limit_redis_url: Optional[str] = Field(default=None)
+    rate_limit_store_path: str = Field(default="data/storage/rate_limit.db")
+    trust_proxy_headers: bool = Field(default=False)
+
+
+class SecurityConfig(BaseModel):
+    """Access control settings for protected routes."""
+
+    require_access_token: bool = Field(default=True)
+    access_token: Optional[str] = Field(default=None)
+    auth_mode: str = Field(default="jwt")
+    token_header: str = Field(default="Authorization")
+    jwt_secret: Optional[str] = Field(default=None)
+    jwt_algorithm: str = Field(default="HS256")
+    jwt_issuer: Optional[str] = Field(default=None)
+    jwt_audience: Optional[str] = Field(default=None)
+    jwt_subject_claim: str = Field(default="sub")
+    jwt_roles_claim: str = Field(default="roles")
+    jwt_scopes_claim: str = Field(default="scopes")
+    jwt_enforce_permissions: bool = Field(default=True)
+    jwt_required_read_scopes: List[str] = Field(default_factory=lambda: ["api:read"])
+    jwt_required_write_scopes: List[str] = Field(default_factory=lambda: ["api:write"])
+    jwt_admin_roles: List[str] = Field(default_factory=lambda: ["admin", "owner"])
+    exempt_paths: List[str] = Field(
+        default_factory=lambda: ["/api/health", "/api/readiness"]
+    )
+
+
+class StartupReadinessConfig(BaseModel):
+    """Startup dependency readiness checks."""
+
+    enabled: bool = Field(default=True)
+    timeout_seconds: int = Field(default=60)
+    check_interval_seconds: int = Field(default=2)
+    required_services: List[str] = Field(default_factory=lambda: ["neo4j", "qdrant"])
+
+
 class RetrievalConfig(BaseModel):
     """Retrieval configuration."""
     model_config = ConfigDict(populate_by_name=True)
@@ -73,10 +118,66 @@ class RetrievalConfig(BaseModel):
         "vector_weight": 0.7,
         "graph_weight": 0.3,
         "graph_vector_index": "chunk_embeddings",
+        "graph_policy": {
+            "mode": "standard",
+            "local_seed_k": 8,
+            "local_max_depth": 2,
+            "local_neighbor_limit": 80,
+            "global_scan_nodes": 1500,
+            "global_max_terms": 8,
+            "drift_local_weight": 0.65,
+            "drift_global_weight": 0.35,
+            "community_scan_nodes": 500,
+            "community_max_terms": 8,
+            "community_top_communities": 5,
+            "community_members_per_community": 6,
+            "community_vector_weight": 0.45,
+            "community_summary_weight": 0.35,
+            "community_member_weight": 0.20,
+            "community_version": None,
+        },
+        "lexical": {
+            "enable": True,
+            "weight": 0.2,
+            "max_scan_points": 1500,
+            "scan_ratio": 0.02,
+            "max_scan_cap": 20000,
+            "page_size": 200,
+            "bm25_k1": 1.2,
+            "bm25_b": 0.75,
+        },
+        "corrective": {
+            "enable": False,
+            "min_results": 3,
+            "min_average_confidence": 0.55,
+            "top_k_multiplier": 2.0,
+            "force_hybrid": True,
+            "max_variants": 2,
+            "max_initial_variants": 3,
+        },
+        "context_pruning": {
+            "enable": False,
+            "max_sentences_per_result": 4,
+            "max_chars_per_result": 900,
+            "min_sentence_tokens": 3,
+            "context_selector": {
+                "enable": False,
+                "model_path": "models/context_selector.json",
+                "min_score": 0.2,
+                "min_results": 1,
+            },
+        },
         "cache": {
             "enable": True,
             "max_size": 128,
             "ttl_seconds": 600,
+        },
+        "request_budget": {
+            "max_top_k": 12,
+            "max_query_variants": 3,
+            "max_corrective_variants": 2,
+            "max_total_variant_searches": 5,
+            "max_search_time_ms": 4500,
         },
     })
     max_results: int = Field(default=10)
@@ -102,6 +203,9 @@ class Settings(BaseSettings):
     embeddings: EmbeddingsConfig = Field(default_factory=EmbeddingsConfig)
     retrieval: RetrievalConfig = Field(default_factory=RetrievalConfig)
     paths: PathsConfig = Field(default_factory=PathsConfig)
+    api: APIConfig = Field(default_factory=APIConfig)
+    security: SecurityConfig = Field(default_factory=SecurityConfig)
+    startup_readiness: StartupReadinessConfig = Field(default_factory=StartupReadinessConfig)
 
     # System settings
     environment: str = Field(default="development")
@@ -127,6 +231,14 @@ class Settings(BaseSettings):
                 yaml_config = yaml.safe_load(f)
                 if yaml_config:
                     settings_dict = yaml_config
+
+        # Backward compatibility for legacy nested system settings.
+        system_cfg = settings_dict.get("system") if isinstance(settings_dict, dict) else None
+        if isinstance(system_cfg, dict):
+            if "environment" in system_cfg and "environment" not in settings_dict:
+                settings_dict["environment"] = system_cfg["environment"]
+            if "log_level" in system_cfg and "log_level" not in settings_dict:
+                settings_dict["log_level"] = system_cfg["log_level"]
 
         # Override with environment variables
         settings = cls(**settings_dict)
@@ -154,18 +266,89 @@ class Settings(BaseSettings):
             "QDRANT__PORT": ("qdrant", "port"),
             "NEO4J_URI": ("neo4j", "uri"),
             "NEO4J__URI": ("neo4j", "uri"),
+            "NEO4J__USERNAME": ("neo4j", "username"),
+            "NEO4J__PASSWORD": ("neo4j", "password"),
+            "API__RATE_LIMIT": ("api", "rate_limit"),
+            "API_RATE_LIMIT": ("api", "rate_limit"),
+            "API__RATE_LIMIT_WINDOW_SECONDS": ("api", "rate_limit_window_seconds"),
+            "API_RATE_LIMIT_WINDOW_SECONDS": ("api", "rate_limit_window_seconds"),
+            "API__RATE_LIMIT_REDIS_URL": ("api", "rate_limit_redis_url"),
+            "API_RATE_LIMIT_REDIS_URL": ("api", "rate_limit_redis_url"),
+            "API__RATE_LIMIT_STORE_PATH": ("api", "rate_limit_store_path"),
+            "API_RATE_LIMIT_STORE_PATH": ("api", "rate_limit_store_path"),
+            "API__TRUST_PROXY_HEADERS": ("api", "trust_proxy_headers"),
+            "API__CORS_ORIGINS": ("api", "cors_origins"),
+            "SECURITY__REQUIRE_ACCESS_TOKEN": ("security", "require_access_token"),
+            "SECURITY_REQUIRE_ACCESS_TOKEN": ("security", "require_access_token"),
+            "SECURITY__ACCESS_TOKEN": ("security", "access_token"),
+            "SECURITY_ACCESS_TOKEN": ("security", "access_token"),
+            "SECURITY__AUTH_MODE": ("security", "auth_mode"),
+            "SECURITY_AUTH_MODE": ("security", "auth_mode"),
+            "SECURITY__TOKEN_HEADER": ("security", "token_header"),
+            "SECURITY__JWT_SECRET": ("security", "jwt_secret"),
+            "SECURITY_JWT_SECRET": ("security", "jwt_secret"),
+            "SECURITY__JWT_ALGORITHM": ("security", "jwt_algorithm"),
+            "SECURITY__JWT_ISSUER": ("security", "jwt_issuer"),
+            "SECURITY__JWT_AUDIENCE": ("security", "jwt_audience"),
+            "SECURITY__JWT_SUBJECT_CLAIM": ("security", "jwt_subject_claim"),
+            "SECURITY__JWT_ROLES_CLAIM": ("security", "jwt_roles_claim"),
+            "SECURITY__JWT_SCOPES_CLAIM": ("security", "jwt_scopes_claim"),
+            "SECURITY__JWT_ENFORCE_PERMISSIONS": ("security", "jwt_enforce_permissions"),
+            "SECURITY__JWT_REQUIRED_READ_SCOPES": ("security", "jwt_required_read_scopes"),
+            "SECURITY__JWT_REQUIRED_WRITE_SCOPES": ("security", "jwt_required_write_scopes"),
+            "SECURITY__JWT_ADMIN_ROLES": ("security", "jwt_admin_roles"),
+            "SECURITY__EXEMPT_PATHS": ("security", "exempt_paths"),
+            "STARTUP_READINESS__ENABLED": ("startup_readiness", "enabled"),
+            "STARTUP_READINESS__TIMEOUT_SECONDS": ("startup_readiness", "timeout_seconds"),
+            "STARTUP_READINESS__CHECK_INTERVAL_SECONDS": ("startup_readiness", "check_interval_seconds"),
+            "STARTUP_READINESS__REQUIRED_SERVICES": ("startup_readiness", "required_services"),
+            "ENVIRONMENT": ("", "environment"),
+            "SYSTEM__ENVIRONMENT": ("", "environment"),
+            "LOG_LEVEL": ("", "log_level"),
+            "SYSTEM__LOG_LEVEL": ("", "log_level"),
+        }
+
+        int_fields = {
+            "port",
+            "rate_limit",
+            "rate_limit_window_seconds",
+            "timeout_seconds",
+            "check_interval_seconds",
+        }
+        bool_fields = {
+            "require_access_token",
+            "trust_proxy_headers",
+            "enabled",
+            "jwt_enforce_permissions",
+        }
+        list_fields = {
+            "cors_origins",
+            "exempt_paths",
+            "required_services",
+            "jwt_required_read_scopes",
+            "jwt_required_write_scopes",
+            "jwt_admin_roles",
         }
 
         for env_name, (section, field) in env_overrides.items():
             value = os.getenv(env_name)
             if value is not None:
-                target = getattr(settings, section)
-                if field == "port":
+                target = settings if not section else getattr(settings, section)
+                if field in int_fields:
                     try:
                         value = int(value)
                     except ValueError:
                         logger.warning(f"Invalid integer for {env_name}: {value}")
                         continue
+                elif field in bool_fields:
+                    lowered = str(value).strip().lower()
+                    value = lowered in {"1", "true", "yes", "on"}
+                elif field in list_fields:
+                    value = [
+                        item.strip()
+                        for item in str(value).split(",")
+                        if item and item.strip()
+                    ]
                 setattr(target, field, value)
 
         project_root = Path(__file__).resolve().parents[2]
@@ -186,6 +369,56 @@ class Settings(BaseSettings):
         logger.info(f"Configuration loaded for environment: {settings.environment}")
 
         return settings
+
+    def validate_runtime_security(self, strict: bool = False) -> List[str]:
+        """Validate runtime security posture and optionally raise on hard failures."""
+        issues: List[str] = []
+
+        neo4j_password = (self.neo4j.password or "").strip()
+        if not neo4j_password:
+            issues.append("Neo4j password is missing")
+        elif neo4j_password.lower() in {
+            "password",
+            "neo4j",
+            "change_this_neo4j_password",
+            "changeme",
+        }:
+            issues.append("Neo4j password uses a default value")
+
+        if self.security.require_access_token:
+            auth_mode = (self.security.auth_mode or "jwt").strip().lower()
+            if auth_mode not in {"token", "jwt"}:
+                issues.append("Auth mode must be token or jwt")
+                auth_mode = "jwt"
+
+            if auth_mode == "jwt":
+                jwt_secret = (self.security.jwt_secret or "").strip()
+                if not jwt_secret:
+                    issues.append("JWT auth mode is enabled but SECURITY__JWT_SECRET is missing")
+                elif len(jwt_secret) < 32:
+                    issues.append("JWT secret is too short; use at least 32 characters")
+                algorithm = (self.security.jwt_algorithm or "HS256").strip().upper()
+                if algorithm not in {"HS256", "HS384", "HS512"}:
+                    issues.append("JWT algorithm must be one of HS256, HS384, HS512")
+                if self.security.jwt_enforce_permissions:
+                    if not self.security.jwt_required_read_scopes:
+                        issues.append("JWT read scopes are empty while permission enforcement is enabled")
+                    if not self.security.jwt_required_write_scopes:
+                        issues.append("JWT write scopes are empty while permission enforcement is enabled")
+            else:
+                token = (self.security.access_token or "").strip()
+                if not token:
+                    issues.append("Access token is required but not configured")
+                elif len(token) < 24:
+                    issues.append("Access token is too short; use at least 24 characters")
+
+        cors_origins = [str(origin).strip() for origin in (self.api.cors_origins or []) if origin]
+        if self.environment.lower() in {"docker", "production", "staging"} and "*" in cors_origins:
+            issues.append("CORS origins cannot include wildcard in production-like environments")
+
+        if strict and issues:
+            raise ValueError("; ".join(issues))
+        return issues
 
     def validate_connections(self) -> Dict[str, bool]:
         """Validate connections to external services."""

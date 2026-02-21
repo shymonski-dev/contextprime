@@ -1,5 +1,5 @@
 """
-Qdrant Vector Database Manager for DocTags RAG System.
+Qdrant Vector Database Manager for Contextprime.
 
 Provides comprehensive vector database operations including:
 - Connection management
@@ -13,7 +13,13 @@ from typing import Dict, List, Any, Optional, Tuple, Union
 from dataclasses import dataclass
 from uuid import UUID, uuid4, uuid5, NAMESPACE_DNS
 import time
+import math
+import re
+import json
+from collections import Counter, defaultdict
 from functools import wraps
+from urllib import error as urllib_error
+from urllib import request as urllib_request
 
 from qdrant_client import QdrantClient
 from qdrant_client.models import (
@@ -66,6 +72,16 @@ def retry_on_connection_error(max_retries: int = 3, delay: float = 1.0):
                 try:
                     return func(*args, **kwargs)
                 except (UnexpectedResponse, ConnectionError, TimeoutError) as e:
+                    message = str(e).lower()
+                    if (
+                        isinstance(e, UnexpectedResponse)
+                        and ("404" in message or "doesn't exist" in message or "not found" in message)
+                    ):
+                        logger.warning(
+                            f"Non-retryable Qdrant response in {func.__name__}: {e}"
+                        )
+                        raise
+
                     last_exception = e
                     if attempt < max_retries - 1:
                         sleep_time = delay * (2 ** attempt)
@@ -130,6 +146,15 @@ class QdrantManager:
     - Batch operations
     - Collection statistics
     """
+
+    _LEXICAL_STOPWORDS = {
+        "the", "a", "an", "and", "or", "but", "if", "then", "else", "in",
+        "on", "at", "to", "for", "of", "with", "by", "from", "as", "is",
+        "are", "was", "were", "be", "been", "being", "do", "does", "did",
+        "what", "who", "where", "when", "why", "how", "which", "that",
+        "this", "these", "those", "it", "its", "their", "there", "can",
+        "could", "would", "should", "may", "might", "will", "about",
+    }
 
     def __init__(self, config: Optional[QdrantConfig] = None):
         """
@@ -422,15 +447,31 @@ class QdrantManager:
             filter_obj = self._build_filter(filters)
 
         try:
-            results = self.client.search(
-                collection_name=collection_name,
-                query_vector=query_vector,
-                limit=top_k,
-                query_filter=filter_obj,
-                score_threshold=score_threshold,
-                with_payload=True,
-                with_vectors=False,
-            )
+            if hasattr(self.client, "search"):
+                results = self.client.search(
+                    collection_name=collection_name,
+                    query_vector=query_vector,
+                    limit=top_k,
+                    query_filter=filter_obj,
+                    score_threshold=score_threshold,
+                    with_payload=True,
+                    with_vectors=False,
+                )
+            elif hasattr(self.client, "query_points"):
+                query_response = self.client.query_points(
+                    collection_name=collection_name,
+                    query=query_vector,
+                    limit=top_k,
+                    query_filter=filter_obj,
+                    score_threshold=score_threshold,
+                    with_payload=True,
+                    with_vectors=False,
+                )
+                results = query_response.points
+            else:
+                raise AttributeError(
+                    "Qdrant client does not provide search or query_points"
+                )
 
             return [
                 SearchResult(
@@ -444,6 +485,190 @@ class QdrantManager:
         except Exception as e:
             logger.error(f"Search failed: {e}")
             raise
+
+    def search_lexical(
+        self,
+        query_text: str,
+        top_k: int = 10,
+        filters: Optional[Dict[str, Any]] = None,
+        collection_name: Optional[str] = None,
+        max_scan_points: int = 1500,
+        scan_ratio: float = 0.02,
+        max_scan_cap: int = 20000,
+        page_size: int = 200,
+        bm25_k1: float = 1.2,
+        bm25_b: float = 0.75,
+    ) -> List[SearchResult]:
+        """
+        Perform lexical retrieval with BM25 scoring over indexed payload text.
+
+        Notes:
+            - Uses scroll pagination and scores only scanned points.
+            - Intended as sparse lexical signal for hybrid fusion.
+        """
+        if not self.client:
+            raise RuntimeError("Qdrant client not initialized")
+
+        collection_name = collection_name or self.config.collection_name
+        query_terms = self._tokenize_for_lexical(query_text)
+        if not query_terms:
+            return []
+
+        filter_obj = self._build_filter(filters) if filters else None
+        effective_scan_points = self._resolve_lexical_scan_budget(
+            collection_name=collection_name,
+            filter_obj=filter_obj,
+            top_k=top_k,
+            page_size=page_size,
+            max_scan_points=max_scan_points,
+            scan_ratio=scan_ratio,
+            max_scan_cap=max_scan_cap,
+        )
+
+        scanned: List[SearchResult] = []
+        offset = None
+
+        while len(scanned) < effective_scan_points:
+            remaining = effective_scan_points - len(scanned)
+            limit = max(1, min(page_size, remaining))
+            page, next_offset = self.scroll_collection(
+                collection_name=collection_name,
+                limit=limit,
+                offset=offset,
+                with_vectors=False,
+                filters=filters,
+            )
+            if not page:
+                break
+
+            scanned.extend(page)
+            if next_offset is None:
+                break
+            offset = next_offset
+
+        if not scanned:
+            return []
+
+        tokenized_docs: List[Tuple[SearchResult, List[str]]] = []
+        term_df: Dict[str, int] = defaultdict(int)
+
+        for item in scanned:
+            text = self._extract_text_from_payload(item.metadata)
+            if not text:
+                continue
+            tokens = self._tokenize_for_lexical(text)
+            if not tokens:
+                continue
+            tokenized_docs.append((item, tokens))
+            unique_tokens = set(tokens)
+            for term in query_terms:
+                if term in unique_tokens:
+                    term_df[term] += 1
+
+        if not tokenized_docs:
+            return []
+
+        total_docs = len(tokenized_docs)
+        avg_doc_len = sum(len(tokens) for _, tokens in tokenized_docs) / max(1, total_docs)
+        query_tf = Counter(query_terms)
+
+        scored: List[SearchResult] = []
+        for item, tokens in tokenized_docs:
+            doc_len = len(tokens)
+            doc_tf = Counter(tokens)
+            score = 0.0
+
+            for term, qtf in query_tf.items():
+                tf = doc_tf.get(term, 0)
+                if tf <= 0:
+                    continue
+                df = term_df.get(term, 0)
+                idf = math.log(((total_docs - df + 0.5) / (df + 0.5)) + 1.0)
+                denom = tf + bm25_k1 * (1.0 - bm25_b + bm25_b * (doc_len / max(1.0, avg_doc_len)))
+                score += idf * ((tf * (bm25_k1 + 1.0)) / max(1e-9, denom)) * qtf
+
+            if score <= 0:
+                continue
+
+            scored.append(
+                SearchResult(
+                    id=item.id,
+                    score=float(score),
+                    vector=None,
+                    metadata=item.metadata,
+                )
+            )
+
+        scored.sort(key=lambda x: x.score, reverse=True)
+        return scored[:top_k]
+
+    def _resolve_lexical_scan_budget(
+        self,
+        *,
+        collection_name: str,
+        filter_obj: Optional[Filter],
+        top_k: int,
+        page_size: int,
+        max_scan_points: int,
+        scan_ratio: float,
+        max_scan_cap: int,
+    ) -> int:
+        """Choose an adaptive lexical scan budget based on collection size."""
+        base_scan = max(100, int(max_scan_points))
+        fallback_scan = max(base_scan, int(top_k) * max(20, int(page_size)))
+
+        estimated_count = self._estimate_collection_size(
+            collection_name=collection_name,
+            filter_obj=filter_obj,
+        )
+        if estimated_count is None:
+            return fallback_scan
+
+        ratio = min(1.0, max(0.0, float(scan_ratio)))
+        ratio_scan = int(math.ceil(estimated_count * ratio))
+        effective_scan = max(fallback_scan, ratio_scan)
+
+        if max_scan_cap > 0:
+            effective_scan = min(effective_scan, int(max_scan_cap))
+        return max(100, effective_scan)
+
+    def _estimate_collection_size(
+        self,
+        *,
+        collection_name: str,
+        filter_obj: Optional[Filter],
+    ) -> Optional[int]:
+        """Estimate searchable collection size for lexical budget selection."""
+        if not self.client:
+            return None
+        try:
+            count_result = self.client.count(
+                collection_name=collection_name,
+                count_filter=filter_obj,
+                exact=False,
+            )
+            value = getattr(count_result, "count", None)
+            if value is None:
+                return None
+            return max(0, int(value))
+        except Exception as err:
+            logger.debug("Unable to estimate Qdrant collection size for lexical scan: %s", err)
+            return None
+
+    def _extract_text_from_payload(self, payload: Optional[Dict[str, Any]]) -> str:
+        """Extract the best available text field from payload metadata."""
+        if not payload:
+            return ""
+        for key in ("text", "content", "chunk_text"):
+            value = payload.get(key)
+            if isinstance(value, str) and value.strip():
+                return value
+        return ""
+
+    def _tokenize_for_lexical(self, text: str) -> List[str]:
+        """Tokenize text for lexical scoring."""
+        tokens = re.findall(r"\b[a-zA-Z0-9]{2,}\b", text.lower())
+        return [t for t in tokens if t not in self._LEXICAL_STOPWORDS]
 
     def _build_filter(self, filters: Dict[str, Any]) -> Filter:
         """
@@ -677,20 +902,156 @@ class QdrantManager:
 
         try:
             info = self.client.get_collection(collection_name)
-
-            return {
-                "name": collection_name,
-                "vectors_count": info.vectors_count,
-                "points_count": info.points_count,
-                "segments_count": info.segments_count,
-                "status": info.status,
-                "optimizer_status": info.optimizer_status,
-                "vector_size": info.config.params.vectors.size,
-                "distance": info.config.params.vectors.distance,
-            }
+            parsed = self._parse_collection_info_payload(
+                collection_name=collection_name,
+                payload=info,
+            )
+            if parsed:
+                return parsed
+        except ResponseHandlingException as err:
+            logger.warning(
+                f"Qdrant client could not parse collection info for {collection_name}: {err}. "
+                "Falling back to HTTP."
+            )
         except Exception as e:
-            logger.error(f"Failed to get collection info: {e}")
+            logger.warning(
+                f"Client collection info lookup failed for {collection_name}: {e}. "
+                "Falling back to HTTP."
+            )
+
+        return self._get_collection_info_via_http(collection_name)
+
+    def _parse_collection_info_payload(
+        self,
+        collection_name: str,
+        payload: Any,
+    ) -> Optional[Dict[str, Any]]:
+        """Parse collection info returned by the client or HTTP fallback."""
+        if payload is None:
             return None
+
+        vectors_count = self._coerce_int(
+            self._lookup_nested(payload, ["vectors_count"])
+        )
+        points_count = self._coerce_int(
+            self._lookup_nested(payload, ["points_count"])
+        )
+        segments_count = self._coerce_int(
+            self._lookup_nested(payload, ["segments_count"])
+        )
+        status = self._stringify(
+            self._lookup_nested(payload, ["status"])
+        )
+        optimizer_status = self._stringify(
+            self._lookup_nested(payload, ["optimizer_status"])
+        )
+
+        vectors_cfg = (
+            self._lookup_nested(payload, ["config", "params", "vectors"])
+            or self._lookup_nested(payload, ["result", "config", "params", "vectors"])
+        )
+        vector_size, distance = self._extract_vector_config(vectors_cfg)
+
+        return {
+            "name": collection_name,
+            "vectors_count": vectors_count,
+            "points_count": points_count,
+            "segments_count": segments_count,
+            "status": status,
+            "optimizer_status": optimizer_status,
+            "vector_size": vector_size,
+            "distance": distance,
+        }
+
+    def _get_collection_info_via_http(self, collection_name: str) -> Optional[Dict[str, Any]]:
+        """Fetch collection info directly over HTTP for server-client compatibility."""
+        base_url = self._build_base_http_url()
+        url = f"{base_url}/collections/{collection_name}"
+        request = urllib_request.Request(url, method="GET")
+        if self.config.api_key:
+            request.add_header("api-key", self.config.api_key)
+
+        try:
+            with urllib_request.urlopen(request, timeout=10) as response:
+                body = response.read().decode("utf-8")
+                payload = json.loads(body)
+        except (urllib_error.URLError, TimeoutError, json.JSONDecodeError) as err:
+            logger.error(f"Failed to fetch collection info via HTTP ({url}): {err}")
+            return None
+
+        parsed = self._parse_collection_info_payload(
+            collection_name=collection_name,
+            payload=payload.get("result", payload),
+        )
+        if parsed is None:
+            logger.error(f"Collection info HTTP payload missing expected fields for {collection_name}")
+            return None
+        return parsed
+
+    def _build_base_http_url(self) -> str:
+        host = str(self.config.host).strip()
+        if host.startswith("http://") or host.startswith("https://"):
+            return host.rstrip("/")
+        return f"http://{host}:{self.config.port}"
+
+    def _lookup_nested(self, payload: Any, path: List[str]) -> Any:
+        current = payload
+        for key in path:
+            if current is None:
+                return None
+            if isinstance(current, dict):
+                current = current.get(key)
+            else:
+                current = getattr(current, key, None)
+        return current
+
+    def _extract_vector_config(self, vectors_cfg: Any) -> Tuple[Optional[int], Optional[str]]:
+        if vectors_cfg is None:
+            return None, None
+
+        if isinstance(vectors_cfg, dict):
+            if "size" in vectors_cfg:
+                return self._coerce_int(vectors_cfg.get("size")), self._stringify(vectors_cfg.get("distance"))
+
+            default_cfg = vectors_cfg.get("default")
+            if isinstance(default_cfg, dict):
+                return self._coerce_int(default_cfg.get("size")), self._stringify(default_cfg.get("distance"))
+
+            for value in vectors_cfg.values():
+                if isinstance(value, dict) and "size" in value:
+                    return self._coerce_int(value.get("size")), self._stringify(value.get("distance"))
+            return None, None
+
+        size = getattr(vectors_cfg, "size", None)
+        distance = getattr(vectors_cfg, "distance", None)
+        if size is not None:
+            return self._coerce_int(size), self._stringify(distance)
+
+        for attr in ("default", "text", "image"):
+            nested_cfg = getattr(vectors_cfg, attr, None)
+            if nested_cfg is not None:
+                nested_size = getattr(nested_cfg, "size", None)
+                if nested_size is not None:
+                    nested_distance = getattr(nested_cfg, "distance", None)
+                    return self._coerce_int(nested_size), self._stringify(nested_distance)
+
+        return None, None
+
+    def _coerce_int(self, value: Any) -> Optional[int]:
+        if value is None:
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _stringify(self, value: Any) -> Optional[str]:
+        if value is None:
+            return None
+        candidate = getattr(value, "value", value)
+        if candidate is None:
+            return None
+        return str(candidate)
 
     @retry_on_connection_error(max_retries=3)
     def scroll_collection(
@@ -805,7 +1166,8 @@ class QdrantManager:
             self.delete_collection(collection_name)
             self.create_collection(
                 collection_name=collection_name,
-                vector_size=info["vector_dimension"],
+                vector_size=info.get("vector_size"),
+                distance_metric=info.get("distance"),
             )
 
             logger.warning(f"Collection cleared: {collection_name}")

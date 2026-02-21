@@ -1,22 +1,71 @@
-# DocTags RAG System
+# Contextprime
 
 **Ultimate RAG combining IBM structure preservation with Microsoft cross-document intelligence for advanced agentic reasoning**
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![Code](https://img.shields.io/badge/Code-35,680%20lines-green)](FINAL_SYSTEM_REPORT.md)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-success)](FINAL_SYSTEM_REPORT.md)
+[![Status](https://img.shields.io/badge/Status-Release%20Validation%20Pending-yellow)](RELEASE_READINESS_REPORT_2026-02-20.md)
 [![Tests](https://img.shields.io/badge/Tests-200%2B-brightgreen)](doctags_rag/tests/)
+
+---
+
+## GitHub Marketplace Action
+
+This repository now includes a publish-ready GitHub action at `/Volumes/SSD2/SUPER_RAG/action.yml`.
+
+Quick usage:
+
+```yaml
+name: Contextprime Gates
+on:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          run-security-gate: "true"
+          run-readiness-gate: "true"
+          run-full-tests: "false"
+```
+
+Action inputs:
+
+- `run-security-gate` (default `true`)
+- `run-readiness-gate` (default `true`)
+- `run-full-tests` (default `false`)
+- `full-tests-skip-build` (default `true`)
+- `install-tooling` (default `true`)
+- `install-project-dependencies` (default `true`)
+- `create-env-from-example` (default `true`)
+
+Marketplace release steps:
+
+1. Push the committed changes to your public repository.
+2. Create a version tag such as `v1.0.0`.
+3. Create a GitHub release from that tag.
+4. Publish the action to GitHub Marketplace from repository settings.
 
 ---
 
 ## 🎯 Overview
 
-DocTags RAG is a **production-ready, enterprise-grade RAG system** that implements:
+Contextprime is a **production-ready, enterprise-grade retrieval system** that implements:
 
 - **IBM DocTags**: Structure-preserving document processing with layout analysis
 - **Microsoft GraphRAG**: Cross-document intelligence with community detection
 - **RAPTOR**: Hierarchical recursive summarization for multi-level retrieval
 - **Agentic Architecture**: Self-improving system with reinforcement learning
+
+Current checkpoint (2026-02-20):
+- Development is paused for end of day.
+- Release validation resumes with:
+  - `./run_security_release_gate.sh`
+  - `./run_european_union_artificial_intelligence_act_readiness.sh`
+  - `./run_full_tests_stable.sh`
 
 ### System Stats
 - **35,680** lines of production Python code
@@ -186,6 +235,16 @@ result = await pipeline.process_query(
 ```bash
 # Run all tests
 pytest tests/ -v
+
+# Stable full suite from repository root
+cd ..
+./run_full_tests_stable.sh
+
+# Skip image build if you already built the latest app image
+./run_full_tests_stable.sh --skip-build
+
+# Security release gate (dependency scan + config checks + secret pattern checks)
+./run_security_release_gate.sh
 
 # Run specific test suite
 pytest tests/test_agents.py -v
@@ -406,7 +465,7 @@ python -c "import nltk; nltk.download('wordnet'); nltk.download('omw-1.4')"
 
 ## 🐳 Docker Deployment
 
-The compose file ships with services for Neo4j, Qdrant, and the DocTags API.
+The compose file ships with services for Neo4j, Qdrant, and the Contextprime API.
 The application image builds from `doctags_rag/Dockerfile` and mounts the
 repo-local `models/` directory so large Hugging Face checkpoints remain outside
 the container.
@@ -430,34 +489,97 @@ the container.
 > match the stored dimensionality.
 
 ```bash
-# 1) Build the DocTags application image
-docker compose build app
+# 1) Build the Contextprime application image
+docker compose --env-file doctags_rag/.env build app
 
 # 2) (Optional) Download MonoT5 weights into ./doctags_rag/models
-docker compose run --rm app python scripts/download_models.py
+docker compose --env-file doctags_rag/.env run --rm app python scripts/download_models.py
 
 # 3) Launch the full stack
-docker compose up -d neo4j qdrant app
+docker compose --env-file doctags_rag/.env up -d neo4j qdrant app
 
 # 4) Follow application logs
-docker compose logs -f app
+docker compose --env-file doctags_rag/.env logs -f app
 
 # 5) Stop all services
-docker compose down
+docker compose --env-file doctags_rag/.env down
 
 # 6) Tear down services and remove persistent volumes
-docker compose down -v
+docker compose --env-file doctags_rag/.env down -v
 ```
 
 Access points:
-- DocTags API/UI: http://localhost:8000
+- Contextprime API and web interface: http://localhost:8000
 - Neo4j Browser: http://localhost:7474
 - Neo4j Bolt: bolt://localhost:7687
 - Qdrant API: http://localhost:6333
 - Qdrant Dashboard: http://localhost:6333/dashboard
 
+Open http://localhost:8000 to launch the **Contextprime Studio** console. The interface covers
+document ingestion, hybrid search (with optional MonoT5 reranking), and FAST-mode agentic queries, and
+includes a dark-mode toggle that remembers your preference.
+
+### ARM64 OCR Support
+
+PaddleOCR/PaddlePaddle are skipped in the default ARM64 image to avoid lengthy builds. To enable OCR in an
+ARM64 container:
+
+```bash
+# Install Paddle deps inside the running app container
+docker compose --env-file doctags_rag/.env exec app pip install "paddlepaddle==3.2.0" "paddleocr==2.7.0"
+
+# Restart the app service afterward
+docker compose --env-file doctags_rag/.env restart app
+```
+
+Alternatively, switch the pipeline to the Tesseract engine (`enable_ocr=false` or `ocr_engine='tesseract'`)
+when PaddleOCR is unavailable.
+
 The app container reads environment variables from `doctags_rag/.env`. Set
-your `OPENAI_API_KEY` (or alternate providers) there before booting the stack.
+your `OPENAI_API_KEY` and strong infrastructure secrets there before booting the
+stack.
+
+Minimum secure environment values:
+
+```bash
+NEO4J_PASSWORD=<strong_neo4j_password>
+SECURITY__REQUIRE_ACCESS_TOKEN=true
+SECURITY__AUTH_MODE=jwt
+SECURITY__JWT_SECRET=<long_random_jwt_secret_min_32_chars>
+```
+
+The API enforces startup checks in docker mode. The app service now fails fast
+if required secrets are missing or default-valued.
+
+Runtime probes:
+
+- Liveness: `GET /api/health`
+- Readiness: `GET /api/readiness`
+
+Live smoke gate command:
+
+```bash
+./run_live_smoke_gate.sh
+```
+
+Real-world stable command:
+
+```bash
+./run_realworld_stable.sh
+```
+
+European Union Artificial Intelligence Act readiness gate:
+
+```bash
+./run_european_union_artificial_intelligence_act_readiness.sh
+```
+
+Compliance profile and evidence files are under `doctags_rag/compliance/`.
+
+When access control is enabled, the web console includes a token field in the
+header and sends that value on all protected requests. In signed token mode,
+use a signed token.
+
 The `./doctags_rag/models` and `./doctags_rag/data` directories are mounted into
 the container; any ingested artifacts or downloaded reranker weights persist
 across rebuilds.
@@ -503,8 +625,8 @@ This is a research implementation. For production use:
 2. Set up production databases
 3. Adjust performance parameters
 4. Enable monitoring and logging
-5. Implement authentication/authorization
-6. Add rate limiting
+5. Set signed token secrets and permissions
+6. Run release security and compliance gates
 7. Set up backups
 
 ---
@@ -517,14 +639,14 @@ Research and educational use.
 
 ## 🎉 Status
 
-**✅ COMPLETE AND READY FOR AI EVALUATION**
+**Hardening complete, release validation pending final gate re run**
 
 - All 6 phases fully implemented
 - 35,680 lines of production code
 - 67 modules, 200+ tests
 - Zero mocked functionality
 - Comprehensive documentation
-- Production-ready features
+- Release checklist and security gate are in place
 
 See [FINAL_SYSTEM_REPORT.md](FINAL_SYSTEM_REPORT.md) for detailed analysis.
 
@@ -540,6 +662,6 @@ For issues or questions:
 
 ---
 
-**Built with ❤️ following IBM DocTags, Microsoft GraphRAG, and RAPTOR principles**
+Built following IBM DocTags, Microsoft GraphRAG, and RAPTOR principles.
 
-*Last Updated: October 1, 2025*
+Last Updated: February 20, 2026

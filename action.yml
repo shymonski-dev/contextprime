@@ -1,0 +1,121 @@
+name: "Contextprime Release Gates"
+description: "Run security checks, readiness checks, and optional stable tests for Contextprime."
+author: "Contextprime"
+
+branding:
+  icon: "shield"
+  color: "blue"
+
+inputs:
+  run-security-gate:
+    description: "Run run_security_release_gate.sh."
+    required: false
+    default: "true"
+  run-readiness-gate:
+    description: "Run run_european_union_artificial_intelligence_act_readiness.sh."
+    required: false
+    default: "true"
+  run-full-tests:
+    description: "Run run_full_tests_stable.sh."
+    required: false
+    default: "false"
+  full-tests-skip-build:
+    description: "Pass --skip-build when running full stable tests."
+    required: false
+    default: "true"
+  install-tooling:
+    description: "Install helper tools needed by gate scripts."
+    required: false
+    default: "true"
+  install-project-dependencies:
+    description: "Install doctags_rag requirements before gate execution."
+    required: false
+    default: "true"
+  create-env-from-example:
+    description: "Create doctags_rag/.env from doctags_rag/.env.example when missing."
+    required: false
+    default: "true"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate scripts
+      shell: bash
+      run: |
+        set -euo pipefail
+        root="${{ github.action_path }}"
+        required=(
+          "run_security_release_gate.sh"
+          "run_european_union_artificial_intelligence_act_readiness.sh"
+          "run_full_tests_stable.sh"
+        )
+        for file in "${required[@]}"; do
+          if [[ ! -f "${root}/${file}" ]]; then
+            echo "Missing required script: ${root}/${file}"
+            exit 1
+          fi
+        done
+
+    - name: Install tooling
+      if: ${{ inputs.install-tooling == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        root="${{ github.action_path }}"
+        if ! command -v rg >/dev/null 2>&1; then
+          if command -v apt-get >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ripgrep
+          else
+            echo "ripgrep is required and apt-get is unavailable on this runner."
+            exit 1
+          fi
+        fi
+
+        python -m pip install --upgrade pip
+        python -m pip install pip-audit pyyaml
+
+        if [[ "${{ inputs.install-project-dependencies }}" == "true" ]]; then
+          python -m pip install -r "${root}/doctags_rag/requirements.txt"
+        fi
+
+    - name: Create env file from example
+      if: ${{ inputs.create-env-from-example == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        root="${{ github.action_path }}"
+        env_file="${root}/doctags_rag/.env"
+        env_example="${root}/doctags_rag/.env.example"
+        if [[ ! -f "${env_file}" && -f "${env_example}" ]]; then
+          cp "${env_example}" "${env_file}"
+          echo "Created ${env_file} from .env.example"
+        fi
+
+    - name: Run security gate
+      if: ${{ inputs.run-security-gate == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        root="${{ github.action_path }}"
+        "${root}/run_security_release_gate.sh"
+
+    - name: Run readiness gate
+      if: ${{ inputs.run-readiness-gate == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        root="${{ github.action_path }}"
+        "${root}/run_european_union_artificial_intelligence_act_readiness.sh"
+
+    - name: Run full stable tests
+      if: ${{ inputs.run-full-tests == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        root="${{ github.action_path }}"
+        if [[ "${{ inputs.full-tests-skip-build }}" == "true" ]]; then
+          "${root}/run_full_tests_stable.sh" --skip-build
+        else
+          "${root}/run_full_tests_stable.sh"
+        fi

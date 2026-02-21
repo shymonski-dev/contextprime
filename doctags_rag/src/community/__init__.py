@@ -1,5 +1,5 @@
 """
-Community Detection Module for DocTags RAG System.
+Community Detection Module for Contextprime.
 
 This module provides comprehensive community detection capabilities for entity and document
 clustering, enabling global insights similar to Microsoft's GraphRAG approach.

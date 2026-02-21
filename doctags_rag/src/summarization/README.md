@@ -1,6 +1,6 @@
 # RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval
 
-A production-ready implementation of hierarchical document understanding and multi-level retrieval for the DocTags RAG system.
+A production-ready implementation of hierarchical document understanding and multi-level retrieval for the Contextprime system.
 
 ## Overview
 
@@ -372,7 +372,7 @@ python scripts/demo_raptor.py
 # 5. Show performance metrics
 ```
 
-## Integration with DocTags RAG
+## Integration with Contextprime
 
 The RAPTOR system integrates seamlessly with existing DocTags components:
 
@@ -403,7 +403,7 @@ hybrid_retriever = HybridRetriever(
 
 ## License
 
-Same as DocTags RAG system.
+Same as Contextprime system.
 
 ## Contributing
 

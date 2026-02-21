@@ -20,12 +20,24 @@ from src.retrieval.confidence_scorer import (
     ConfidenceScorer, ConfidenceLevel, CorrectiveAction
 )
 from src.retrieval.query_router import (
-    QueryRouter, QueryType, QueryComplexity, RetrievalStrategy
+    QueryRouter, QueryType, QueryComplexity, RetrievalStrategy, QueryAnalysis
 )
-from src.retrieval.query_expansion import QueryExpander
+from src.retrieval.query_expansion import QueryExpander, ExpandedQuery
 from src.retrieval.reranker import Reranker
 from src.retrieval.cache_manager import CacheManager, LRUCache, SemanticQueryCache
 from src.retrieval.iterative_refiner import IterativeRefiner
+from src.retrieval.hybrid_retriever import (
+    HybridRetriever,
+    HybridSearchResult,
+    SearchMetrics as HybridSearchMetrics,
+    SearchStrategy as HybridSearchStrategy,
+    QueryType as HybridQueryType,
+)
+from src.retrieval.context_selector import TrainableContextSelector, SelectorExample
+from src.retrieval.advanced_pipeline import (
+    AdvancedRetrievalPipeline,
+    PipelineConfig,
+)
 
 
 # Test Data
@@ -248,6 +260,35 @@ class TestQueryExpander:
         assert isinstance(suggestions, list)
         assert len(suggestions) <= 3
 
+    def test_semantic_expansion_uses_embedding_model(self):
+        """Test semantic expansion path with a provided embedding model."""
+        expander = QueryExpander(
+            enable_wordnet=False,
+            enable_semantic=True,
+            enable_contextual=False,
+            max_expansions=4,
+        )
+
+        class FakeEmbeddingModel:
+            def encode(self, texts, show_progress_bar=False):
+                vectors = []
+                for text in texts:
+                    lower = text.lower()
+                    if "evidence" in lower or "citation" in lower or "grounding" in lower:
+                        vectors.append([1.0, 0.0, 0.0])
+                    else:
+                        vectors.append([0.0, 1.0, 0.0])
+                return vectors
+
+        expanded = expander.expand_query(
+            "evidence grounding",
+            strategy="comprehensive",
+            embedding_model=FakeEmbeddingModel(),
+        )
+
+        assert expanded.semantic_terms
+        assert "citation" in expanded.semantic_terms or "evidence" in expanded.semantic_terms
+
 
 class TestReranker:
     """Test result reranking system."""
@@ -349,6 +390,21 @@ class TestCacheManager:
             assert cached is not None
             assert len(cached) == len(SAMPLE_RESULTS)
 
+
+class TestHybridRetrieverWeights:
+    """Validate hybrid retriever weight handling."""
+
+    def test_defaults_applied_when_weights_zero(self):
+        retriever = HybridRetriever(vector_weight=0.0, graph_weight=0.0)
+        expected_vector = 0.7 / (0.7 + 0.3)
+        expected_graph = 0.3 / (0.7 + 0.3)
+        assert pytest.approx(retriever.vector_weight, rel=1e-6) == expected_vector
+        assert pytest.approx(retriever.graph_weight, rel=1e-6) == expected_graph
+
+    def test_negative_weight_raises(self):
+        with pytest.raises(ValueError):
+            HybridRetriever(vector_weight=-0.1, graph_weight=1.0)
+
             # Test embedding caching
             text_emb = np.random.rand(384)
             manager.cache_embedding("test text", text_emb)
@@ -441,6 +497,408 @@ class TestIterativeRefiner:
         )
 
         assert needs_refinement
+
+
+class TestAdvancedPipeline:
+    """Test advanced pipeline orchestration."""
+
+    def test_multi_query_retrieval_and_strategy_mapping(self):
+        """Test that router strategy is mapped and multi query fusion is applied."""
+        calls = []
+
+        class FakeHybridRetriever:
+            def search(self, query_vector, query_text, top_k=10, strategy=None, filters=None):
+                calls.append({"query_text": query_text, "strategy": strategy})
+                result = HybridSearchResult(
+                    id=f"id_{len(calls)}",
+                    content=f"content for {query_text}",
+                    score=0.9 - (0.05 * len(calls)),
+                    confidence=0.7,
+                    source="hybrid",
+                    vector_score=0.8,
+                    graph_score=0.6,
+                    metadata={"source_query": query_text},
+                    graph_context=None,
+                )
+                metrics = HybridSearchMetrics(
+                    query_type=HybridQueryType.HYBRID,
+                    strategy=HybridSearchStrategy.HYBRID,
+                    vector_results=1,
+                    graph_results=1,
+                    lexical_results=0,
+                    combined_results=1,
+                    vector_time_ms=1.0,
+                    graph_time_ms=1.0,
+                    lexical_time_ms=0.0,
+                    fusion_time_ms=1.0,
+                    total_time_ms=3.0,
+                )
+                return [result], metrics
+
+            def get_statistics(self):
+                return {}
+
+            def health_check(self):
+                return {}
+
+            def close(self):
+                return None
+
+        config = PipelineConfig(
+            enable_query_expansion=True,
+            enable_multi_query_retrieval=True,
+            enable_iterative_refinement=False,
+            enable_reranking=False,
+            enable_confidence_scoring=False,
+            enable_caching=False,
+            use_cross_encoder=False,
+            max_query_variants=3,
+        )
+
+        pipeline = AdvancedRetrievalPipeline(
+            hybrid_retriever=FakeHybridRetriever(),
+            config=config,
+            embedding_function=lambda text: [0.1, 0.2, 0.3],
+        )
+
+        # Make query routing deterministic for this test.
+        analysis = QueryAnalysis(
+            query_text="test query",
+            query_type=QueryType.ANALYTICAL,
+            complexity=QueryComplexity.COMPLEX,
+            recommended_strategy=RetrievalStrategy.HYBRID,
+            confidence=0.9,
+        )
+        pipeline.query_router.route_query = lambda query, context=None: (RetrievalStrategy.HYBRID, analysis)
+
+        # Force deterministic expansion variants.
+        pipeline.query_expander.expand_query = lambda query, strategy="comprehensive": ExpandedQuery(
+            original_query=query,
+            expanded_query=f"{query} detailed",
+            synonyms=[],
+            related_entities=[],
+            semantic_terms=[],
+            contextual_terms=[],
+            expansion_strategy=strategy,
+        )
+        pipeline.query_expander.expand_multi_strategy = lambda query: [
+            ExpandedQuery(
+                original_query=query,
+                expanded_query=f"{query} detailed",
+                synonyms=[],
+                related_entities=[],
+                semantic_terms=[],
+                contextual_terms=[],
+                expansion_strategy="conservative",
+            ),
+            ExpandedQuery(
+                original_query=query,
+                expanded_query=f"{query} broader",
+                synonyms=[],
+                related_entities=[],
+                semantic_terms=[],
+                contextual_terms=[],
+                expansion_strategy="aggressive",
+            ),
+        ]
+
+        result = pipeline.retrieve("test query", top_k=3)
+
+        assert result.metrics.query_variants >= 2
+        assert result.metadata["search_metrics"]["mode"] == "multi_query"
+        assert all(call["strategy"] == HybridSearchStrategy.HYBRID for call in calls)
+        assert len(result.results) > 0
+
+    def test_corrective_pass_runs_when_initial_quality_is_low(self):
+        """Test corrective retrieval pass with forced hybrid strategy."""
+        calls = []
+
+        class FakeHybridRetriever:
+            def search(self, query_vector, query_text, top_k=10, strategy=None, filters=None):
+                calls.append({"query_text": query_text, "strategy": strategy, "top_k": top_k})
+                if "source details" in query_text:
+                    result = HybridSearchResult(
+                        id="fix-1",
+                        content="Recovered evidence result.",
+                        score=0.88,
+                        confidence=0.86,
+                        source="hybrid",
+                        vector_score=0.88,
+                        graph_score=0.7,
+                        metadata={"source_query": query_text},
+                        graph_context=None,
+                    )
+                else:
+                    result = HybridSearchResult(
+                        id="base-1",
+                        content="Weak initial result.",
+                        score=0.25,
+                        confidence=0.2,
+                        source="vector",
+                        vector_score=0.25,
+                        graph_score=None,
+                        metadata={"source_query": query_text},
+                        graph_context=None,
+                    )
+                metrics = HybridSearchMetrics(
+                    query_type=HybridQueryType.HYBRID,
+                    strategy=strategy or HybridSearchStrategy.HYBRID,
+                    vector_results=1,
+                    graph_results=0,
+                    lexical_results=0,
+                    combined_results=1,
+                    vector_time_ms=1.0,
+                    graph_time_ms=0.0,
+                    lexical_time_ms=0.0,
+                    fusion_time_ms=0.5,
+                    total_time_ms=1.5,
+                )
+                return [result], metrics
+
+            def get_statistics(self):
+                return {}
+
+            def health_check(self):
+                return {}
+
+            def close(self):
+                return None
+
+        config = PipelineConfig(
+            enable_query_expansion=False,
+            enable_multi_query_retrieval=False,
+            enable_corrective_retrieval=True,
+            enable_context_pruning=False,
+            enable_iterative_refinement=False,
+            enable_reranking=False,
+            enable_confidence_scoring=False,
+            enable_caching=False,
+            use_cross_encoder=False,
+            corrective_min_results=2,
+            corrective_min_average_confidence=0.6,
+            corrective_force_hybrid_strategy=True,
+            corrective_max_variants=1,
+        )
+
+        pipeline = AdvancedRetrievalPipeline(
+            hybrid_retriever=FakeHybridRetriever(),
+            config=config,
+            embedding_function=lambda text: [0.1, 0.2, 0.3],
+        )
+
+        analysis = QueryAnalysis(
+            query_text="weak query",
+            query_type=QueryType.FACTUAL,
+            complexity=QueryComplexity.SIMPLE,
+            recommended_strategy=RetrievalStrategy.VECTOR_ONLY,
+            confidence=0.9,
+        )
+        pipeline.query_router.route_query = lambda query, context=None: (RetrievalStrategy.VECTOR_ONLY, analysis)
+        pipeline._build_corrective_query_variants = (
+            lambda query, existing_variants, max_variants: [f"{query} evidence source details"]
+        )
+
+        result = pipeline.retrieve("weak query", top_k=2)
+
+        assert result.metadata["search_metrics"]["corrective_pass"]["applied"] is True
+        assert len(calls) >= 2
+        assert calls[0]["strategy"] == HybridSearchStrategy.VECTOR_ONLY
+        assert any(call["strategy"] == HybridSearchStrategy.HYBRID for call in calls[1:])
+        assert result.metrics.query_variants >= 2
+
+    def test_context_pruning_applies_to_pipeline_results(self):
+        """Test sentence-level context pruning in advanced pipeline."""
+
+        class FakeHybridRetriever:
+            def search(self, query_vector, query_text, top_k=10, strategy=None, filters=None):
+                content = (
+                    "Retrieval quality improves when evidence is grounded in relevant passages. "
+                    "Unrelated filler text can distract generation and increase noise. "
+                    "Source overlap and precision are key for better grounded answers."
+                )
+                result = HybridSearchResult(
+                    id="prune-1",
+                    content=content,
+                    score=0.82,
+                    confidence=0.74,
+                    source="hybrid",
+                    vector_score=0.82,
+                    graph_score=0.6,
+                    metadata={},
+                    graph_context=None,
+                )
+                metrics = HybridSearchMetrics(
+                    query_type=HybridQueryType.HYBRID,
+                    strategy=strategy or HybridSearchStrategy.HYBRID,
+                    vector_results=1,
+                    graph_results=0,
+                    lexical_results=0,
+                    combined_results=1,
+                    vector_time_ms=1.0,
+                    graph_time_ms=0.0,
+                    lexical_time_ms=0.0,
+                    fusion_time_ms=0.5,
+                    total_time_ms=1.5,
+                )
+                return [result], metrics
+
+            def get_statistics(self):
+                return {}
+
+            def health_check(self):
+                return {}
+
+            def close(self):
+                return None
+
+        config = PipelineConfig(
+            enable_query_expansion=False,
+            enable_multi_query_retrieval=False,
+            enable_corrective_retrieval=False,
+            enable_context_pruning=True,
+            enable_iterative_refinement=False,
+            enable_reranking=False,
+            enable_confidence_scoring=False,
+            enable_caching=False,
+            use_cross_encoder=False,
+            context_pruning_max_sentences_per_result=1,
+            context_pruning_max_chars_per_result=100,
+            context_pruning_min_sentence_tokens=3,
+        )
+
+        pipeline = AdvancedRetrievalPipeline(
+            hybrid_retriever=FakeHybridRetriever(),
+            config=config,
+            embedding_function=lambda text: [0.1, 0.2, 0.3],
+        )
+
+        analysis = QueryAnalysis(
+            query_text="grounding question",
+            query_type=QueryType.ANALYTICAL,
+            complexity=QueryComplexity.MODERATE,
+            recommended_strategy=RetrievalStrategy.HYBRID,
+            confidence=0.9,
+        )
+        pipeline.query_router.route_query = lambda query, context=None: (RetrievalStrategy.HYBRID, analysis)
+
+        result = pipeline.retrieve("how to improve grounding", top_k=1)
+
+        first = result.results[0]
+        assert result.metadata["search_metrics"]["context_pruning"]["enabled"] is True
+        assert result.metadata["search_metrics"]["context_pruning"]["pruned_results"] == 1
+        assert first["metadata"]["context_pruned"] is True
+        assert len(first["content"]) <= 103
+
+    def test_context_selector_filters_results(self):
+        """Test trainable context selector filtering during pruning."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            selector = TrainableContextSelector()
+            selector.fit(
+                [
+                    SelectorExample(
+                        query="retrieval grounding",
+                        content="grounding evidence retrieval",
+                        label=1,
+                    ),
+                    SelectorExample(
+                        query="retrieval grounding",
+                        content="weather travel events",
+                        label=0,
+                    ),
+                ]
+            )
+            model_path = Path(tmpdir) / "selector.json"
+            selector.save(model_path)
+
+            class FakeHybridRetriever:
+                def search(self, query_vector, query_text, top_k=10, strategy=None, filters=None):
+                    results = [
+                        HybridSearchResult(
+                            id="relevant",
+                            content="grounding evidence retrieval passage.",
+                            score=0.8,
+                            confidence=0.7,
+                            source="hybrid",
+                            vector_score=0.8,
+                            graph_score=0.5,
+                            metadata={},
+                            graph_context=None,
+                        ),
+                        HybridSearchResult(
+                            id="noise",
+                            content="weather travel events and flights.",
+                            score=0.79,
+                            confidence=0.69,
+                            source="hybrid",
+                            vector_score=0.79,
+                            graph_score=0.5,
+                            metadata={},
+                            graph_context=None,
+                        ),
+                    ]
+                    metrics = HybridSearchMetrics(
+                        query_type=HybridQueryType.HYBRID,
+                        strategy=strategy or HybridSearchStrategy.HYBRID,
+                        vector_results=2,
+                        graph_results=0,
+                        lexical_results=0,
+                        combined_results=2,
+                        vector_time_ms=1.0,
+                        graph_time_ms=0.0,
+                        lexical_time_ms=0.0,
+                        fusion_time_ms=0.5,
+                        total_time_ms=1.5,
+                    )
+                    return results, metrics
+
+                def get_statistics(self):
+                    return {}
+
+                def health_check(self):
+                    return {}
+
+                def close(self):
+                    return None
+
+            config = PipelineConfig(
+                enable_query_expansion=False,
+                enable_multi_query_retrieval=False,
+                enable_corrective_retrieval=False,
+                enable_context_pruning=True,
+                enable_trainable_context_selector=True,
+                context_selector_model_path=str(model_path),
+                context_selector_min_score=0.5,
+                context_selector_min_results=1,
+                enable_iterative_refinement=False,
+                enable_reranking=False,
+                enable_confidence_scoring=False,
+                enable_caching=False,
+                use_cross_encoder=False,
+            )
+
+            pipeline = AdvancedRetrievalPipeline(
+                hybrid_retriever=FakeHybridRetriever(),
+                config=config,
+                embedding_function=lambda text: [0.1, 0.2, 0.3],
+            )
+
+            analysis = QueryAnalysis(
+                query_text="grounding question",
+                query_type=QueryType.ANALYTICAL,
+                complexity=QueryComplexity.MODERATE,
+                recommended_strategy=RetrievalStrategy.HYBRID,
+                confidence=0.9,
+            )
+            pipeline.query_router.route_query = lambda query, context=None: (RetrievalStrategy.HYBRID, analysis)
+
+            result = pipeline.retrieve("retrieval grounding", top_k=2)
+            selector_stats = result.metadata["search_metrics"]["context_pruning"]["selector"]
+            assert selector_stats["applied"] is True
+            assert selector_stats["kept_results"] >= 1
+            assert all(
+                "context_selector_score" in item.get("metadata", {})
+                for item in result.results
+            )
 
 
 class TestIntegration:

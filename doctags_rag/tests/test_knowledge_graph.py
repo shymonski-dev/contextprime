@@ -46,12 +46,44 @@ to cloud computing with AWS and artificial intelligence.
 """
 
 
+def _skip_if_unavailable(extractor):
+    if not getattr(extractor, "available", True):
+        pytest.skip("spaCy model not installed; skipping entity extraction tests")
+
+
+def test_pipeline_handles_unavailable_neo4j(monkeypatch):
+    def fail_init(self, config=None):
+        raise RuntimeError("Neo4j not reachable")
+
+    monkeypatch.setattr(
+        "src.knowledge_graph.neo4j_manager.Neo4jManager.__init__",
+        fail_init,
+    )
+
+    config = PipelineConfig(
+        extract_entities=False,
+        extract_relationships=False,
+        resolve_entities=False,
+        enable_progress_bar=False,
+    )
+
+    pipeline = KnowledgeGraphPipeline(config=config)
+    result = pipeline.process_document(
+        text="Simple text about testing.",
+        doc_id="doc-offline",
+    )
+
+    assert result.statistics.get("graph_disabled") is True
+    assert result.nodes_created == 0
+
+
 class TestEntityExtractor:
     """Test entity extraction functionality."""
 
     def test_basic_entity_extraction(self):
         """Test basic entity extraction from text."""
         extractor = EntityExtractor(use_llm=False)
+        _skip_if_unavailable(extractor)
         result = extractor.extract_entities(
             text=SAMPLE_TEXT_1,
             document_id="test_doc_1"
@@ -70,6 +102,7 @@ class TestEntityExtractor:
             use_llm=False,
             confidence_threshold=0.9
         )
+        _skip_if_unavailable(extractor)
         result = extractor.extract_entities(
             text=SAMPLE_TEXT_1,
             document_id="test_doc_1"
@@ -82,6 +115,7 @@ class TestEntityExtractor:
     def test_entity_context_extraction(self):
         """Test that entity context is captured."""
         extractor = EntityExtractor(use_llm=False)
+        _skip_if_unavailable(extractor)
         result = extractor.extract_entities(
             text=SAMPLE_TEXT_1,
             document_id="test_doc_1",
@@ -94,6 +128,7 @@ class TestEntityExtractor:
     def test_batch_entity_extraction(self):
         """Test batch processing of multiple documents."""
         extractor = EntityExtractor(use_llm=False)
+        _skip_if_unavailable(extractor)
 
         texts = [
             (SAMPLE_TEXT_1, "doc1"),
@@ -109,6 +144,7 @@ class TestEntityExtractor:
     def test_entity_deduplication(self):
         """Test that duplicate entities are removed."""
         extractor = EntityExtractor(use_llm=False)
+        _skip_if_unavailable(extractor)
 
         # Text with repeated entities
         text = "Microsoft Corporation is a company. Microsoft develops software. Microsoft is in Seattle."
@@ -135,6 +171,7 @@ class TestRelationshipExtractor:
         """Test basic relationship extraction."""
         # First extract entities
         entity_extractor = EntityExtractor(use_llm=False)
+        _skip_if_unavailable(entity_extractor)
         entity_result = entity_extractor.extract_entities(
             text=SAMPLE_TEXT_1,
             document_id="test_doc_1"
@@ -155,6 +192,7 @@ class TestRelationshipExtractor:
     def test_relationship_confidence(self):
         """Test relationship confidence scores."""
         entity_extractor = EntityExtractor(use_llm=False)
+        _skip_if_unavailable(entity_extractor)
         entity_result = entity_extractor.extract_entities(
             text=SAMPLE_TEXT_1,
             document_id="test_doc_1"
@@ -177,6 +215,7 @@ class TestRelationshipExtractor:
     def test_relationship_types(self):
         """Test that relationship types are assigned."""
         entity_extractor = EntityExtractor(use_llm=False)
+        _skip_if_unavailable(entity_extractor)
         entity_result = entity_extractor.extract_entities(
             text=SAMPLE_TEXT_1,
             document_id="test_doc_1"
@@ -193,6 +232,22 @@ class TestRelationshipExtractor:
         for rel in rel_result.relationships:
             assert rel.relation_type is not None
             assert len(rel.relation_type) > 0
+
+
+def test_entity_extractor_handles_missing_model(monkeypatch):
+    import spacy
+
+    def raise_missing_model(_):
+        raise OSError("model not installed")
+
+    monkeypatch.setattr(spacy, "load", raise_missing_model)
+
+    extractor = EntityExtractor(use_llm=False)
+    assert extractor.available is False
+
+    result = extractor.extract_entities("Sample text", "doc")
+    assert result.entities == []
+    assert result.metadata.get("disabled") is True
 
 
 class TestEntityResolver:
@@ -434,8 +489,13 @@ class TestKnowledgeGraphIntegration:
 
         try:
             pipeline = KnowledgeGraphPipeline(config=config)
+            builder = pipeline._get_graph_builder()
+            if builder is None:
+                pytest.skip(
+                    f"Neo4j not available: {pipeline._graph_disable_reason}"
+                )
             # Clear any existing data
-            pipeline.graph_builder.clear_graph(confirm=True)
+            builder.clear_graph(confirm=True)
             return pipeline
         except Exception as e:
             pytest.skip(f"Neo4j not available: {e}")

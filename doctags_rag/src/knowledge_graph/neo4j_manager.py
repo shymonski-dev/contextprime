@@ -1,5 +1,5 @@
 """
-Neo4j Graph Database Manager for DocTags RAG System.
+Neo4j Graph Database Manager for Contextprime.
 
 Provides comprehensive graph database operations including:
 - Connection pool management
@@ -14,6 +14,8 @@ from typing import Dict, List, Any, Optional, Tuple, Union
 from dataclasses import dataclass
 from contextlib import contextmanager
 import time
+import re
+import json
 from functools import wraps
 
 from neo4j import GraphDatabase, Driver, Session, Result
@@ -27,6 +29,8 @@ from neo4j.exceptions import (
 from loguru import logger
 
 from ..core.config import Neo4jConfig, get_settings
+
+SAFE_PROPERTY_KEY_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,63}$")
 
 
 @dataclass
@@ -280,6 +284,7 @@ class Neo4jManager:
             Number of nodes created
         """
         total_created = 0
+        identity_keys = ("doc_id", "chunk_id", "entity_id", "canonical_name", "name")
 
         for i in range(0, len(nodes), batch_size):
             batch = nodes[i:i + batch_size]
@@ -293,11 +298,25 @@ class Neo4jManager:
                 nodes_by_label[label_key].append(node.properties)
 
             for labels, props_list in nodes_by_label.items():
-                query = f"""
-                UNWIND $props_list AS props
-                CREATE (n:{labels})
-                SET n = props
-                """
+                identity_key = None
+                for candidate in identity_keys:
+                    if all(props.get(candidate) is not None for props in props_list):
+                        identity_key = candidate
+                        break
+
+                if identity_key:
+                    query = f"""
+                    UNWIND $props_list AS props
+                    MERGE (n:{labels} {{{identity_key}: props.{identity_key}}})
+                    SET n += props
+                    """
+                else:
+                    query = f"""
+                    UNWIND $props_list AS props
+                    CREATE (n:{labels})
+                    SET n = props
+                    """
+
                 self.execute_write_query(query, {"props_list": props_list})
                 total_created += len(props_list)
 
@@ -536,11 +555,7 @@ class Neo4jManager:
         Returns:
             List of search results
         """
-        # Build filter clause
-        filter_clause = ""
-        if filters:
-            conditions = [f"n.{key} = ${key}" for key in filters.keys()]
-            filter_clause = "WHERE " + " AND ".join(conditions)
+        filter_clause, filter_params = self._build_safe_property_filters(filters)
 
         query = f"""
         CALL db.index.vector.queryNodes($index_name, $top_k, $query_vector)
@@ -555,8 +570,7 @@ class Neo4jManager:
             "top_k": top_k,
             "query_vector": query_vector
         }
-        if filters:
-            params.update(filters)
+        params.update(filter_params)
 
         results = self.execute_query(query, params)
 
@@ -569,6 +583,47 @@ class Neo4jManager:
             )
             for r in results
         ]
+
+    def _build_safe_property_filters(
+        self,
+        filters: Optional[Dict[str, Any]],
+    ) -> Tuple[str, Dict[str, Any]]:
+        """Build a safe Cypher WHERE clause for node property filters."""
+        if not filters:
+            return "", {}
+
+        clauses: List[str] = []
+        params: Dict[str, Any] = {}
+
+        for idx, (raw_key, raw_value) in enumerate(filters.items()):
+            key = self._sanitize_property_key(raw_key)
+            property_ref = f"n.`{key}`"
+
+            if raw_value is None:
+                clauses.append(f"{property_ref} IS NULL")
+                continue
+
+            param_name = f"filter_value_{idx}"
+            if isinstance(raw_value, (list, tuple, set)):
+                values = list(raw_value)
+                if not values:
+                    continue
+                clauses.append(f"{property_ref} IN ${param_name}")
+                params[param_name] = values
+                continue
+
+            clauses.append(f"{property_ref} = ${param_name}")
+            params[param_name] = raw_value
+
+        if not clauses:
+            return "", {}
+        return "WHERE " + " AND ".join(clauses), params
+
+    def _sanitize_property_key(self, raw_key: Any) -> str:
+        key = str(raw_key).strip()
+        if not SAFE_PROPERTY_KEY_PATTERN.fullmatch(key):
+            raise ValueError(f"Invalid filter key: {raw_key}")
+        return key
 
     def traverse_graph(
         self,
@@ -616,6 +671,395 @@ class Neo4jManager:
         })
 
         return results
+
+    def expand_from_seed_nodes(
+        self,
+        seed_scores: Dict[str, float],
+        max_depth: int = 2,
+        limit: int = 100,
+    ) -> List[SearchResult]:
+        """
+        Expand graph neighborhood from seed nodes and return scored neighbors.
+
+        Args:
+            seed_scores: Mapping of seed node id to seed score
+            max_depth: Maximum traversal depth from each seed
+            limit: Maximum neighbor records to return before scoring
+
+        Returns:
+            Scored neighbor search results
+        """
+        if not seed_scores:
+            return []
+
+        query = """
+        UNWIND $seed_ids AS seed_id
+        MATCH (seed)
+        WHERE elementId(seed) = seed_id
+        MATCH path = (seed)-[*1..$max_depth]-(neighbor)
+        WHERE elementId(neighbor) <> seed_id
+        WITH seed_id, neighbor, min(length(path)) AS depth
+        RETURN
+            seed_id,
+            elementId(neighbor) AS node_id,
+            labels(neighbor) AS labels,
+            neighbor,
+            depth
+        LIMIT $limit
+        """
+
+        rows = self.execute_query(
+            query,
+            {
+                "seed_ids": list(seed_scores.keys()),
+                "max_depth": max_depth,
+                "limit": limit,
+            },
+        )
+
+        if not rows:
+            return []
+
+        grouped: Dict[str, Dict[str, Any]] = {}
+        for row in rows:
+            node_id = row.get("node_id")
+            if not node_id:
+                continue
+            seed_id = row.get("seed_id")
+            depth = max(1, int(row.get("depth", 1)))
+            seed_score = float(seed_scores.get(seed_id, 0.5))
+            neighbor_score = seed_score / (1.0 + depth)
+
+            existing = grouped.get(node_id)
+            if existing is None or neighbor_score > existing["score"]:
+                grouped[node_id] = {
+                    "score": neighbor_score,
+                    "labels": row.get("labels", []),
+                    "node": dict(row.get("neighbor") or {}),
+                    "seed_id": seed_id,
+                    "depth": depth,
+                }
+
+        expanded: List[SearchResult] = []
+        for node_id, item in grouped.items():
+            metadata = {
+                "seed_node_id": item["seed_id"],
+                "graph_depth": item["depth"],
+                "graph_signal": "local_expansion",
+            }
+            expanded.append(
+                SearchResult(
+                    node_id=node_id,
+                    score=float(item["score"]),
+                    labels=item["labels"],
+                    properties=item["node"],
+                    metadata=metadata,
+                )
+            )
+
+        expanded.sort(key=lambda result: result.score, reverse=True)
+        return expanded
+
+    def keyword_search_nodes(
+        self,
+        query_text: str,
+        top_k: int = 20,
+        scan_limit: int = 1500,
+        max_terms: int = 8,
+    ) -> List[SearchResult]:
+        """
+        Perform lightweight keyword search over graph node payload fields.
+
+        Args:
+            query_text: Query text
+            top_k: Number of results to return
+            scan_limit: Maximum nodes to scan
+            max_terms: Maximum query terms to use
+
+        Returns:
+            Keyword-scored graph results
+        """
+        terms = self._tokenize_keyword_query(query_text, max_terms=max_terms)
+        if not terms:
+            return []
+
+        query = """
+        MATCH (n)
+        WHERE n.text IS NOT NULL OR n.content IS NOT NULL OR n.title IS NOT NULL OR n.name IS NOT NULL
+        RETURN elementId(n) AS node_id, labels(n) AS labels, n
+        LIMIT $scan_limit
+        """
+        rows = self.execute_query(query, {"scan_limit": int(scan_limit)})
+
+        scored: List[SearchResult] = []
+        for row in rows:
+            properties = dict(row.get("n") or {})
+            haystack = " ".join(
+                str(properties.get(key, ""))
+                for key in ("text", "content", "title", "name")
+            ).lower()
+            if not haystack:
+                continue
+
+            score = 0.0
+            for term in terms:
+                if term in haystack:
+                    score += 1.0
+            if score <= 0:
+                continue
+
+            normalized = score / max(1.0, float(len(terms)))
+            scored.append(
+                SearchResult(
+                    node_id=row["node_id"],
+                    score=normalized,
+                    labels=row.get("labels", []),
+                    properties=properties,
+                    metadata={
+                        "matched_terms": int(score),
+                        "query_terms": len(terms),
+                        "graph_signal": "global_keyword",
+                    },
+                )
+            )
+
+        scored.sort(key=lambda result: result.score, reverse=True)
+        return scored[:top_k]
+
+    def community_summary_search(
+        self,
+        query_text: str,
+        top_k: int = 20,
+        version: Optional[str] = None,
+        scan_limit: int = 500,
+        max_terms: int = 8,
+    ) -> List[SearchResult]:
+        """
+        Search stored community summaries and return community-level candidates.
+
+        Args:
+            query_text: Query text
+            top_k: Number of results to return
+            version: Optional community version (latest versions when None)
+            scan_limit: Maximum community nodes to scan
+            max_terms: Maximum query terms to use
+
+        Returns:
+            Community summary search results
+        """
+        terms = self._tokenize_keyword_query(query_text, max_terms=max_terms)
+        if not terms:
+            return []
+
+        query = """
+        MATCH (c:Community)
+        WHERE $version IS NULL OR c.version = $version
+        RETURN elementId(c) AS node_id, labels(c) AS labels, c
+        ORDER BY c.created_at DESC
+        LIMIT $scan_limit
+        """
+        rows = self.execute_query(
+            query,
+            {
+                "version": version,
+                "scan_limit": int(scan_limit),
+            },
+        )
+
+        scored: List[SearchResult] = []
+        for row in rows:
+            properties = dict(row.get("c") or {})
+            haystack = self._build_community_lexical_text(properties)
+            if not haystack:
+                continue
+
+            matched_terms = 0
+            term_score = 0.0
+            for term in terms:
+                occurrences = haystack.count(term)
+                if occurrences > 0:
+                    matched_terms += 1
+                    term_score += min(2.0, 1.0 + (0.35 * float(occurrences - 1)))
+
+            if term_score <= 0:
+                continue
+
+            coverage = matched_terms / max(1.0, float(len(terms)))
+            normalized = term_score / max(1.0, float(len(terms)))
+            size_boost = min(0.2, float(properties.get("size", 0)) / 250.0)
+            final_score = min(1.0, (0.55 * coverage) + (0.35 * normalized) + size_boost)
+
+            title = str(properties.get("title", "") or "").strip()
+            brief_summary = str(properties.get("brief_summary", "") or "").strip()
+            summary_text = ". ".join(part for part in [title, brief_summary] if part).strip()
+
+            enriched_properties = dict(properties)
+            enriched_properties["text"] = summary_text or str(properties.get("community_id", ""))
+            enriched_properties["community_score"] = float(final_score)
+
+            scored.append(
+                SearchResult(
+                    node_id=str(row.get("node_id")),
+                    score=float(final_score),
+                    labels=row.get("labels", ["Community"]),
+                    properties=enriched_properties,
+                    metadata={
+                        "matched_terms": matched_terms,
+                        "query_terms": len(terms),
+                        "graph_signal": "community_summary",
+                        "community_id": properties.get("community_id"),
+                        "community_version": properties.get("version"),
+                    },
+                )
+            )
+
+        scored.sort(key=lambda item: item.score, reverse=True)
+        return scored[:top_k]
+
+    def community_member_search(
+        self,
+        community_scores: Dict[str, float],
+        top_k: int = 20,
+        members_per_community: int = 6,
+    ) -> List[SearchResult]:
+        """
+        Expand community candidates to member evidence nodes.
+
+        Args:
+            community_scores: Mapping of community_id to community relevance score
+            top_k: Number of evidence nodes to return
+            members_per_community: Maximum member nodes per community
+
+        Returns:
+            Community member evidence search results
+        """
+        if not community_scores:
+            return []
+
+        query = """
+        UNWIND $community_ids AS community_id
+        MATCH (c:Community {community_id: community_id})
+        CALL {
+            WITH c
+            MATCH (e:Entity)-[:BELONGS_TO]->(c)
+            OPTIONAL MATCH (chunk:Chunk)-[:MENTIONS]->(e)
+            WITH e, chunk
+            RETURN e, chunk
+            LIMIT $members_per_community
+        }
+        RETURN
+            c.community_id AS community_id,
+            c.version AS community_version,
+            elementId(coalesce(chunk, e)) AS node_id,
+            labels(coalesce(chunk, e)) AS labels,
+            coalesce(chunk, e) AS node,
+            CASE WHEN chunk IS NOT NULL THEN 'chunk' ELSE 'entity' END AS evidence_type,
+            coalesce(e.name, c.title, c.community_id) AS evidence_name
+        """
+        rows = self.execute_query(
+            query,
+            {
+                "community_ids": list(community_scores.keys()),
+                "members_per_community": int(max(1, members_per_community)),
+            },
+        )
+
+        if not rows:
+            return []
+
+        expanded: List[SearchResult] = []
+        for row in rows:
+            node_id = row.get("node_id")
+            if not node_id:
+                continue
+
+            community_id = str(row.get("community_id", ""))
+            base_score = float(community_scores.get(community_id, 0.5))
+            evidence_type = str(row.get("evidence_type", "entity"))
+            type_boost = 1.0 if evidence_type == "chunk" else 0.85
+            final_score = min(1.0, base_score * type_boost)
+
+            properties = dict(row.get("node") or {})
+            if not str(properties.get("text", "")).strip():
+                evidence_name = str(row.get("evidence_name", "")).strip()
+                properties["text"] = (
+                    f"Community evidence from {community_id}: {evidence_name}"
+                    if evidence_name
+                    else f"Community evidence from {community_id}"
+                )
+
+            expanded.append(
+                SearchResult(
+                    node_id=str(node_id),
+                    score=float(final_score),
+                    labels=row.get("labels", []),
+                    properties=properties,
+                    metadata={
+                        "community_id": community_id,
+                        "community_version": row.get("community_version"),
+                        "graph_signal": "community_membership",
+                        "evidence_type": evidence_type,
+                    },
+                )
+            )
+
+        expanded.sort(key=lambda item: item.score, reverse=True)
+        return expanded[:top_k]
+
+    def _build_community_lexical_text(
+        self,
+        properties: Dict[str, Any],
+    ) -> str:
+        """Build a normalized lexical text from community properties."""
+        theme_blob = properties.get("themes", [])
+        topic_blob = properties.get("topics", [])
+        if isinstance(theme_blob, str):
+            try:
+                parsed = json.loads(theme_blob)
+                theme_blob = parsed if isinstance(parsed, list) else [theme_blob]
+            except Exception:
+                theme_blob = [theme_blob]
+        if isinstance(topic_blob, str):
+            try:
+                parsed = json.loads(topic_blob)
+                topic_blob = parsed if isinstance(parsed, list) else [topic_blob]
+            except Exception:
+                topic_blob = [topic_blob]
+
+        parts = [
+            str(properties.get("title", "") or ""),
+            str(properties.get("brief_summary", "") or ""),
+            str(properties.get("detailed_summary", "") or ""),
+            " ".join(str(item) for item in theme_blob if item),
+            " ".join(str(item) for item in topic_blob if item),
+        ]
+        return " ".join(part for part in parts if part).lower()
+
+    def _tokenize_keyword_query(
+        self,
+        query_text: str,
+        max_terms: int = 8,
+    ) -> List[str]:
+        """Tokenize query text for keyword search."""
+        stopwords = {
+            "the", "a", "an", "and", "or", "but", "if", "then", "else", "in",
+            "on", "at", "to", "for", "of", "with", "by", "from", "as", "is",
+            "are", "was", "were", "be", "been", "being", "do", "does", "did",
+            "what", "who", "where", "when", "why", "how", "which", "that",
+            "this", "these", "those", "it", "its", "their", "there", "can",
+            "could", "would", "should", "may", "might", "will", "about",
+        }
+        tokens = re.findall(r"\b[a-zA-Z0-9]{2,}\b", query_text.lower())
+        deduped: List[str] = []
+        seen = set()
+        for token in tokens:
+            if token in stopwords or token in seen:
+                continue
+            seen.add(token)
+            deduped.append(token)
+            if len(deduped) >= max_terms:
+                break
+        return deduped
 
     def find_shortest_path(
         self,

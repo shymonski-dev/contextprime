@@ -36,6 +36,10 @@ class DocumentIngestionConfig:
     store_subsections: bool = True
     store_chunk_text: bool = True
     chunk_text_truncate: Optional[int] = None
+    contextualize_embeddings: bool = True
+    embedding_context_max_chars: int = 240
+    embedding_include_breadcrumbs: bool = True
+    embedding_include_tag_type: bool = True
 
 
 @dataclass
@@ -157,7 +161,10 @@ class DocumentIngestionPipeline:
                 chunks = result.chunks
                 doc_props = self._build_document_properties(result)
 
-                embeddings = self._generate_embeddings(chunks)
+                embeddings = self._generate_embeddings(
+                    chunks,
+                    doc_title=doc_props.get("title"),
+                )
                 if embeddings.size == 0:
                     raise ValueError("No embeddings generated for chunks")
 
@@ -219,8 +226,12 @@ class DocumentIngestionPipeline:
             self._qdrant_manager = QdrantManager()
         return self._qdrant_manager
 
-    def _generate_embeddings(self, chunks: Sequence[Any]) -> np.ndarray:
-        texts = [chunk.content for chunk in chunks]
+    def _generate_embeddings(
+        self,
+        chunks: Sequence[Any],
+        doc_title: Optional[str] = None,
+    ) -> np.ndarray:
+        texts = [self._build_embedding_text(chunk, doc_title=doc_title) for chunk in chunks]
         embeddings = []
         batch_size = max(1, self.config.embedding_batch_size)
 
@@ -232,6 +243,52 @@ class DocumentIngestionPipeline:
         if embeddings:
             return np.vstack(embeddings)
         return np.zeros((0, 0), dtype=np.float32)
+
+    def _build_embedding_text(
+        self,
+        chunk: Any,
+        doc_title: Optional[str] = None,
+    ) -> str:
+        """Build context-rich text used for embedding generation."""
+        content = (getattr(chunk, "content", "") or "").strip()
+        if not self.config.contextualize_embeddings:
+            return content
+
+        context = getattr(chunk, "context", {}) or {}
+        metadata = getattr(chunk, "metadata", {}) or {}
+
+        context_lines: List[str] = []
+        title = context.get("document_title") or doc_title
+        if title:
+            context_lines.append(f"Document title: {title}")
+
+        section = context.get("section")
+        if section:
+            context_lines.append(f"Section: {section}")
+
+        subsection = context.get("subsection")
+        if subsection:
+            context_lines.append(f"Subsection: {subsection}")
+
+        if self.config.embedding_include_breadcrumbs:
+            breadcrumbs = context.get("breadcrumbs")
+            if breadcrumbs:
+                context_lines.append(f"Path: {breadcrumbs}")
+
+        if self.config.embedding_include_tag_type:
+            tag_type = metadata.get("tag_type")
+            if tag_type:
+                context_lines.append(f"Element type: {tag_type}")
+
+        if not context_lines:
+            return content
+
+        prefix = "\n".join(context_lines)
+        max_chars = max(0, int(self.config.embedding_context_max_chars))
+        if max_chars and len(prefix) > max_chars:
+            prefix = prefix[: max_chars - 3] + "..."
+
+        return f"{prefix}\n\nContent:\n{content}"
 
     def _ensure_qdrant_collection(self, vector_dim: int) -> None:
         if self._qdrant_collection_ready:
@@ -252,6 +309,21 @@ class DocumentIngestionPipeline:
                 distance_metric=self.config.qdrant_distance_metric,
                 recreate=self.config.recreate_qdrant_collection,
             )
+
+        if hasattr(self.qdrant_manager, "get_collection_info"):
+            info = self.qdrant_manager.get_collection_info(self.config.qdrant_collection)
+            existing_dim = info.get("vector_size") if info else None
+            if existing_dim is not None:
+                try:
+                    existing_dim_int = int(existing_dim)
+                except (TypeError, ValueError):
+                    existing_dim_int = None
+                if existing_dim_int and existing_dim_int != int(vector_dim):
+                    raise ValueError(
+                        "Qdrant collection vector size mismatch "
+                        f"(collection={existing_dim_int}, embeddings={vector_dim}). "
+                        "Recreate the collection or align embedding dimensions."
+                    )
 
         self._qdrant_collection_ready = True
         self._embedding_dim = vector_dim

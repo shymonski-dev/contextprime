@@ -2,7 +2,7 @@
 
 ## Overview
 
-The DocTags RAG Knowledge Graph system provides comprehensive entity and relationship extraction from documents, building a connected knowledge graph in Neo4j. This enables semantic understanding, relationship discovery, and advanced querying capabilities.
+The Contextprime Knowledge Graph system provides comprehensive entity and relationship extraction from documents, building a connected knowledge graph in Neo4j. This enables semantic understanding, relationship discovery, and advanced querying capabilities.
 
 ## Architecture
 

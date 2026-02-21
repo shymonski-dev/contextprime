@@ -1,6 +1,6 @@
 # Community Detection Module
 
-A comprehensive community detection system for the DocTags RAG system, enabling detection of entity communities and document clusters with global insights similar to Microsoft's GraphRAG approach.
+A comprehensive community detection system for the Contextprime system, enabling detection of entity communities and document clusters with global insights similar to Microsoft's GraphRAG approach.
 
 ## Overview
 
@@ -430,7 +430,7 @@ This will:
 4. Use sampling for very large graph metrics
 5. Cache results using `CommunityStorage`
 
-## Integration with DocTags RAG
+## Integration with Contextprime
 
 The community detection module integrates with:
 
@@ -491,4 +491,4 @@ result = pipeline.run_incremental_update(
 
 ## License
 
-Part of the DocTags RAG system.
+Part of the Contextprime system.

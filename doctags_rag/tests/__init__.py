@@ -1,1 +1,1 @@
-"""Tests for DocTags RAG system."""
+"""Tests for Contextprime system."""

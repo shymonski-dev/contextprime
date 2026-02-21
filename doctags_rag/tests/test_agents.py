@@ -20,7 +20,7 @@ from src.agents.base_agent import (
 )
 from src.agents.planning_agent import PlanningAgent, StepType
 from src.agents.execution_agent import ExecutionAgent
-from src.agents.evaluation_agent import EvaluationAgent, QualityLevel
+from src.agents.evaluation_agent import EvaluationAgent, QualityLevel, QualityAssessment
 from src.agents.learning_agent import LearningAgent
 from src.agents.coordinator import AgentCoordinator
 from src.agents.feedback_aggregator import FeedbackAggregator
@@ -523,6 +523,80 @@ class TestAgenticPipeline:
             assert "agents" in stats
             assert "memory" in stats
             assert "performance" in stats
+
+    @pytest.mark.asyncio
+    async def test_generator_feedback_retrieval_loop(self):
+        """Test generator-driven retrieval feedback path."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pipeline = AgenticPipeline(
+                mode=AgenticMode.FAST,
+                enable_learning=False,
+                storage_path=Path(tmpdir)
+            )
+
+            base_results = [
+                {
+                    "id": "base_1",
+                    "content": "Partial answer without enough supporting details.",
+                    "score": 0.25,
+                    "confidence": 0.2,
+                    "metadata": {},
+                }
+            ]
+            assessment = QualityAssessment(
+                query="why does retrieval fail",
+                results=base_results,
+                overall_score=0.35,
+                quality_level=QualityLevel.POOR,
+                weaknesses=["missing evidence"],
+                improvement_suggestions=["retrieve sources with explicit grounding"],
+            )
+
+            class FakeEmbedder:
+                def encode(self, texts, show_progress_bar=False):
+                    return [[0.1, 0.2, 0.3] for _ in texts]
+
+            class FakeRetrievedItem:
+                def __init__(self, item_id, content, score):
+                    self.id = item_id
+                    self.content = content
+                    self.score = score
+                    self.confidence = score
+                    self.source = "hybrid"
+                    self.metadata = {}
+                    self.graph_context = None
+
+            class FakeRetriever:
+                def search(self, query_vector, query_text, top_k=4, strategy=None):
+                    return [
+                        FakeRetrievedItem("extra_1", f"Evidence for {query_text}", 0.9),
+                        FakeRetrievedItem("extra_2", f"Additional support for {query_text}", 0.8),
+                    ], None
+
+            async def fake_evaluate(query, results, context=None):
+                return QualityAssessment(
+                    query=query,
+                    results=results,
+                    overall_score=0.82,
+                    quality_level=QualityLevel.GOOD,
+                )
+
+            pipeline.executor.retrieval_pipeline = FakeRetriever()
+            pipeline.executor.embedding_model = FakeEmbedder()
+            pipeline.evaluator.evaluate_results = fake_evaluate
+
+            updated_results, updated_assessment, metadata = await pipeline._apply_generator_feedback_loop(
+                query="why does retrieval fail",
+                results=base_results,
+                assessment=assessment,
+                min_quality_threshold=0.7,
+            )
+
+            assert metadata["applied"] is True
+            assert metadata["accepted"] is True
+            assert metadata["added_results"] >= 1
+            assert len(updated_results) > len(base_results)
+            assert updated_assessment.overall_score > assessment.overall_score
 
 
 class TestIntegration:

@@ -57,9 +57,11 @@ def neo4j_manager():
 @pytest.fixture(scope="module")
 def qdrant_manager():
     """Create Qdrant manager for testing."""
+    from src.core.config import get_settings
+    settings = get_settings()
     config = QdrantConfig(
-        host="localhost",
-        port=6333,
+        host=settings.qdrant.host,
+        port=settings.qdrant.port,
         collection_name="test_collection",
         vector_size=384,  # Small dimension for testing
     )

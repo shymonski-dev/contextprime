@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Iterable, List, Optional, TYPE_CHECKING
+from pathlib import Path
+from typing import Iterable, List, Optional, TYPE_CHECKING, Union
 
 from loguru import logger
 
@@ -27,21 +28,64 @@ class _MonoT5Config:
     model_name: str
     device: Optional[str] = None
     max_length: int = 512
+    cache_dir: Optional[Path] = None
 
 
 class MonoT5Reranker:
     """Apply monoT5 scoring to reorder hybrid retrieval results."""
 
-    def __init__(self, model_name: str, device: Optional[str] = None, max_length: int = 512) -> None:
-        self.config = _MonoT5Config(model_name=model_name, device=device, max_length=max_length)
+    def __init__(
+        self,
+        model_name: str,
+        device: Optional[str] = None,
+        max_length: int = 512,
+        cache_dir: Optional[Union[str, Path]] = None,
+    ) -> None:
+        cache_path: Optional[Path] = None
+        if cache_dir:
+            cache_path = Path(cache_dir).expanduser().resolve()
+            cache_path.mkdir(parents=True, exist_ok=True)
+
+        self.config = _MonoT5Config(
+            model_name=model_name,
+            device=device,
+            max_length=max_length,
+            cache_dir=cache_path,
+        )
         if torch is None or AutoTokenizer is None or AutoModelForSeq2SeqLM is None:
             raise RuntimeError("MonoT5 reranker requires torch and transformers to be installed")
         resolved_device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.device = torch.device(resolved_device)
+        self._model_cache_dir = self._resolve_model_cache_dir(model_name)
 
         logger.info("Loading MonoT5 reranker (%s) on %s", model_name, self.device)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        local_snapshot = None
+        if self._model_cache_dir is not None:
+            config_path = self._model_cache_dir / "config.json"
+            if config_path.exists():
+                local_snapshot = self._model_cache_dir
+
+        try:
+            if local_snapshot is not None:
+                logger.debug("Attempting MonoT5 local load from %s", local_snapshot)
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    str(local_snapshot),
+                    use_fast=False,
+                    local_files_only=True,
+                )
+                self.model = AutoModelForSeq2SeqLM.from_pretrained(
+                    str(local_snapshot),
+                    local_files_only=True,
+                )
+            else:
+                raise FileNotFoundError("MonoT5 snapshot missing config.json")
+        except Exception as local_err:
+            logger.warning("MonoT5 local load failed: %s", local_err, exc_info=True)
+            remote_kwargs = {}
+            if self._model_cache_dir is not None:
+                remote_kwargs["cache_dir"] = str(self._model_cache_dir)
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False, **remote_kwargs)
+            self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name, **remote_kwargs)
         self.model.to(self.device)
         self.model.eval()
 
@@ -117,3 +161,11 @@ class MonoT5Reranker:
     def _format_input(self, query: str, result: "HybridSearchResult") -> str:
         document = result.content or result.metadata.get("text", "")
         return f"Query: {query} Document: {document} Relevant:"
+
+    def _resolve_model_cache_dir(self, model_name: str) -> Optional[Path]:
+        if self.config.cache_dir is None:
+            return None
+        sanitized = model_name.replace("/", "_")
+        target = self.config.cache_dir / sanitized
+        target.mkdir(parents=True, exist_ok=True)
+        return target

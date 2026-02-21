@@ -1,0 +1,40 @@
+regulation:
+  name: "Regulation (EU) 2024/1689"
+  title: "European Union Artificial Intelligence Act"
+  entry_into_force_date: "2024-08-01"
+  profile_review_date: "2026-02-20"
+
+system:
+  name: "Contextprime"
+  owner: "Engineering"
+  intended_use: >
+    Retrieval augmented question answering over uploaded technical documents,
+    with search, evidence retrieval, and feedback capture for quality improvement.
+  prohibited_use_screening_completed: true
+
+operators:
+  provider: true
+  deployer: true
+
+risk_classification:
+  category: "limited_risk"
+  rationale: >
+    The current intended use is information support for document retrieval and
+    question answering. It is not configured as a stand alone safety component
+    in a regulated product and is not configured for a prohibited practice.
+  last_review_date: "2026-02-20"
+
+controls:
+  transparency_notice_file: "src/api/static/index.html"
+  literacy_register_file: "compliance/artificial_intelligence_literacy_register.csv"
+  incident_process_file: "compliance/incident_and_serious_event_process.md"
+  release_checklist_file: "../PRODUCTION_ROLLOUT_CHECKLIST_2026-02-20.md"
+  technical_documentation_file: "compliance/high_risk/technical_documentation.md"
+  risk_management_file: "compliance/high_risk/risk_management_system.md"
+  data_governance_file: "compliance/high_risk/data_governance.md"
+  record_keeping_file: "compliance/high_risk/record_keeping_and_logs.md"
+  human_oversight_file: "compliance/high_risk/human_oversight.md"
+  accuracy_robustness_security_file: "compliance/high_risk/accuracy_robustness_security.md"
+  quality_management_file: "compliance/high_risk/quality_management_system.md"
+  post_market_monitoring_file: "compliance/high_risk/post_market_monitoring.md"
+  deployer_fundamental_rights_assessment_file: "compliance/high_risk/fundamental_rights_impact_assessment.md"

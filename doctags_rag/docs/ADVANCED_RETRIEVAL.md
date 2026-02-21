@@ -1,6 +1,6 @@
 # Advanced Retrieval Features
 
-This document describes the advanced retrieval features implemented in the DocTags RAG system.
+This document describes the advanced retrieval features implemented in the Contextprime system.
 
 ## Overview
 

@@ -1,5 +1,5 @@
 """
-Iterative Refinement System for DocTags RAG.
+Iterative Refinement System for Contextprime.
 
 Implements self-reflection and multi-round retrieval:
 - Evaluates initial retrieval results

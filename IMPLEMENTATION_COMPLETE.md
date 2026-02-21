@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-I have successfully implemented a comprehensive, production-ready document processing pipeline for the DocTags RAG system. This implementation follows IBM Docling's structure-preserving approach and provides a complete solution for processing multiple document formats while maintaining semantic structure.
+I have successfully implemented a comprehensive, production-ready document processing pipeline for the Contextprime system. This implementation follows IBM Docling's structure-preserving approach and provides a complete solution for processing multiple document formats while maintaining semantic structure.
 
 ## What Was Built
 

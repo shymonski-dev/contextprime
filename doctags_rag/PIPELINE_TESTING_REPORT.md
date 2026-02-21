@@ -1,4 +1,4 @@
-# DocTags RAG Pipeline Testing Report
+# Contextprime Pipeline Testing Report
 **Date:** October 1, 2025, 20:35
 **Session:** Full Pipeline Testing & Critical Fixes
 **Starting Point:** 71% test pass rate (144/202 tests)
@@ -63,12 +63,12 @@ Successfully completed comprehensive pipeline testing and resolved critical comp
 ### Infrastructure Status
 
 **Databases:**
-- ✅ Neo4j Aura: Operational at https://6a72eea7.databases.neo4j.io
+- ✅ Neo4j Aura: Operational at https://<your_neo4j_host>
 - ✅ Qdrant v1.14.0: Running on localhost:6333, fully compatible with client v1.15.1
 - ✅ Hybrid retrieval: All integration tests passing
 
 **APIs:**
-- ✅ OpenRouter: Working with new API key (sk-or-v1-7f61...)
+- ✅ OpenRouter: Working with refreshed API key
 - ✅ Live LLM calls: All RAPTOR summarization tests using real API
 
 **Configuration:**
@@ -245,10 +245,10 @@ Successfully completed comprehensive pipeline testing and resolved critical comp
 
 ```bash
 # Working Configuration (as of 2025-10-01)
-OPENAI_API_KEY=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
+OPENAI_API_KEY=<redacted>
 OPENAI_BASE_URL=https://openrouter.ai/api/v1
 
-NEO4J_URI=neo4j+s://6a72eea7.databases.neo4j.io
+NEO4J_URI=neo4j+s://<your_neo4j_host>
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=<configured in .env>
 
@@ -301,7 +301,7 @@ QDRANT_PORT=6333
 
 ## Conclusion
 
-The DocTags RAG system has reached a high level of maturity with 91% test pass rate. Core infrastructure is production-ready, with all database operations, retrieval systems, and processing pipelines functioning excellently. The remaining 19 test failures are primarily minor issues (test assertions, type conversions) rather than fundamental architectural problems.
+The Contextprime system has reached a high level of maturity with 91% test pass rate. Core infrastructure is production-ready, with all database operations, retrieval systems, and processing pipelines functioning excellently. The remaining 19 test failures are primarily minor issues (test assertions, type conversions) rather than fundamental architectural problems.
 
 **System is ready for:**
 - Document indexing and retrieval in production

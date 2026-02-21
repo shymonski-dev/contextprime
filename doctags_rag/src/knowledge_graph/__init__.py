@@ -1,5 +1,5 @@
 """
-Knowledge Graph module for DocTags RAG System.
+Knowledge Graph module for Contextprime.
 
 Provides comprehensive knowledge graph construction and querying:
 - Entity extraction from documents
@@ -20,6 +20,7 @@ from .entity_extractor import EntityExtractor, Entity, EntityExtractionResult
 from .relationship_extractor import RelationshipExtractor, Relationship, RelationshipExtractionResult
 from .entity_resolver import EntityResolver, EntityCluster, ResolutionResult
 from .graph_builder import GraphBuilder, DocumentMetadata, ChunkMetadata, GraphBuildResult
+from .graph_ingestor import GraphIngestionManager, GraphIngestionStats
 from .kg_pipeline import KnowledgeGraphPipeline, PipelineConfig, PipelineResult
 from .graph_queries import GraphQueryInterface, QueryResult
 
@@ -41,6 +42,8 @@ __all__ = [
     "DocumentMetadata",
     "ChunkMetadata",
     "GraphBuildResult",
+    "GraphIngestionManager",
+    "GraphIngestionStats",
     "KnowledgeGraphPipeline",
     "PipelineConfig",
     "PipelineResult",

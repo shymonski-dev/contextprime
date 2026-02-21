@@ -1,5 +1,5 @@
 """
-Query Expansion System for DocTags RAG.
+Query Expansion System for Contextprime.
 
 Implements comprehensive query expansion:
 - Synonym expansion
@@ -11,6 +11,7 @@ Implements comprehensive query expansion:
 from typing import Dict, List, Any, Optional, Set, Tuple
 from dataclasses import dataclass
 from collections import deque
+import re
 
 import numpy as np
 from loguru import logger
@@ -63,7 +64,9 @@ class QueryExpander:
         enable_wordnet: bool = True,
         enable_semantic: bool = True,
         enable_contextual: bool = True,
-        context_window: int = 5
+        context_window: int = 5,
+        semantic_similarity_threshold: float = 0.45,
+        semantic_candidates: Optional[List[str]] = None,
     ):
         """
         Initialize query expander.
@@ -83,6 +86,7 @@ class QueryExpander:
         self.enable_semantic = enable_semantic
         self.enable_contextual = enable_contextual
         self.context_window = context_window
+        self.semantic_similarity_threshold = semantic_similarity_threshold
 
         # Initialize spaCy
         self.nlp = None
@@ -112,6 +116,27 @@ class QueryExpander:
             "cv": ["computer vision", "image processing", "visual recognition"],
             "dl": ["deep learning", "neural networks", "machine learning"],
         }
+
+        self.semantic_seed_terms = semantic_candidates or [
+            "retrieval",
+            "reasoning",
+            "knowledge graph",
+            "entity",
+            "citation",
+            "evidence",
+            "embedding",
+            "keyword",
+            "document",
+            "summarization",
+            "answer generation",
+            "multi hop",
+            "question answering",
+            "hybrid search",
+            "vector search",
+            "reranking",
+            "context window",
+            "chunking",
+        ]
 
         # Query context history
         self.query_history: deque = deque(maxlen=context_window)
@@ -166,7 +191,17 @@ class QueryExpander:
 
         # Domain-specific expansion
         domain_terms = self._expand_domain_specific(key_terms)
-        synonyms.extend(domain_terms)
+        if domain_terms:
+            # Prioritize explicit domain mappings ahead of generic synonym terms.
+            deduped = []
+            seen = set()
+            for term in domain_terms + synonyms:
+                norm = term.strip().lower()
+                if not norm or norm in seen:
+                    continue
+                seen.add(norm)
+                deduped.append(term)
+            synonyms = deduped
 
         # Build expanded query based on strategy
         expanded_query = self._build_expanded_query(
@@ -202,16 +237,16 @@ class QueryExpander:
                 doc = self.nlp(query)
                 # Extract nouns, proper nouns, and important verbs
                 key_terms = [
-                    token.text.lower()
+                    re.sub(r"[^a-z0-9]+", "", token.text.lower())
                     for token in doc
                     if token.pos_ in ['NOUN', 'PROPN', 'VERB'] and not token.is_stop
                 ]
-                return key_terms
+                return [term for term in key_terms if term]
             except:
                 pass
 
         # Fallback: simple extraction
-        words = query.lower().split()
+        words = re.findall(r"[a-z0-9]+", query.lower())
         stopwords = {'the', 'a', 'an', 'is', 'are', 'what', 'who', 'where', 'when', 'how', 'why'}
         key_terms = [w for w in words if w not in stopwords]
         return key_terms
@@ -248,13 +283,90 @@ class QueryExpander:
         embedding_model: Any
     ) -> List[str]:
         """Expand using semantic similarity from embeddings."""
-        # This would require a vocabulary and embeddings
-        # Simplified version: return empty for now
-        # In production, you would:
-        # 1. Get query embedding
-        # 2. Find similar terms in vocabulary
-        # 3. Return top similar terms
-        return []
+        try:
+            if not hasattr(embedding_model, "encode"):
+                return []
+
+            query_terms = set(query.lower().split())
+            candidates = []
+
+            for term in key_terms:
+                candidates.extend(self.domain_expansions.get(term.lower(), []))
+
+            candidates.extend(self.semantic_seed_terms)
+            candidates.extend(key_terms)
+
+            # De-duplicate while preserving order and avoid terms already in query text
+            seen = set()
+            deduped_candidates = []
+            for term in candidates:
+                cleaned = term.strip().lower()
+                if not cleaned or cleaned in seen:
+                    continue
+                if cleaned in query_terms:
+                    continue
+                seen.add(cleaned)
+                deduped_candidates.append(cleaned)
+
+            if not deduped_candidates:
+                return []
+
+            query_vec, candidate_vecs = self._encode_for_semantic_expansion(
+                query=query,
+                candidates=deduped_candidates,
+                embedding_model=embedding_model,
+            )
+            if query_vec is None or candidate_vecs is None:
+                return []
+
+            similarities = []
+            for idx, candidate_vec in enumerate(candidate_vecs):
+                sim = self._cosine_similarity(query_vec, candidate_vec)
+                similarities.append((deduped_candidates[idx], sim))
+
+            similarities.sort(key=lambda x: x[1], reverse=True)
+
+            selected = [
+                term
+                for term, sim in similarities
+                if sim >= self.semantic_similarity_threshold
+            ]
+
+            if not selected:
+                selected = [term for term, _ in similarities[: self.max_expansions]]
+
+            return selected[: self.max_expansions]
+
+        except Exception as err:
+            logger.debug(f"Semantic expansion failed: {err}")
+            return []
+
+    def _encode_for_semantic_expansion(
+        self,
+        query: str,
+        candidates: List[str],
+        embedding_model: Any,
+    ) -> Tuple[Optional[np.ndarray], Optional[List[np.ndarray]]]:
+        """Encode query and candidates using the provided embedding model."""
+        try:
+            encoded = embedding_model.encode([query] + candidates, show_progress_bar=False)
+        except TypeError:
+            encoded = embedding_model.encode([query] + candidates)
+
+        if not encoded or len(encoded) < 2:
+            return None, None
+
+        query_vec = np.asarray(encoded[0], dtype=float)
+        candidate_vecs = [np.asarray(v, dtype=float) for v in encoded[1:]]
+        return query_vec, candidate_vecs
+
+    def _cosine_similarity(self, left: np.ndarray, right: np.ndarray) -> float:
+        """Compute cosine similarity with guardrails for empty vectors."""
+        left_norm = np.linalg.norm(left)
+        right_norm = np.linalg.norm(right)
+        if left_norm == 0 or right_norm == 0:
+            return 0.0
+        return float(np.dot(left, right) / (left_norm * right_norm))
 
     def _expand_contextual(self, query: str) -> List[str]:
         """Expand using context from query history."""

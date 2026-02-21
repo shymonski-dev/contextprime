@@ -1,4 +1,12 @@
-# Dual Indexing Infrastructure - Quick Reference
+# Contextprime - Quick Reference
+
+## Pause and Resume Checkpoint (2026-02-20)
+
+- Development is paused for end of day.
+- Resume gate order:
+  1. `./run_security_release_gate.sh`
+  2. `./run_european_union_artificial_intelligence_act_readiness.sh`
+  3. `./run_full_tests_stable.sh`
 
 ## Quick Start
 
@@ -7,7 +15,7 @@
 ./quickstart.sh
 
 # Manual setup
-docker-compose up -d neo4j qdrant
+docker compose --env-file doctags_rag/.env up -d neo4j qdrant
 cd doctags_rag
 pip install -r requirements.txt
 python scripts/setup_databases.py
@@ -17,25 +25,31 @@ python scripts/setup_databases.py
 
 ### Docker Management
 ```bash
-# Build the DocTags application image
-docker compose build app
+# Build the Contextprime application image
+docker compose --env-file doctags_rag/.env build app
 
 # (Optional) Download MonoT5 weights into ./doctags_rag/models
-docker compose run --rm app python scripts/download_models.py
+docker compose --env-file doctags_rag/.env run --rm app python scripts/download_models.py
+
+# Required security values in doctags_rag/.env
+# NEO4J_PASSWORD=<strong_password>
+# SECURITY__REQUIRE_ACCESS_TOKEN=true
+# SECURITY__AUTH_MODE=jwt
+# SECURITY__JWT_SECRET=<long_secret_min_32_chars>
 
 # Start application + databases
-docker compose up -d neo4j qdrant app
+docker compose --env-file doctags_rag/.env up -d neo4j qdrant app
 
 # View logs
-docker compose logs -f app
+docker compose --env-file doctags_rag/.env logs -f app
 docker logs doctags-neo4j
 docker logs doctags-qdrant
 
 # Stop services
-docker compose down
+docker compose --env-file doctags_rag/.env down
 
 # Reset everything (WARNING: deletes all data)
-docker compose down -v
+docker compose --env-file doctags_rag/.env down -v
 ```
 
 *ARM64 reminder*: the app container omits `paddleocr`, `paddlepaddle`, and
@@ -55,11 +69,25 @@ to match the 1536‑dimension vectors stored in both Qdrant and Neo4j.
 MonoT5 reranking requires the `sentencepiece` package (included in
 requirements); ensure it is installed before enabling the reranker.
 
+### Web Console
+```bash
+# Launch the UI after the containers are up
+open http://localhost:8000  # macOS
+xdg-open http://localhost:8000  # Linux
+```
+The Contextprime Studio exposes document ingestion, hybrid search, and agentic queries with a
+light/dark theme toggle.
+
+### ARM64 OCR
+- PaddleOCR/PaddlePaddle are skipped in the ARM64 image to keep builds lightweight.
+- To enable OCR inside the container: `docker compose --env-file doctags_rag/.env exec app pip install paddlepaddle==3.2.0 paddleocr==2.7.0`
+- Alternatively, switch to the Tesseract engine in config (`enable_ocr=false` or `ocr_engine='tesseract'`).
+
 ### Database Access
 ```bash
 # Neo4j Browser
 http://localhost:7474
-# Username: neo4j, Password: password
+# Username: neo4j, Password: value from NEO4J_PASSWORD
 
 # Qdrant Dashboard
 http://localhost:6333/dashboard
@@ -70,6 +98,24 @@ curl http://localhost:6333/collections
 
 ### Testing
 ```bash
+# European Union Artificial Intelligence Act readiness gate
+./run_european_union_artificial_intelligence_act_readiness.sh
+
+# Stable full suite from repository root
+./run_full_tests_stable.sh
+
+# Stable full suite without rebuilding app image
+./run_full_tests_stable.sh --skip-build
+
+# Security release gate
+./run_security_release_gate.sh
+
+# Live smoke gate (returns code 2 when provider key is placeholder)
+./run_live_smoke_gate.sh
+
+# Real-world stable command (setup + restart + full run)
+./run_realworld_stable.sh
+
 # Run all tests
 pytest tests/test_indexing.py -v
 
@@ -371,10 +417,14 @@ retriever = HybridRetriever(
 ```bash
 # .env file
 NEO4J_URI=bolt://localhost:7687
-NEO4J_PASSWORD=password
+NEO4J_PASSWORD=replace_with_strong_password
 QDRANT_HOST=localhost
 QDRANT_PORT=6333
 OPENAI_API_KEY=your_api_key
+SECURITY__REQUIRE_ACCESS_TOKEN=true
+SECURITY__AUTH_MODE=jwt
+SECURITY__JWT_SECRET=replace_with_long_secret
+SECURITY__JWT_ALGORITHM=HS256
 ```
 
 ### Config File (`config/config.yaml`)

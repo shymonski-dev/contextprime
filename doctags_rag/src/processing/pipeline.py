@@ -222,6 +222,55 @@ class DocumentProcessingPipeline:
 
         logger.info("Pipeline initialized successfully")
 
+    @classmethod
+    def _get_semantic_model(cls, model_name: str) -> Tuple[Optional[Any], Optional[str]]:
+        """Return cached semantic model or load it lazily."""
+        if model_name in cls._SEMANTIC_MODEL_CACHE:
+            return cls._SEMANTIC_MODEL_CACHE[model_name], None
+
+        if model_name in cls._SEMANTIC_MODEL_ERRORS:
+            return None, cls._SEMANTIC_MODEL_ERRORS[model_name]
+
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError:
+            error = "sentence-transformers package is not installed"
+            cls._SEMANTIC_MODEL_ERRORS[model_name] = error
+            return None, error
+
+        try:
+            model = SentenceTransformer(model_name)
+        except Exception as err:  # pragma: no cover - depends on environment
+            error = str(err)
+            cls._SEMANTIC_MODEL_ERRORS[model_name] = error
+            return None, error
+
+        cls._SEMANTIC_MODEL_CACHE[model_name] = model
+        return model, None
+
+    @classmethod
+    def semantic_support_status(cls, model_name: Optional[str] = None) -> Dict[str, Any]:
+        """Report semantic chunking availability for diagnostics."""
+        configured_name = model_name or os.getenv('DOCTAGS_SEMANTIC_MODEL')
+        if not configured_name:
+            return {
+                'available': False,
+                'reason': 'Set DOCTAGS_SEMANTIC_MODEL or PipelineConfig.semantic_model to enable semantic chunking.'
+            }
+
+        model, error = cls._get_semantic_model(configured_name)
+        if model is None:
+            return {
+                'available': False,
+                'reason': error
+            }
+
+        return {
+            'available': True,
+            'model': configured_name
+        }
+
+
     def process_file(
         self,
         file_path: Union[str, Path],

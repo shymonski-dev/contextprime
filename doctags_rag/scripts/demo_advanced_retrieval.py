@@ -401,7 +401,7 @@ def main():
     print("\n")
     print("╔" + "=" * 78 + "╗")
     print("║" + " " * 15 + "ADVANCED RETRIEVAL FEATURES DEMO" + " " * 31 + "║")
-    print("║" + " " * 20 + "DocTags RAG System" + " " * 40 + "║")
+    print("║" + " " * 20 + "Contextprime" + " " * 40 + "║")
     print("╚" + "=" * 78 + "╝")
 
     demos = [

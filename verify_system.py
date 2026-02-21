@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-DocTags RAG System - Non-Interactive Verification Script
+Contextprime - Non-Interactive Verification Script
 Generates a comprehensive system report without user interaction.
 """
 
@@ -141,7 +141,7 @@ def verify_file_structure() -> Dict[str, bool]:
 def generate_report():
     """Generate comprehensive system report."""
     print("=" * 80)
-    print("DocTags RAG System - Verification Report".center(80))
+    print("Contextprime - Verification Report".center(80))
     print("=" * 80)
     print(f"\nGenerated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
 

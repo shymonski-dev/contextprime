@@ -524,4 +524,4 @@ evaluator._assess_relevance = custom_relevance
 
 ## License
 
-Part of the DocTags RAG system.
+Part of the Contextprime system.

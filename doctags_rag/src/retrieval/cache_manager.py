@@ -1,5 +1,5 @@
 """
-Intelligent Caching Layer for DocTags RAG.
+Intelligent Caching Layer for Contextprime.
 
 Implements multi-level caching:
 - Query result caching

@@ -1,5 +1,5 @@
 """
-Pytest configuration and fixtures for DocTags RAG tests.
+Pytest configuration and fixtures for Contextprime tests.
 """
 
 import os

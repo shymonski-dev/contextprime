@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the production-ready dual indexing infrastructure that combines Neo4j graph database with Qdrant vector database for the DocTags RAG system.
+This document describes the production-ready dual indexing infrastructure that combines Neo4j graph database with Qdrant vector database for the Contextprime system.
 
 ## Components
 
@@ -100,7 +100,7 @@ Create a `.env` file in the `doctags_rag` directory:
 # Neo4j Configuration
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USERNAME=neo4j
-NEO4J_PASSWORD=password
+NEO4J_PASSWORD=replace_with_strong_password
 
 # Qdrant Configuration
 QDRANT_HOST=localhost
@@ -633,4 +633,4 @@ All code is located in `/Users/simonkelly/SUPER_RAG/doctags_rag/`:
 
 ## License
 
-This code is part of the DocTags RAG system.
+This code is part of the Contextprime system.

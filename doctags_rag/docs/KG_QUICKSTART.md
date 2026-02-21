@@ -49,7 +49,7 @@ python scripts/build_sample_kg.py
 Expected output:
 ```
 ================================================================================
-  DocTags RAG - Knowledge Graph Construction Demo
+  Contextprime - Knowledge Graph Construction Demo
 ================================================================================
 
 Configuring knowledge graph pipeline...

@@ -1,19 +1,19 @@
 {
-  "timestamp": "2025-10-01T18:05:29.292782",
+  "timestamp": "2025-10-07T15:35:14.944923",
   "codebase": {
-    "total_files": 67,
-    "total_lines": 35680,
+    "total_files": 79,
+    "total_lines": 39402,
     "by_component": {
       "Core Configuration": {
         "files": 1,
-        "lines": 196,
+        "lines": 244,
         "file_names": [
           "config.py"
         ]
       },
       "Retrieval System": {
         "files": 9,
-        "lines": 5335,
+        "lines": 5589,
         "file_names": [
           "reranker.py",
           "cache_manager.py",
@@ -28,7 +28,7 @@
       },
       "Document Processing": {
         "files": 6,
-        "lines": 4028,
+        "lines": 4129,
         "file_names": [
           "doctags_processor.py",
           "ocr_engine.py",
@@ -39,12 +39,13 @@
         ]
       },
       "Knowledge Graph": {
-        "files": 7,
-        "lines": 4613,
+        "files": 8,
+        "lines": 5013,
         "file_names": [
           "kg_pipeline.py",
           "entity_resolver.py",
           "entity_extractor.py",
+          "graph_ingestor.py",
           "relationship_extractor.py",
           "graph_builder.py",
           "neo4j_manager.py",
@@ -53,7 +54,7 @@
       },
       "RAPTOR Summarization": {
         "files": 7,
-        "lines": 4355,
+        "lines": 4370,
         "file_names": [
           "tree_storage.py",
           "summary_generator.py",
@@ -66,7 +67,7 @@
       },
       "Community Detection": {
         "files": 9,
-        "lines": 4373,
+        "lines": 4378,
         "file_names": [
           "community_summarizer.py",
           "community_detector.py",
@@ -81,7 +82,7 @@
       },
       "Agentic System": {
         "files": 11,
-        "lines": 5017,
+        "lines": 5122,
         "file_names": [
           "agentic_pipeline.py",
           "evaluation_agent.py",
@@ -97,12 +98,16 @@
         ]
       },
       "Tests": {
-        "files": 7,
-        "lines": 4357,
+        "files": 11,
+        "lines": 5302,
         "file_names": [
           "test_processing.py",
+          "test_hybrid_retriever_features.py",
           "test_community.py",
+          "test_api_demo.py",
           "test_advanced_retrieval.py",
+          "test_phase5_e2e.py",
+          "test_document_ingestion_pipeline.py",
           "test_indexing.py",
           "test_summarization.py",
           "test_knowledge_graph.py",
@@ -110,10 +115,14 @@
         ]
       },
       "Demo Scripts": {
-        "files": 10,
-        "lines": 3406,
+        "files": 17,
+        "lines": 5255,
         "file_names": [
+          "refresh_models.py",
           "demo_agentic.py",
+          "download_models.py",
+          "reset_and_test.py",
+          "full_smoke_test.py",
           "example_usage.py",
           "build_sample_kg.py",
           "demo_community.py",
@@ -121,7 +130,10 @@
           "demo_raptor.py",
           "verify_agentic_setup.py",
           "setup_databases.py",
+          "simple_test.py",
           "demo_processing.py",
+          "phase4_integration_tests.py",
+          "phase5_e2e_tests.py",
           "quick_test_processing.py"
         ]
       }
@@ -173,8 +185,8 @@
     "data/": true
   },
   "summary": {
-    "total_lines": 35680,
-    "total_files": 67,
+    "total_lines": 39402,
+    "total_files": 79,
     "components": 9,
     "phases_complete": 6
   }

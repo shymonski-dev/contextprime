@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 print("=" * 80)
-print("DocTags RAG - Launch Test")
+print("Contextprime - Launch Test")
 print("=" * 80)
 print()
 

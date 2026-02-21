@@ -14,7 +14,11 @@ from src.processing.pipeline import ProcessingResult, ProcessingStage
 
 
 class DummyEmbedder:
+    def __init__(self):
+        self.calls = []
+
     def encode(self, texts, show_progress_bar=False):
+        self.calls.append(list(texts))
         return [[float(len(text)), 0.0, 1.0] for text in texts]
 
 
@@ -149,3 +153,44 @@ def test_chunk_text_truncation():
 
     _, chunks = graph.calls[0]
     assert chunks[0]["content"] == long_text[:5]
+
+
+def test_embedding_text_includes_context_by_default():
+    qdrant = FakeQdrantManager()
+    graph = FakeGraphIngestor()
+    embedder = DummyEmbedder()
+    pipeline = DocumentIngestionPipeline(
+        embeddings_model=embedder,
+        processing_pipeline=SimpleNamespace(),
+        qdrant_manager=qdrant,
+        graph_ingestor=graph,
+        config=DocumentIngestionConfig(),
+    )
+
+    report = pipeline.ingest_processing_results([build_processing_result("Context body text")])
+    assert report.processed_documents == 1
+    assert embedder.calls
+
+    embedded_text = embedder.calls[0][0]
+    assert "Document title: Doc 1" in embedded_text
+    assert "Section: Intro" in embedded_text
+    assert "Content:" in embedded_text
+    assert "Context body text" in embedded_text
+
+
+def test_embedding_text_can_disable_context():
+    qdrant = FakeQdrantManager()
+    graph = FakeGraphIngestor()
+    embedder = DummyEmbedder()
+    pipeline = DocumentIngestionPipeline(
+        embeddings_model=embedder,
+        processing_pipeline=SimpleNamespace(),
+        qdrant_manager=qdrant,
+        graph_ingestor=graph,
+        config=DocumentIngestionConfig(contextualize_embeddings=False),
+    )
+
+    raw_text = "Raw chunk content only"
+    report = pipeline.ingest_processing_results([build_processing_result(raw_text)])
+    assert report.processed_documents == 1
+    assert embedder.calls[0][0] == raw_text

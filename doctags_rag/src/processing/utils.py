@@ -104,8 +104,9 @@ class FileTypeDetector:
         Returns:
             True if file type is supported
         """
-        file_type = cls.detect_file_type(file_path)
-        return file_type in supported_formats
+        file_type = cls.detect_file_type(file_path).lower()
+        supported = {fmt.lower() for fmt in supported_formats}
+        return file_type in supported
 
     @classmethod
     def get_file_size_mb(cls, file_path: Path) -> float:

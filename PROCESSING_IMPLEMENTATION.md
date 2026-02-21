@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the comprehensive document processing pipeline implemented for the DocTags RAG system. The pipeline follows IBM Docling's approach to preserve document structure while supporting multiple document formats.
+This document describes the comprehensive document processing pipeline implemented for the Contextprime system. The pipeline follows IBM Docling's approach to preserve document structure while supporting multiple document formats.
 
 ## Architecture
 

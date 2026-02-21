@@ -133,7 +133,7 @@ def print_statistics(stats: Dict[str, Any], indent: int = 0):
 
 def main():
     """Main function to demonstrate knowledge graph construction."""
-    print_section("DocTags RAG - Knowledge Graph Construction Demo")
+    print_section("Contextprime - Knowledge Graph Construction Demo")
 
     # Configure pipeline
     print("Configuring knowledge graph pipeline...")

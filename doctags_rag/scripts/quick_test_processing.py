@@ -17,7 +17,7 @@ from src.processing import (
 
 def test_basic_functionality():
     """Test basic functionality of processing components."""
-    print("Testing DocTags RAG Processing Pipeline")
+    print("Testing Contextprime Processing Pipeline")
     print("=" * 60)
 
     # Test 1: File type detection
