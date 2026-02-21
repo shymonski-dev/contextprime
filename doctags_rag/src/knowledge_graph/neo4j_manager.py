@@ -31,6 +31,8 @@ from loguru import logger
 from ..core.config import Neo4jConfig, get_settings
 
 SAFE_PROPERTY_KEY_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,63}$")
+SAFE_LABEL_PATTERN = re.compile(r"^[A-Za-z0-9_]{1,64}$")
+SAFE_RELATIONSHIP_TYPE_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,63}$")
 
 
 @dataclass
@@ -258,7 +260,7 @@ class Neo4jManager:
         Returns:
             Created node data if return_node is True
         """
-        labels_str = ":".join(labels)
+        labels_str = ":".join(self._sanitize_labels(labels))
         query = f"""
         CREATE (n:{labels_str})
         SET n = $properties
@@ -292,7 +294,8 @@ class Neo4jManager:
             # Group by labels for efficient batch creation
             nodes_by_label = {}
             for node in batch:
-                label_key = ":".join(sorted(node.labels))
+                sanitized_labels = sorted(self._sanitize_labels(node.labels))
+                label_key = ":".join(sanitized_labels)
                 if label_key not in nodes_by_label:
                     nodes_by_label[label_key] = []
                 nodes_by_label[label_key].append(node.properties)
@@ -625,6 +628,32 @@ class Neo4jManager:
             raise ValueError(f"Invalid filter key: {raw_key}")
         return key
 
+    def _sanitize_labels(self, labels: List[Any]) -> List[str]:
+        """Validate and normalize labels before interpolation into Cypher."""
+        if not labels:
+            raise ValueError("At least one label is required")
+
+        sanitized: List[str] = []
+        seen = set()
+        for raw_label in labels:
+            label = str(raw_label).strip()
+            if not SAFE_LABEL_PATTERN.fullmatch(label):
+                raise ValueError(f"Invalid label: {raw_label}")
+            if label in seen:
+                continue
+            seen.add(label)
+            sanitized.append(label)
+
+        if not sanitized:
+            raise ValueError("At least one label is required")
+        return sanitized
+
+    def _sanitize_relationship_type(self, raw_type: Any) -> str:
+        rel_type = str(raw_type).strip()
+        if not SAFE_RELATIONSHIP_TYPE_PATTERN.fullmatch(rel_type):
+            raise ValueError(f"Invalid relationship type: {raw_type}")
+        return rel_type
+
     def traverse_graph(
         self,
         start_node_id: str,
@@ -649,7 +678,10 @@ class Neo4jManager:
         # Build relationship pattern
         rel_types = ""
         if relationship_types:
-            rel_types = "|".join(relationship_types)
+            rel_types = "|".join(
+                self._sanitize_relationship_type(raw_type)
+                for raw_type in relationship_types
+            )
 
         if direction == "outgoing":
             pattern = f"-[r:{rel_types}*1..{max_depth}]->"

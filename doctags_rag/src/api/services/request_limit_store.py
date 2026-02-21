@@ -46,9 +46,10 @@ class SQLiteSlidingWindowRateLimiter:
         self._last_cleanup = monotonic()
         self._initialize_database()
 
-    def check(self, subject: str) -> RateLimitDecision:
+    def check(self, subject: str, cost: int = 1) -> RateLimitDecision:
         """Return allow or deny decision for one subject key."""
         key = str(subject).strip() or "unknown"
+        cost_units = max(1, int(cost))
         now = float(time())
         window_start = now - self.window_seconds
 
@@ -59,11 +60,11 @@ class SQLiteSlidingWindowRateLimiter:
                     (key, window_start),
                 )
                 row = conn.execute(
-                    "SELECT COUNT(*) FROM rate_limit_events WHERE subject = ?",
+                    "SELECT COALESCE(SUM(cost), 0) FROM rate_limit_events WHERE subject = ?",
                     (key,),
                 ).fetchone()
-                count = int(row[0]) if row else 0
-                if count >= self.max_requests:
+                consumed = int(row[0]) if row else 0
+                if consumed + cost_units > self.max_requests:
                     oldest_row = conn.execute(
                         """
                         SELECT event_time
@@ -83,8 +84,8 @@ class SQLiteSlidingWindowRateLimiter:
                     return RateLimitDecision(allowed=False, retry_after_seconds=retry_after)
 
                 conn.execute(
-                    "INSERT INTO rate_limit_events (subject, event_time) VALUES (?, ?)",
-                    (key, now),
+                    "INSERT INTO rate_limit_events (subject, event_time, cost) VALUES (?, ?, ?)",
+                    (key, now, cost_units),
                 )
                 self._cleanup_stale_rows(conn=conn, window_start=window_start)
 
@@ -109,10 +110,19 @@ class SQLiteSlidingWindowRateLimiter:
                     """
                     CREATE TABLE IF NOT EXISTS rate_limit_events (
                         subject TEXT NOT NULL,
-                        event_time REAL NOT NULL
+                        event_time REAL NOT NULL,
+                        cost INTEGER NOT NULL DEFAULT 1
                     )
                     """
                 )
+                columns = {
+                    row[1]
+                    for row in conn.execute("PRAGMA table_info(rate_limit_events)").fetchall()
+                }
+                if "cost" not in columns:
+                    conn.execute(
+                        "ALTER TABLE rate_limit_events ADD COLUMN cost INTEGER NOT NULL DEFAULT 1"
+                    )
                 conn.execute(
                     """
                     CREATE INDEX IF NOT EXISTS idx_rate_limit_subject_time
@@ -190,11 +200,12 @@ return {1, 0}
         self._redis_url = (redis_url or "").strip() or None
         self._redis_client = self._build_redis_client(self._redis_url)
 
-    def check(self, subject: str) -> RateLimitDecision:
+    def check(self, subject: str, cost: int = 1) -> RateLimitDecision:
         """Check request allowance using Redis or SQLite fallback."""
+        cost_units = max(1, int(cost))
         client = self._redis_client
-        if client is None:
-            return self._sqlite.check(subject)
+        if client is None or cost_units != 1:
+            return self._sqlite.check(subject, cost=cost_units)
 
         redis_key = self._redis_subject_key(subject)
         now_ms = int(time() * 1000)
@@ -223,7 +234,7 @@ return {1, 0}
                 exc,
             )
             self._redis_client = None
-            return self._sqlite.check(subject)
+            return self._sqlite.check(subject, cost=cost_units)
 
     def _build_redis_client(self, redis_url: Optional[str]):
         if not redis_url:

@@ -1,6 +1,6 @@
 import pytest
 
-from src.knowledge_graph.neo4j_manager import Neo4jManager
+from src.knowledge_graph.neo4j_manager import GraphNode, Neo4jManager
 
 
 def test_build_safe_property_filters_uses_parameterized_values():
@@ -29,3 +29,30 @@ def test_build_safe_property_filters_rejects_injection_key():
 
     with pytest.raises(ValueError):
         manager._build_safe_property_filters({"name OR 1=1": "value"})
+
+
+def test_create_node_rejects_invalid_label():
+    manager = Neo4jManager.__new__(Neo4jManager)
+    manager.execute_write_query = lambda *_args, **_kwargs: []  # type: ignore[attr-defined]
+
+    with pytest.raises(ValueError):
+        manager.create_node(
+            labels=["Entity", "BadLabel) DETACH DELETE n //"],
+            properties={"name": "example"},
+        )
+
+
+def test_create_nodes_batch_rejects_invalid_label():
+    manager = Neo4jManager.__new__(Neo4jManager)
+    manager.execute_write_query = lambda *_args, **_kwargs: []  # type: ignore[attr-defined]
+
+    with pytest.raises(ValueError):
+        manager.create_nodes_batch(
+            nodes=[
+                GraphNode(
+                    id=None,
+                    labels=["Safe", "Unsafe Label"],
+                    properties={"name": "example"},
+                )
+            ]
+        )

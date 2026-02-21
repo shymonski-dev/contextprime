@@ -338,14 +338,31 @@ class ExecutionAgent(BaseAgent):
 
         if self.retrieval_pipeline and self.embedding_model and hasattr(self.retrieval_pipeline, "search"):
             try:
-                vector = self.embedding_model.encode([query], show_progress_bar=False)[0]
-                strategy_enum = self._resolve_strategy(strategy)
-                results, metrics = self.retrieval_pipeline.search(
-                    query_vector=vector,
-                    query_text=query,
-                    top_k=top_k,
-                    strategy=strategy_enum,
+                vectors = await asyncio.to_thread(
+                    self.embedding_model.encode,
+                    [query],
+                    False,
                 )
+                vector = vectors[0]
+                strategy_enum = self._resolve_strategy(strategy)
+                try:
+                    results, metrics = await asyncio.to_thread(
+                        self.retrieval_pipeline.search,
+                        query_vector=vector,
+                        query_text=query,
+                        top_k=top_k,
+                        strategy=strategy_enum,
+                    )
+                except TypeError:
+                    # Backward compatibility with test doubles that use a shorter signature.
+                    results, metrics = await asyncio.to_thread(
+                        self.retrieval_pipeline.search,
+                        query_vector=vector,
+                        query_text=query,
+                        top_k=top_k,
+                        strategy=strategy_enum,
+                        filters=None,
+                    )
                 if results:
                     logger.debug(
                         "Hybrid retrieval returned %s results (strategy=%s, threshold=%.2f)",

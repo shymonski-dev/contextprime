@@ -75,6 +75,11 @@ class APIConfig(BaseModel):
     rate_limit_window_seconds: int = Field(default=60)
     rate_limit_redis_url: Optional[str] = Field(default=None)
     rate_limit_store_path: str = Field(default="data/storage/rate_limit.db")
+    token_rate_limit: int = Field(default=0)
+    token_rate_limit_window_seconds: int = Field(default=60)
+    token_rate_limit_redis_url: Optional[str] = Field(default=None)
+    token_rate_limit_store_path: str = Field(default="data/storage/token_rate_limit.db")
+    token_unit_size: int = Field(default=64)
     trust_proxy_headers: bool = Field(default=False)
 
 
@@ -276,6 +281,16 @@ class Settings(BaseSettings):
             "API_RATE_LIMIT_REDIS_URL": ("api", "rate_limit_redis_url"),
             "API__RATE_LIMIT_STORE_PATH": ("api", "rate_limit_store_path"),
             "API_RATE_LIMIT_STORE_PATH": ("api", "rate_limit_store_path"),
+            "API__TOKEN_RATE_LIMIT": ("api", "token_rate_limit"),
+            "API_TOKEN_RATE_LIMIT": ("api", "token_rate_limit"),
+            "API__TOKEN_RATE_LIMIT_WINDOW_SECONDS": ("api", "token_rate_limit_window_seconds"),
+            "API_TOKEN_RATE_LIMIT_WINDOW_SECONDS": ("api", "token_rate_limit_window_seconds"),
+            "API__TOKEN_RATE_LIMIT_REDIS_URL": ("api", "token_rate_limit_redis_url"),
+            "API_TOKEN_RATE_LIMIT_REDIS_URL": ("api", "token_rate_limit_redis_url"),
+            "API__TOKEN_RATE_LIMIT_STORE_PATH": ("api", "token_rate_limit_store_path"),
+            "API_TOKEN_RATE_LIMIT_STORE_PATH": ("api", "token_rate_limit_store_path"),
+            "API__TOKEN_UNIT_SIZE": ("api", "token_unit_size"),
+            "API_TOKEN_UNIT_SIZE": ("api", "token_unit_size"),
             "API__TRUST_PROXY_HEADERS": ("api", "trust_proxy_headers"),
             "API__CORS_ORIGINS": ("api", "cors_origins"),
             "SECURITY__REQUIRE_ACCESS_TOKEN": ("security", "require_access_token"),
@@ -312,6 +327,9 @@ class Settings(BaseSettings):
             "port",
             "rate_limit",
             "rate_limit_window_seconds",
+            "token_rate_limit",
+            "token_rate_limit_window_seconds",
+            "token_unit_size",
             "timeout_seconds",
             "check_interval_seconds",
         }
@@ -415,6 +433,10 @@ class Settings(BaseSettings):
         cors_origins = [str(origin).strip() for origin in (self.api.cors_origins or []) if origin]
         if self.environment.lower() in {"docker", "production", "staging"} and "*" in cors_origins:
             issues.append("CORS origins cannot include wildcard in production-like environments")
+        if int(getattr(self.api, "token_rate_limit", 0) or 0) <= 0:
+            issues.append("Token rate limit is disabled; set API__TOKEN_RATE_LIMIT for cost control")
+        if int(getattr(self.api, "token_unit_size", 0) or 0) <= 0:
+            issues.append("Token unit size must be greater than zero")
 
         if strict and issues:
             raise ValueError("; ".join(issues))

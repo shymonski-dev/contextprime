@@ -263,6 +263,34 @@ class ReadinessChecker:
         else:
             self._record("pass", "rate_limit", f"api.rate_limit is set to {rate_limit}")
 
+        token_rate_limit = int((config.get("api") or {}).get("token_rate_limit", 0))
+        if token_rate_limit <= 0:
+            self._record(
+                "fail",
+                "token_rate_limit",
+                "api.token_rate_limit must be greater than zero",
+            )
+        else:
+            self._record(
+                "pass",
+                "token_rate_limit",
+                f"api.token_rate_limit is set to {token_rate_limit}",
+            )
+
+        token_unit_size = int((config.get("api") or {}).get("token_unit_size", 0))
+        if token_unit_size <= 0:
+            self._record(
+                "fail",
+                "token_unit_size",
+                "api.token_unit_size must be greater than zero",
+            )
+        else:
+            self._record(
+                "pass",
+                "token_unit_size",
+                f"api.token_unit_size is set to {token_unit_size}",
+            )
+
     def _check_high_risk_documents(self) -> None:
         category = str(self.profile.get("risk_classification", {}).get("category", "")).strip().lower()
         controls = self.profile.get("controls", {})

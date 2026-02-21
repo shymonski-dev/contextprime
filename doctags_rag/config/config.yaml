@@ -204,6 +204,9 @@ api:
   port: 8000
   cors_origins: []
   rate_limit: 100  # requests per minute
+  token_rate_limit: 6000  # estimated tokens per minute
+  token_rate_limit_window_seconds: 60
+  token_unit_size: 64
   trust_proxy_headers: false
 
 # Access Control

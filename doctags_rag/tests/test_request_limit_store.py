@@ -54,3 +54,17 @@ def test_redis_failure_falls_back_to_sqlite(tmp_path):
     assert first.allowed is True
     assert second.allowed is False
     assert limiter._redis_client is None
+
+
+def test_sqlite_backed_limiter_supports_weighted_cost(tmp_path):
+    limiter = SharedSlidingWindowRateLimiter(
+        max_requests=5,
+        window_seconds=60,
+        redis_url=None,
+        sqlite_path=tmp_path / "rate_limit.db",
+    )
+
+    assert limiter.check("ip:weighted", cost=3).allowed is True
+    assert limiter.check("ip:weighted", cost=2).allowed is True
+    decision = limiter.check("ip:weighted", cost=1)
+    assert decision.allowed is False

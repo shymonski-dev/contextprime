@@ -25,6 +25,8 @@ async def run_agentic_query(request: AgenticQueryRequest) -> AgenticQueryRespons
 
     try:
         result = await state.retrieval_service.agentic_query(request)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:  # pragma: no cover - defensive
         error_id = uuid4().hex[:12]
         logger.exception("Agentic query failed (error_id=%s)", error_id)

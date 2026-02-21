@@ -13,6 +13,10 @@ from typing import Dict, Optional, Tuple, Any, List
 from loguru import logger
 
 from src.core.config import get_settings
+from src.core.safety_guard import (
+    PromptInjectionGuard,
+    RuntimeComplianceGate,
+)
 from src.embeddings import OpenAIEmbeddingModel
 from src.retrieval.hybrid_retriever import (
     HybridRetriever,
@@ -49,6 +53,8 @@ class RetrievalService:
         self._agentic_pipeline: Optional[AgenticPipeline] = None
         self._context_selector: Optional[TrainableContextSelector] = None
         self._context_selector_path: Optional[str] = None
+        self._input_guard = PromptInjectionGuard()
+        self._runtime_compliance_gate = RuntimeComplianceGate()
         self._lock = Lock()
         self._agentic_lock = Lock()
 
@@ -61,6 +67,8 @@ class RetrievalService:
         request: AdvancedQueryRequest,
     ) -> Tuple[List[HybridSearchResult], HybridMetrics, bool]:
         """Execute a hybrid search according to the request parameters."""
+        guard_decision = self._input_guard.enforce_query(request.query, strict=False)
+
         hybrid_cfg = self._get_hybrid_feature_config()
         corrective_cfg = hybrid_cfg.get("corrective", {})
         pruning_cfg = hybrid_cfg.get("context_pruning", {})
@@ -204,6 +212,9 @@ class RetrievalService:
             len(all_outputs) >= request_budget.max_total_variant_searches
             or (search_deadline is not None and perf_counter() >= search_deadline)
         )
+        metrics.services["input_guard_risk_score"] = guard_decision.risk_score
+        if guard_decision.flags:
+            metrics.services["input_guard_flags"] = guard_decision.flags
 
         metrics.total_time_ms = (perf_counter() - start) * 1000
         rerank_applied = retriever.reranker is not None
@@ -220,13 +231,31 @@ class RetrievalService:
 
     async def agentic_query(self, request: AgenticQueryRequest) -> AgenticResult:
         """Process a query through the agentic pipeline."""
+        guard_decision = self._input_guard.enforce_query(request.query, strict=True)
+
         pipeline = self._get_agentic_pipeline()
         result = await pipeline.process_query(
-            query=request.query,
+            query=guard_decision.normalized_text,
             context=None,
             max_iterations=request.max_iterations,
             min_quality_threshold=0.7 if request.use_evaluation else 0.0,
         )
+        compliance_decision = self._runtime_compliance_gate.enforce_before_response(
+            query=guard_decision.normalized_text,
+            answer=result.answer,
+        )
+        metadata = dict(result.metadata or {})
+        metadata["input_guard"] = {
+            "risk_score": guard_decision.risk_score,
+            "flags": guard_decision.flags,
+        }
+        metadata["runtime_compliance"] = {
+            "enforced": compliance_decision.enforced,
+            "recorded": compliance_decision.recorded,
+            "high_risk_topics": compliance_decision.high_risk_topics,
+            "oversight_file": compliance_decision.oversight_file,
+        }
+        result.metadata = metadata
         return result
 
     def get_dependency_health(self) -> Dict[str, bool]:

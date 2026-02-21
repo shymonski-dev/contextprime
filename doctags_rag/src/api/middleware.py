@@ -7,8 +7,9 @@ from dataclasses import dataclass
 from hashlib import sha256
 import hmac
 import json
+import re
 from time import time
-from typing import Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple
 import secrets
 
 from fastapi import Request
@@ -65,14 +66,54 @@ class AccessControlAndRateLimitMiddleware(BaseHTTPMiddleware):
             settings.security.jwt_required_write_scopes
         )
         self._jwt_admin_roles = self._normalise_permission_values(settings.security.jwt_admin_roles)
+        request_rate_limit = max(0, int(getattr(settings.api, "rate_limit", 0) or 0))
         self._rate_limiter = (
             SharedSlidingWindowRateLimiter(
-                max_requests=settings.api.rate_limit,
-                window_seconds=settings.api.rate_limit_window_seconds,
-                redis_url=settings.api.rate_limit_redis_url,
-                sqlite_path=settings.api.rate_limit_store_path,
+                max_requests=request_rate_limit,
+                window_seconds=int(getattr(settings.api, "rate_limit_window_seconds", 60) or 60),
+                redis_url=getattr(settings.api, "rate_limit_redis_url", None),
+                sqlite_path=getattr(settings.api, "rate_limit_store_path", "data/storage/rate_limit.db"),
             )
-            if settings.api.rate_limit > 0
+            if request_rate_limit > 0
+            else None
+        )
+        self._token_unit_size = max(
+            1,
+            int(getattr(settings.api, "token_unit_size", 64) or 64),
+        )
+        token_rate_limit = max(
+            0,
+            int(getattr(settings.api, "token_rate_limit", 0) or 0),
+        )
+        token_window_seconds = max(
+            1,
+            int(
+                getattr(
+                    settings.api,
+                    "token_rate_limit_window_seconds",
+                    getattr(settings.api, "rate_limit_window_seconds", 60),
+                )
+                or 60
+            ),
+        )
+        token_store_path = getattr(
+            settings.api,
+            "token_rate_limit_store_path",
+            "data/storage/token_rate_limit.db",
+        )
+        token_redis_url = getattr(
+            settings.api,
+            "token_rate_limit_redis_url",
+            None,
+        )
+        self._token_rate_limiter = (
+            SharedSlidingWindowRateLimiter(
+                max_requests=token_rate_limit,
+                window_seconds=token_window_seconds,
+                redis_url=token_redis_url,
+                sqlite_path=token_store_path,
+            )
+            if token_rate_limit > 0
             else None
         )
 
@@ -118,6 +159,28 @@ class AccessControlAndRateLimitMiddleware(BaseHTTPMiddleware):
                     content={"detail": "Rate limit exceeded"},
                 )
                 response.headers["Retry-After"] = str(decision.retry_after_seconds)
+                return response
+
+        if self._token_rate_limiter and request.method.upper() != "OPTIONS":
+            estimated_tokens = await self._estimate_request_tokens(request)
+            token_cost = max(
+                1,
+                (estimated_tokens + self._token_unit_size - 1) // self._token_unit_size,
+            )
+            decision = self._token_rate_limiter.check(
+                f"{auth_subject}:token_budget",
+                cost=token_cost,
+            )
+            request.state.estimated_request_tokens = estimated_tokens
+            request.state.token_budget_cost = token_cost
+            if not decision.allowed:
+                response = JSONResponse(
+                    status_code=429,
+                    content={"detail": "Token budget exceeded"},
+                )
+                response.headers["Retry-After"] = str(decision.retry_after_seconds)
+                response.headers["X-Estimated-Tokens"] = str(estimated_tokens)
+                response.headers["X-Token-Budget-Cost"] = str(token_cost)
                 return response
 
         return await call_next(request)
@@ -369,6 +432,59 @@ class AccessControlAndRateLimitMiddleware(BaseHTTPMiddleware):
 
     def _token_fingerprint(self, token: str) -> str:
         return sha256(token.encode("utf-8")).hexdigest()[:16]
+
+    async def _estimate_request_tokens(self, request: Request) -> int:
+        fragments: List[str] = []
+
+        query_value = request.query_params.get("query")
+        if query_value:
+            fragments.append(str(query_value))
+
+        if request.method.upper() in {"POST", "PUT", "PATCH"}:
+            try:
+                body_bytes = await request.body()
+            except Exception:
+                body_bytes = b""
+
+            if body_bytes:
+                content_type = (request.headers.get("content-type") or "").lower()
+                decoded = body_bytes.decode("utf-8", errors="ignore")
+                if "application/json" in content_type:
+                    try:
+                        payload = json.loads(decoded)
+                        fragments.extend(self._collect_tokenizable_text(payload))
+                    except Exception:
+                        fragments.append(decoded)
+                else:
+                    fragments.append(decoded)
+
+        text = " ".join(fragment for fragment in fragments if fragment)
+        if not text.strip():
+            return 1
+        return max(1, len(re.findall(r"\w+|[^\w\s]", text)))
+
+    def _collect_tokenizable_text(self, payload: object) -> List[str]:
+        snippets: List[str] = []
+
+        def _walk(value: object, depth: int = 0) -> None:
+            if depth > 5 or len(snippets) >= 64:
+                return
+            if isinstance(value, str):
+                token = value.strip()
+                if token:
+                    snippets.append(token[:1200])
+                return
+            if isinstance(value, dict):
+                for key in ("query", "prompt", "content", "text", "messages"):
+                    if key in value:
+                        _walk(value.get(key), depth + 1)
+                return
+            if isinstance(value, (list, tuple)):
+                for item in value[:20]:
+                    _walk(item, depth + 1)
+
+        _walk(payload)
+        return snippets
 
     def _normalize_path(self, path: str) -> str:
         normalized = (path or "").strip()
