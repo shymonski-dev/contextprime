@@ -51,6 +51,5 @@ jobs:
           sudo apt-get install -y ripgrep
           python -m pip install --upgrade pip
           python -m pip install pip-audit
-          python -m pip install -r doctags_rag/requirements.txt
       - name: Run security release gate
         run: ./run_security_release_gate.sh
