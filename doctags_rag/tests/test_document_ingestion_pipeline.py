@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 from pathlib import Path
+from src.core.config import LegalMetadataConfig
 
 import numpy as np
 
@@ -178,6 +179,29 @@ def test_embedding_text_includes_context_by_default():
     assert "Context body text" in embedded_text
 
 
+class FakeNeo4j:
+    """Fake Neo4j manager that records stored cross-references."""
+    def __init__(self):
+        self.stored_refs = []
+
+    def store_cross_references(self, refs, **kwargs):
+        self.stored_refs.extend(refs)
+        return len(refs)
+
+
+class FakeGraphIngestorWithNeo4j(FakeGraphIngestor):
+    """FakeGraphIngestor extended with a neo4j property for cross-ref tests."""
+    def __init__(self):
+        super().__init__()
+        self.neo4j = FakeNeo4j()
+
+
+LEGAL_CHUNK_TEXT = (
+    "This obligation applies pursuant to Article 6. "
+    "The controller must comply subject to Article 17(3)."
+)
+
+
 def test_embedding_text_can_disable_context():
     qdrant = FakeQdrantManager()
     graph = FakeGraphIngestor()
@@ -194,3 +218,102 @@ def test_embedding_text_can_disable_context():
     report = pipeline.ingest_processing_results([build_processing_result(raw_text)])
     assert report.processed_documents == 1
     assert embedder.calls[0][0] == raw_text
+
+
+def test_cross_references_stored_for_legal_content():
+    qdrant = FakeQdrantManager()
+    graph = FakeGraphIngestorWithNeo4j()
+    embedder = DummyEmbedder()
+    pipeline = DocumentIngestionPipeline(
+        embeddings_model=embedder,
+        processing_pipeline=SimpleNamespace(),
+        qdrant_manager=qdrant,
+        graph_ingestor=graph,
+        config=DocumentIngestionConfig(),
+    )
+
+    report = pipeline.ingest_processing_results([build_processing_result(LEGAL_CHUNK_TEXT)])
+
+    assert report.cross_references_stored >= 1
+    assert len(graph.neo4j.stored_refs) >= 1
+
+
+def test_cross_references_zero_for_plain_text():
+    qdrant = FakeQdrantManager()
+    graph = FakeGraphIngestorWithNeo4j()
+    embedder = DummyEmbedder()
+    pipeline = DocumentIngestionPipeline(
+        embeddings_model=embedder,
+        processing_pipeline=SimpleNamespace(),
+        qdrant_manager=qdrant,
+        graph_ingestor=graph,
+        config=DocumentIngestionConfig(),
+    )
+
+    plain_text = "The controller shall implement appropriate technical measures."
+    report = pipeline.ingest_processing_results([build_processing_result(plain_text)])
+
+    assert report.cross_references_stored == 0
+
+
+def test_legal_metadata_stored_in_graph_doc_props():
+    qdrant = FakeQdrantManager()
+    graph = FakeGraphIngestorWithNeo4j()
+    embedder = DummyEmbedder()
+    pipeline = DocumentIngestionPipeline(
+        embeddings_model=embedder,
+        processing_pipeline=SimpleNamespace(),
+        qdrant_manager=qdrant,
+        graph_ingestor=graph,
+        config=DocumentIngestionConfig(),
+    )
+
+    legal_meta = LegalMetadataConfig(in_force_from="2018-05-25")
+    pipeline.ingest_processing_results(
+        [build_processing_result()],
+        legal_metadata=legal_meta,
+    )
+
+    doc_props = graph.calls[0][0]
+    assert doc_props["in_force_from"] == "2018-05-25"
+
+
+def test_legal_metadata_stored_in_qdrant_payload():
+    qdrant = FakeQdrantManager()
+    graph = FakeGraphIngestorWithNeo4j()
+    embedder = DummyEmbedder()
+    pipeline = DocumentIngestionPipeline(
+        embeddings_model=embedder,
+        processing_pipeline=SimpleNamespace(),
+        qdrant_manager=qdrant,
+        graph_ingestor=graph,
+        config=DocumentIngestionConfig(),
+    )
+
+    legal_meta = LegalMetadataConfig(in_force_from="2018-05-25")
+    pipeline.ingest_processing_results(
+        [build_processing_result()],
+        legal_metadata=legal_meta,
+    )
+
+    vector_metadata = qdrant.inserted[0]["vectors"][0].metadata
+    assert vector_metadata["in_force_from"] == "2018-05-25"
+
+
+def test_no_legal_keys_without_legal_metadata():
+    qdrant = FakeQdrantManager()
+    graph = FakeGraphIngestorWithNeo4j()
+    embedder = DummyEmbedder()
+    pipeline = DocumentIngestionPipeline(
+        embeddings_model=embedder,
+        processing_pipeline=SimpleNamespace(),
+        qdrant_manager=qdrant,
+        graph_ingestor=graph,
+        config=DocumentIngestionConfig(),
+    )
+
+    pipeline.ingest_processing_results([build_processing_result()])
+
+    for inserted_batch in qdrant.inserted:
+        for vector_point in inserted_batch["vectors"]:
+            assert "in_force_from" not in vector_point.metadata

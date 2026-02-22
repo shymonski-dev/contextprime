@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![Code](https://img.shields.io/badge/Code-35,680%20lines-green)](FINAL_SYSTEM_REPORT.md)
 [![Status](https://img.shields.io/badge/Status-Release%20Validation%20Pending-yellow)](RELEASE_READINESS_REPORT_2026-02-20.md)
-[![Tests](https://img.shields.io/badge/Tests-200%2B-brightgreen)](doctags_rag/tests/)
+[![Tests](https://img.shields.io/badge/Tests-250%2B-brightgreen)](doctags_rag/tests/)
 
 ---
 
@@ -70,7 +70,7 @@ Current checkpoint (2026-02-20):
 ### System Stats
 - **35,680** lines of production Python code
 - **67** modules across 9 major components
-- **200+** comprehensive tests
+- **250+** comprehensive tests
 - **10** working demo scripts
 - **0** mocked functionality
 
@@ -147,6 +147,8 @@ results, metrics = retriever.search(
 - PaddleOCR with layout analysis
 - DocTags structure preservation
 - Context-aware chunking
+- **Legal DocTag types**: ARTICLE, SCHEDULE, DEFINITION, EXCEPTION, CROSS_REFERENCE — automatic domain detection activates legal-aware heading and paragraph tagging
+- **Legal cross-reference extraction**: `extract_cross_references()` detects article, section, schedule, annex, and paragraph references in text and stores them as `(:Chunk)-[:REFERENCES]->(:Chunk)` edges in Neo4j
 
 ```python
 from src.processing import DocumentProcessingPipeline
@@ -218,6 +220,8 @@ response = pipeline.answer_global_query("What are the main themes?")
 - Reinforcement learning
 - Self-improvement loops
 - Memory systems
+- **Context-first synthesis**: Evidence block appears before the question in the LLM prompt, reducing hallucination on long-context retrieval (FinanceBench-informed)
+- **Chain-of-thought for complex queries**: `PlanningAgent` classifies queries as `simple`, `analytical`, or `multi_hop`; analytical and multi-hop queries append step-by-step reasoning instructions and raise `max_tokens` to 1600
 
 ```python
 from src.agents import AgenticPipeline, AgenticMode
@@ -255,15 +259,17 @@ pytest tests/ --cov=src --cov-report=html
 ```
 
 Test coverage:
-- `test_indexing.py` - 45+ tests for dual indexing
-- `test_processing.py` - 30+ tests for document processing
+- `test_indexing.py` - 45+ tests for dual indexing (+ Neo4j cross-reference edge integration tests)
+- `test_processing.py` - 40+ tests for document processing (+ legal DocTag domain detection, chunker legal boundaries)
+- `test_cross_reference_extractor.py` - 13 unit tests for legal cross-reference extraction
 - `test_knowledge_graph.py` - 35+ tests for KG construction
 - `test_advanced_retrieval.py` - 30+ tests for retrieval
 - `test_summarization.py` - 20+ tests for RAPTOR
 - `test_community.py` - 30+ tests for community detection
-- `test_agents.py` - 70+ tests for agentic system
+- `test_agents.py` - 80+ tests for agentic system (+ query_type classification, synthesis prompt order, CoT, max_tokens)
+- `test_document_ingestion_pipeline.py` - 15+ tests for full ingestion (+ cross-refs stored, legal metadata in Qdrant + Neo4j)
 
-**Total: 200+ comprehensive tests**
+**Total: 250+ comprehensive tests**
 
 ---
 
@@ -559,6 +565,37 @@ SECURITY__JWT_REQUIRE_EXPIRY=true
 The API enforces startup checks in docker mode. The app service now fails fast
 if required secrets are missing or default-valued.
 
+### Legal RAG Enhancements (2026-02-22)
+
+Five targeted improvements informed by the FinanceBench evaluation benchmark (arXiv 2311.11944) to raise accuracy on UK/EU legal document QA:
+
+**1 · Context-First Prompt Order** — The synthesis prompt now places the retrieved evidence block _before_ the question, matching the pattern shown to reduce hallucination on long-context retrieval tasks.
+
+**2 · Chain-of-Thought for Complex Queries** — `PlanningAgent.create_plan` scores each query and stores a `query_type` key (`"simple"` | `"analytical"` | `"multi_hop"`) in `QueryPlan.metadata`. For analytical and multi-hop queries the synthesis system prompt appends step-by-step reasoning instructions and raises `max_tokens` from 900 to 1600.
+
+**3 · Legal DocTag Types** — Five new `DocTagType` enum values: `ARTICLE`, `SCHEDULE`, `DEFINITION`, `EXCEPTION`, `CROSS_REFERENCE`. `DocTagsProcessor._detect_document_domain()` activates legal-mode tagging when ≥3 legal patterns appear in the document. Legal headings map to ARTICLE/SCHEDULE/DEFINITION; legal paragraphs map to DEFINITION/EXCEPTION/CROSS_REFERENCE based on text patterns. `StructurePreservingChunker` flushes chunk boundaries on ARTICLE and SCHEDULE tags.
+
+**4 · Neo4j Cross-Reference Edges** — `src/processing/cross_reference_extractor.py` detects article, section, schedule, annex, and paragraph references in chunk text using compiled regex patterns, returning deduplicated `CrossRef` dataclasses. `Neo4jManager.store_cross_references()` persists these as `(:Chunk)-[:REFERENCES]->(:Chunk)` edges using MERGE (idempotent). `DocumentIngestionPipeline` calls this automatically post-ingestion.
+
+**5 · Legal Metadata Schema** — `LegalMetadataConfig` (in `src/core/config.py`) captures `in_force_from`, `in_force_until`, `amended_by`, and `supersedes`. Pass it to `ingest_processing_results(legal_metadata=...)` and fields are stored in both Neo4j document properties and Qdrant chunk payloads, enabling date-range filtering at retrieval time.
+
+```python
+from src.core.config import LegalMetadataConfig
+from src.pipelines import DocumentIngestionPipeline
+
+pipeline = DocumentIngestionPipeline()
+legal_meta = LegalMetadataConfig(
+    in_force_from="2018-05-25",   # GDPR enforcement date
+    amended_by="Regulation (EU) 2021/1119",
+)
+report = pipeline.process_files(
+    [Path("gdpr.pdf")],
+    legal_metadata=legal_meta,
+)
+print(f"Cross-references stored: {report.cross_references_stored}")
+pipeline.close()
+```
+
 ### Security Hardening (2026-02-22)
 
 The following security and reliability improvements are included:
@@ -679,14 +716,15 @@ See:
 
 ## 🎉 Status
 
-**Hardening complete, release validation pending final gate re run**
+**Hardening complete, Legal RAG enhancements shipped, release validation pending final gate re-run**
 
-- All 6 phases fully implemented
+- All 7 phases fully implemented
 - 35,680 lines of production code
-- 67 modules, 200+ tests
+- 67 modules, 250+ tests
 - Zero mocked functionality
 - Comprehensive documentation
 - Release checklist and security gate are in place
+- Legal RAG enhancements: context-first prompts, CoT reasoning, legal DocTag types, cross-reference edges, legal metadata schema
 
 See [FINAL_SYSTEM_REPORT.md](FINAL_SYSTEM_REPORT.md) for detailed analysis.
 

@@ -652,5 +652,200 @@ In conclusion, this research demonstrates important insights.
         assert result.metadata['num_chunks'] == len(result.chunks)
 
 
+class TestDocTagsProcessorLegalDomain:
+    """Test domain detection and legal-specific DocTag assignment."""
+
+    def _make_legal_parsed_doc(self) -> ParsedDocument:
+        """Parsed document containing three GDPR-style legal patterns."""
+        elements = [
+            DocumentElement(type='heading', content='Article 6', level=2),
+            DocumentElement(type='paragraph', content='Processing shall be lawful only if at least one condition is met.'),
+        ]
+        # Three patterns: "Article 6", "Schedule 1", "Regulation (EU)"
+        text = "Article 6 Schedule 1 Regulation (EU) 2016/679 provisions."
+        return ParsedDocument(
+            text=text,
+            elements=elements,
+            metadata={'filename': 'gdpr.txt', 'parser': 'text'},
+            structure={},
+        )
+
+    def _make_general_parsed_doc(self) -> ParsedDocument:
+        """Parsed document with non-legal technical content."""
+        elements = [
+            DocumentElement(type='heading', content='Introduction', level=1),
+            DocumentElement(type='paragraph', content='This document describes a software API.'),
+        ]
+        return ParsedDocument(
+            text='This document describes a software API with endpoints and parameters.',
+            elements=elements,
+            metadata={'filename': 'api_docs.txt', 'parser': 'text'},
+            structure={},
+        )
+
+    def test_detect_general_for_non_legal_text(self):
+        doc = self._make_general_parsed_doc()
+        processor = DocTagsProcessor()
+        assert processor._detect_document_domain(doc) == "general"
+
+    def test_detect_legal_for_gdpr_like_text(self):
+        doc = self._make_legal_parsed_doc()
+        processor = DocTagsProcessor()
+        assert processor._detect_document_domain(doc) == "legal"
+
+    def test_detect_legal_requires_three_matches(self):
+        """Only two legal patterns present — should remain general."""
+        elements = [
+            DocumentElement(type='paragraph', content='Article 6 and Schedule 1 apply.'),
+        ]
+        doc = ParsedDocument(
+            text='Article 6 and Schedule 1 apply.',
+            elements=elements,
+            metadata={},
+            structure={},
+        )
+        processor = DocTagsProcessor()
+        assert processor._detect_document_domain(doc) == "general"
+
+    def test_article_heading_produces_article_tag(self):
+        processor = DocTagsProcessor()
+        processor._document_domain = "legal"
+        elem = DocumentElement(type='heading', content='Article 6', level=2)
+        tag = processor._heading_to_doctag(elem, 'parent_id', None)
+        assert tag.tag_type == DocTagType.ARTICLE
+
+    def test_schedule_heading_produces_schedule_tag(self):
+        processor = DocTagsProcessor()
+        processor._document_domain = "legal"
+        elem = DocumentElement(type='heading', content='Schedule 1', level=2)
+        tag = processor._heading_to_doctag(elem, 'parent_id', None)
+        assert tag.tag_type == DocTagType.SCHEDULE
+
+    def test_definitions_heading_produces_definition_tag(self):
+        processor = DocTagsProcessor()
+        processor._document_domain = "legal"
+        elem = DocumentElement(type='heading', content='Definitions', level=2)
+        tag = processor._heading_to_doctag(elem, 'parent_id', None)
+        assert tag.tag_type == DocTagType.DEFINITION
+
+    def test_non_legal_doc_article_heading_stays_section(self):
+        """In a general document, level-2 heading maps to SECTION regardless of content."""
+        processor = DocTagsProcessor()
+        processor._document_domain = "general"
+        elem = DocumentElement(type='heading', content='Article 6', level=2)
+        tag = processor._heading_to_doctag(elem, 'parent_id', None)
+        assert tag.tag_type == DocTagType.SECTION
+
+    def test_quoted_paragraph_is_definition(self):
+        processor = DocTagsProcessor()
+        processor._document_domain = "legal"
+        elem = DocumentElement(type='paragraph', content='"Agreement" means a binding contract.')
+        tag = processor._paragraph_to_doctag(elem, 'parent_id', None)
+        assert tag.tag_type == DocTagType.DEFINITION
+
+    def test_except_where_paragraph_is_exception(self):
+        processor = DocTagsProcessor()
+        processor._document_domain = "legal"
+        elem = DocumentElement(
+            type='paragraph',
+            content='The obligation shall not apply except where necessary for public interest.',
+        )
+        tag = processor._paragraph_to_doctag(elem, 'parent_id', None)
+        assert tag.tag_type == DocTagType.EXCEPTION
+
+    def test_subject_to_article_paragraph_is_cross_reference(self):
+        processor = DocTagsProcessor()
+        processor._document_domain = "legal"
+        elem = DocumentElement(
+            type='paragraph',
+            content='Processing is permitted subject to Article 17 of this regulation.',
+        )
+        tag = processor._paragraph_to_doctag(elem, 'parent_id', None)
+        assert tag.tag_type == DocTagType.CROSS_REFERENCE
+
+    def test_plain_paragraph_unchanged_in_legal_domain(self):
+        processor = DocTagsProcessor()
+        processor._document_domain = "legal"
+        elem = DocumentElement(
+            type='paragraph',
+            content='The data subject has certain rights under this regulation.',
+        )
+        tag = processor._paragraph_to_doctag(elem, 'parent_id', None)
+        assert tag.tag_type == DocTagType.PARAGRAPH
+
+
+class TestChunkerLegalBoundaries:
+    """Test that ARTICLE and SCHEDULE tags trigger chunk flush boundaries."""
+
+    def _make_tag(self, tag_type, content, tag_id, parent_id='tag_000000', level=None, order=0):
+        from src.processing.doctags_processor import DocTag
+        return DocTag(
+            tag_type=tag_type,
+            content=content,
+            tag_id=tag_id,
+            parent_id=parent_id,
+            level=level,
+            order=order,
+        )
+
+    def _make_doc(self, tags) -> DocTagsDocument:
+        return DocTagsDocument(
+            doc_id='test_legal_doc',
+            title='Legal Test Document',
+            tags=tags,
+            metadata={},
+            hierarchy={},
+        )
+
+    def test_article_tag_triggers_chunk_flush(self):
+        tags = [
+            self._make_tag(DocTagType.DOCUMENT, 'Doc', 'tag_000000', None, order=0),
+            self._make_tag(DocTagType.PARAGRAPH, 'Before Article content.', 'tag_000001', order=1),
+            self._make_tag(DocTagType.ARTICLE, 'Article 6', 'tag_000002', level=2, order=2),
+            self._make_tag(DocTagType.PARAGRAPH, 'After Article content.', 'tag_000003', order=3),
+        ]
+        doc = self._make_doc(tags)
+        chunker = StructurePreservingChunker(chunk_size=2000)
+        chunks = chunker.chunk_document(doc)
+
+        assert len(chunks) == 2
+        assert 'Before Article' in chunks[0].content
+        assert 'After Article' in chunks[1].content
+
+    def test_schedule_tag_triggers_chunk_flush(self):
+        tags = [
+            self._make_tag(DocTagType.DOCUMENT, 'Doc', 'tag_000000', None, order=0),
+            self._make_tag(DocTagType.PARAGRAPH, 'Before Schedule content.', 'tag_000001', order=1),
+            self._make_tag(DocTagType.SCHEDULE, 'Schedule 1', 'tag_000002', level=2, order=2),
+            self._make_tag(DocTagType.PARAGRAPH, 'After Schedule content.', 'tag_000003', order=3),
+        ]
+        doc = self._make_doc(tags)
+        chunker = StructurePreservingChunker(chunk_size=2000)
+        chunks = chunker.chunk_document(doc)
+
+        assert len(chunks) == 2
+        assert 'Before Schedule' in chunks[0].content
+        assert 'After Schedule' in chunks[1].content
+
+    def test_article_recorded_in_context_hierarchy(self):
+        article_tag_id = 'tag_art_001'
+        tags = [
+            self._make_tag(DocTagType.DOCUMENT, 'Legal Doc', 'tag_000000', None, order=0),
+            self._make_tag(DocTagType.ARTICLE, 'Article 6', article_tag_id, level=2, order=1),
+            self._make_tag(DocTagType.PARAGRAPH, 'Consent is required for lawful processing.', 'tag_000002', order=2),
+        ]
+        doc = self._make_doc(tags)
+        chunker = StructurePreservingChunker(chunk_size=2000)
+
+        # Verify internal hierarchy captures article tag_id
+        hierarchy = chunker._build_context_hierarchy(doc)
+        assert article_tag_id in hierarchy['sections']
+
+        # Verify the paragraph chunk records the article as its section
+        chunks = chunker.chunk_document(doc)
+        assert len(chunks) >= 1
+        assert chunks[0].context.get('section') is not None
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

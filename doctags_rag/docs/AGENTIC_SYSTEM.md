@@ -34,7 +34,7 @@ All components have been fully implemented with production-ready code:
 - Memory-aware execution
 
 ### ✓ Testing & Documentation
-- Comprehensive test suite (70+ tests)
+- Comprehensive test suite (80+ tests)
 - 8 demonstration scenarios
 - Detailed README and usage guides
 - Verification scripts
@@ -127,7 +127,7 @@ src/agents/
 └── agentic_pipeline.py            # Main orchestration (550+ lines)
 
 tests/
-└── test_agents.py                 # Comprehensive tests (900+ lines)
+└── test_agents.py                 # Comprehensive tests (1000+ lines)
 
 scripts/
 ├── demo_agentic.py                # Full demonstration (700+ lines)
@@ -209,7 +209,9 @@ docs/
    └─→ Knowledge Persistence
 
 6. Response Generation
-   └─→ Answer Synthesis
+   ├─→ Context-First Evidence Assembly
+   ├─→ Chain-of-Thought Instruction (analytical / multi_hop)
+   └─→ Answer Synthesis (max_tokens 1600 for complex queries)
 
 7. Memory Update
    ├─→ Episodic Storage
@@ -275,6 +277,74 @@ docs/
 - **Error Propagation**: Structured error information
 - **Recovery Mechanisms**: Automatic failure recovery
 
+## Legal RAG Synthesis Improvements
+
+Three improvements (2026-02-22) raise accuracy on legal document QA benchmarks without changing agent interfaces.
+
+### 1. Context-First Prompt Order
+
+The LLM synthesis user prompt now places the retrieved evidence block _before_ the question:
+
+```
+Evidence:
+[chunk 1 text]
+[chunk 2 text]
+...
+
+Question: <user query>
+```
+
+This matches the prompt layout shown to reduce hallucination in long-context retrieval tasks (FinanceBench, arXiv 2311.11944).
+
+### 2. Query Type Classification and Chain-of-Thought
+
+`PlanningAgent.create_plan` now computes a `query_type` based on complexity scoring:
+
+| Score | Type | Trigger |
+|---|---|---|
+| `< 3` | `"simple"` | Short, single-part factual question |
+| `≥ 3`, comparison signal | `"multi_hop"` | Cross-article comparisons, "versus" queries |
+| `≥ 3`, reasoning signal | `"analytical"` | "why", "explain", "how", causal queries |
+
+The `query_type` is stored in `QueryPlan.metadata["query_type"]` and forwarded to `_synthesize_answer_with_model`. For analytical and multi-hop queries the system prompt appends:
+
+> *"Reason step by step before giving your final answer."*
+
+### 3. Adaptive max_tokens
+
+| Query type | max_tokens |
+|---|---|
+| `"simple"` | 900 (default) |
+| `"analytical"` | 1600 |
+| `"multi_hop"` | 1600 |
+
+### Usage
+
+```python
+from src.agents import AgenticPipeline, AgenticMode
+
+pipeline = AgenticPipeline(mode=AgenticMode.STANDARD)
+
+# Query type is determined automatically
+result = await pipeline.process_query(
+    "Why must data controllers document their legal basis under Article 6?",
+    max_iterations=2,
+)
+
+print(result.answer)
+# The planning metadata is accessible via result.plan if needed
+```
+
+If you call `_synthesize_answer_with_model` directly (e.g. in tests), pass `query_type` explicitly:
+
+```python
+answer = pipeline._synthesize_answer_with_model(
+    query="Why must controllers document their legal basis?",
+    results=retrieved_chunks,
+    query_type="analytical",   # "simple" | "analytical" | "multi_hop" | None
+)
+```
+
 ## Usage Examples
 
 ### Basic Usage
@@ -329,7 +399,7 @@ print(f"Improved: {result.improved}")
 
 ### Test Coverage
 
-- **Unit Tests**: Individual agent functionality (40+ tests)
+- **Unit Tests**: Individual agent functionality (50+ tests)
 - **Integration Tests**: Multi-agent workflows (15+ tests)
 - **Performance Tests**: Benchmarks and throughput (10+ tests)
 - **End-to-End Tests**: Complete pipeline scenarios (5+ tests)
@@ -416,7 +486,7 @@ The agentic system seamlessly integrates with all existing Contextprime componen
 - Logging integration
 
 ### ✓ Testing
-- 70+ unit tests
+- 80+ unit tests
 - Integration tests
 - Performance benchmarks
 - Edge case coverage
@@ -483,7 +553,7 @@ The agentic feedback loop system is **fully implemented and production-ready**. 
 - ✓ **Quality assurance** with multi-dimensional assessment
 - ✓ **Performance monitoring** with real-time metrics
 - ✓ **Memory systems** for contextual awareness
-- ✓ **Comprehensive testing** with 70+ tests
+- ✓ **Comprehensive testing** with 80+ tests
 - ✓ **Full documentation** with examples and guides
 
 The system successfully combines all previous components (dual indexing, knowledge graphs, RAPTOR, community detection) into a truly agentic, self-improving RAG system.

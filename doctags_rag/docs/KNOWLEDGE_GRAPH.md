@@ -135,6 +135,7 @@ Constructs the knowledge graph in Neo4j:
 (Document)-[:CONTAINS]->(Entity)
 (Entity)-[:WORKS_FOR|LOCATED_IN|...]->(Entity)
 (Document)-[:SHARES_ENTITIES]->(Document)
+(Chunk)-[:REFERENCES]->(Chunk)
 ```
 
 **Usage:**
@@ -415,15 +416,84 @@ neo4j_manager.initialize_vector_index(
 )
 ```
 
+## Legal Cross-Reference Edges
+
+For UK/EU legal documents the graph is enriched with explicit citation edges between chunks.
+
+### How it works
+
+1. After each chunk is ingested into Qdrant and Neo4j, `DocumentIngestionPipeline._store_cross_references` calls `extract_cross_references(chunk_id, content, doc_id)` to detect patterns such as:
+   - `Article 6`, `Article 17(3)` (article references)
+   - `Section 12.3` (section references)
+   - `Schedule 2`, `Annex I` (schedule/annex references)
+   - `paragraph 3(a)` (paragraph references)
+
+2. Detected references are stored as `(:Chunk)-[:REFERENCES]->(:Chunk)` edges via `Neo4jManager.store_cross_references()`. The Cypher uses `MERGE` so repeated ingestion is idempotent.
+
+3. Unresolvable targets (no matching Chunk node found) are silently skipped.
+
+### Updated Graph Schema
+
+```
+(Document)-[:HAS_CHUNK]->(Chunk)-[:MENTIONS]->(Entity)
+(Document)-[:CONTAINS]->(Entity)
+(Entity)-[:WORKS_FOR|LOCATED_IN|...]->(Entity)
+(Document)-[:SHARES_ENTITIES]->(Document)
+(Chunk)-[:REFERENCES]->(Chunk)          ← legal cross-reference edges
+```
+
+### Querying cross-references
+
+```python
+from src.knowledge_graph import Neo4jManager
+
+manager = Neo4jManager()
+
+# Find all chunks that cite Article 6
+results = manager.execute_read_query(
+    """
+    MATCH (src:Chunk)-[r:REFERENCES]->(tgt:Chunk)
+    WHERE r.target_label = 'article_6'
+    RETURN src.chunk_id, tgt.chunk_id, r.ref_type
+    """,
+    {}
+)
+```
+
+### Standalone extraction
+
+```python
+from src.processing.cross_reference_extractor import extract_cross_references
+
+refs = extract_cross_references(
+    chunk_id="gdpr_chunk_0042",
+    content="The controller shall comply pursuant to Article 17(3).",
+    doc_id="gdpr",
+)
+# [CrossRef(source_chunk_id='gdpr_chunk_0042', target_label='article_17(3)',
+#           ref_type='article', doc_id='gdpr')]
+```
+
+### Ingestion report
+
+`IngestionReport.cross_references_stored` counts the total edges created during a pipeline run:
+
+```python
+report = pipeline.process_files([Path("gdpr.pdf")])
+print(f"Cross-reference edges: {report.cross_references_stored}")
+```
+
 ## Testing
 
 Run tests:
 ```bash
 # Unit tests
 pytest tests/test_knowledge_graph.py -v
+pytest tests/test_cross_reference_extractor.py -v
 
 # Integration tests (requires Neo4j)
 pytest tests/test_knowledge_graph.py -v -m integration
+pytest tests/test_indexing.py::TestNeo4jCrossReferenceEdges -v
 ```
 
 ## Troubleshooting

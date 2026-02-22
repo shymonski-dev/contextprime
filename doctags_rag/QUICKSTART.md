@@ -298,6 +298,71 @@ from src.processing import StreamingPipeline
 streaming = StreamingPipeline(config)
 ```
 
+## Legal Document Processing
+
+Contextprime includes domain-aware processing for UK/EU legal documents (regulations, statutes, contracts). When the processor detects ≥3 legal patterns in a document it activates a set of specialised `DocTagType` values that improve chunking and retrieval precision.
+
+### Automatic domain detection
+
+No configuration is needed. The processor inspects element text for patterns such as `"Article \d+"`, `"Schedule \d+"`, `"Regulation (EU)"`, `"pursuant to"`, etc. If at least 3 match, the document is tagged as `"legal"` and the following type mappings activate:
+
+| Heading text | DocTagType |
+|---|---|
+| `"Article 6"`, `"Article 17"` | `ARTICLE` |
+| `"Schedule 1"`, `"Annex I"` | `SCHEDULE` |
+| `"Definitions"`, `"Interpretation"` | `DEFINITION` |
+
+| Paragraph pattern | DocTagType |
+|---|---|
+| Starts with `"..."` (quoted definition) | `DEFINITION` |
+| Contains `"except where"`, `"unless"` | `EXCEPTION` |
+| Contains `"subject to Article"`, `"pursuant to Article"` | `CROSS_REFERENCE` |
+
+ARTICLE and SCHEDULE tags also trigger chunk flush boundaries so that each article / schedule starts a new chunk, preserving retrieval precision.
+
+### Legal metadata
+
+Attach regulatory lifecycle metadata at ingestion time. The fields are stored in both Qdrant payloads and Neo4j document properties, enabling date-range filtering at retrieval time.
+
+```python
+from pathlib import Path
+from src.core.config import LegalMetadataConfig
+from src.pipelines import DocumentIngestionPipeline
+
+pipeline = DocumentIngestionPipeline()
+
+legal_meta = LegalMetadataConfig(
+    in_force_from="2018-05-25",          # ISO-8601 date
+    in_force_until=None,                  # still in force
+    amended_by="Regulation (EU) 2021/1119",
+    supersedes="Directive 95/46/EC",
+)
+
+report = pipeline.process_files(
+    [Path("data/gdpr.pdf")],
+    legal_metadata=legal_meta,
+)
+
+print(f"Chunks ingested:          {report.chunks_ingested}")
+print(f"Cross-references stored:  {report.cross_references_stored}")
+pipeline.close()
+```
+
+### Cross-reference edges
+
+During ingestion the pipeline automatically extracts legal cross-references from chunk text (e.g. `"pursuant to Article 6"`, `"subject to Schedule 2"`) and stores them as `(:Chunk)-[:REFERENCES]->(:Chunk)` edges in Neo4j. These edges can be traversed in graph queries to follow regulatory citations across a document corpus.
+
+```python
+from src.processing.cross_reference_extractor import extract_cross_references
+
+refs = extract_cross_references(
+    chunk_id="gdpr_chunk_0042",
+    content="The controller shall comply pursuant to Article 17(3).",
+    doc_id="gdpr",
+)
+# refs → [CrossRef(ref_type='article', target_label='article_17(3)', ...)]
+```
+
 ## Next Steps
 
 1. ✓ Install dependencies: `pip install -r requirements.txt`

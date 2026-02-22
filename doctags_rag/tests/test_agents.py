@@ -158,6 +158,33 @@ class TestPlanningAgent:
         assert strategy == "community_based"
 
 
+    @pytest.mark.asyncio
+    async def test_query_type_simple_in_metadata(self):
+        planner = PlanningAgent()
+        plan = await planner.create_plan("What is Article 6?", context=None)
+        assert plan.metadata["query_type"] == "simple"
+
+    @pytest.mark.asyncio
+    async def test_query_type_analytical_for_complex_reasoning(self):
+        planner = PlanningAgent()
+        query = (
+            "Please explain why the data controller must obtain consent "
+            "and document the reasons for the legal basis under the regulation"
+        )
+        plan = await planner.create_plan(query, context=None)
+        assert plan.metadata["query_type"] == "analytical"
+
+    @pytest.mark.asyncio
+    async def test_query_type_multi_hop_for_comparison(self):
+        planner = PlanningAgent()
+        query = (
+            "Compare the obligations of data controllers versus data processors "
+            "under the regulation and summarise the key differences"
+        )
+        plan = await planner.create_plan(query, context=None)
+        assert plan.metadata["query_type"] == "multi_hop"
+
+
 class TestExecutionAgent:
     """Test execution agent functionality."""
 
@@ -692,6 +719,100 @@ class TestPerformance:
             # Should process queries reasonably fast
             qps = 5 / elapsed
             assert qps > 0.5  # At least 0.5 queries per second
+
+
+from types import SimpleNamespace as _SimpleNamespace
+
+
+class _FakeCompletion:
+    """Fake OpenAI completion object for synthesis tests."""
+    class _Choice:
+        message = _SimpleNamespace(content="answer")
+    choices = [_Choice()]
+
+
+class _FakeLLMClient:
+    """Fake LLM client that captures all call arguments."""
+    def __init__(self):
+        self.last_call = {}
+
+    @property
+    def chat(self):
+        return self
+
+    @property
+    def completions(self):
+        return self
+
+    def create(self, **kwargs):
+        self.last_call = kwargs
+        return _FakeCompletion()
+
+
+class TestSynthesisPromptConstruction:
+    """Test _synthesize_answer_with_model prompt order, CoT injection, and token limits."""
+
+    def _make_pipeline(self, tmp_path):
+        import tempfile
+        from pathlib import Path
+        pipeline = AgenticPipeline(
+            retrieval_pipeline=None,
+            storage_path=Path(tmp_path),
+        )
+        pipeline._llm_synthesis_enabled = True
+        client = _FakeLLMClient()
+        pipeline._llm_answer_client = client
+        return pipeline, client
+
+    def test_evidence_precedes_question_in_user_prompt(self, tmp_path):
+        pipeline, client = self._make_pipeline(tmp_path)
+        results = [{"content": "Article 6 requires consent.", "score": 0.9}]
+        pipeline._synthesize_answer_with_model("What does Article 6 require?", results)
+        user_content = client.last_call["messages"][1]["content"]
+        assert user_content.index("Evidence:") < user_content.index("Question:")
+
+    def test_cot_appended_for_analytical(self, tmp_path):
+        pipeline, client = self._make_pipeline(tmp_path)
+        results = [{"content": "Article 6 requires consent.", "score": 0.9}]
+        pipeline._synthesize_answer_with_model(
+            "Why is consent needed?", results, query_type="analytical"
+        )
+        system_content = client.last_call["messages"][0]["content"]
+        assert "Reason step by step" in system_content
+
+    def test_cot_appended_for_multi_hop(self, tmp_path):
+        pipeline, client = self._make_pipeline(tmp_path)
+        results = [{"content": "Article 6 requires consent.", "score": 0.9}]
+        pipeline._synthesize_answer_with_model(
+            "What are the differences?", results, query_type="multi_hop"
+        )
+        system_content = client.last_call["messages"][0]["content"]
+        assert "Reason step by step" in system_content
+
+    def test_cot_not_appended_for_simple(self, tmp_path):
+        pipeline, client = self._make_pipeline(tmp_path)
+        results = [{"content": "Article 6 requires consent.", "score": 0.9}]
+        pipeline._synthesize_answer_with_model(
+            "What is Article 6?", results, query_type="simple"
+        )
+        system_content = client.last_call["messages"][0]["content"]
+        assert "Reason step by step" not in system_content
+
+    def test_max_tokens_1600_for_analytical(self, tmp_path):
+        pipeline, client = self._make_pipeline(tmp_path)
+        results = [{"content": "Article 6 requires consent.", "score": 0.9}]
+        pipeline._synthesize_answer_with_model(
+            "Why is consent needed?", results, query_type="analytical"
+        )
+        assert client.last_call["max_tokens"] == 1600
+
+    def test_max_tokens_default_for_simple(self, tmp_path):
+        pipeline, client = self._make_pipeline(tmp_path)
+        results = [{"content": "Article 6 requires consent.", "score": 0.9}]
+        pipeline._synthesize_answer_with_model(
+            "What is Article 6?", results, query_type="simple"
+        )
+        assert client.last_call["max_tokens"] < 1600
 
 
 if __name__ == "__main__":
