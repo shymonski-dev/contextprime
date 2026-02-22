@@ -268,6 +268,16 @@ class PlanningAgent(BaseAgent):
             total_time = sum(s.estimated_time_ms for s in optimized_steps)
             total_cost = sum(s.estimated_cost for s in optimized_steps)
 
+            # Derive query type for downstream synthesis
+            complexity = analysis["complexity"]
+            is_complex = complexity in ("complex", "very_complex")
+            if is_complex and analysis.get("reasoning"):
+                derived_query_type = "analytical"
+            elif is_complex and (analysis.get("multi_part") or analysis.get("comparison")):
+                derived_query_type = "multi_hop"
+            else:
+                derived_query_type = "simple"
+
             # Create plan
             plan = QueryPlan(
                 plan_id=f"plan_{self.plans_generated}",
@@ -280,6 +290,7 @@ class PlanningAgent(BaseAgent):
                 contingency_plans=contingencies,
                 metadata={
                     "complexity": analysis["complexity"],
+                    "query_type": derived_query_type,
                     "strategy": strategy,
                     "analysis": analysis
                 }

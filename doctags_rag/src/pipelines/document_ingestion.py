@@ -11,9 +11,10 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence
 import numpy as np
 from loguru import logger
 
-from ..core.config import get_settings
+from ..core.config import LegalMetadataConfig, get_settings
 from ..embeddings import OpenAIEmbeddingModel
 from ..knowledge_graph import GraphIngestionManager
+from ..processing.cross_reference_extractor import extract_cross_references
 from ..processing.pipeline import (
     DocumentProcessingPipeline,
     PipelineConfig as ProcessingConfig,
@@ -53,6 +54,7 @@ class IngestionReport:
     neo4j_documents: int = 0
     sections_linked: int = 0
     subsections_linked: int = 0
+    cross_references_stored: int = 0
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -64,6 +66,7 @@ class IngestionReport:
             "neo4j_documents": self.neo4j_documents,
             "sections_linked": self.sections_linked,
             "subsections_linked": self.subsections_linked,
+            "cross_references_stored": self.cross_references_stored,
             "metadata": self.metadata,
         }
 
@@ -123,29 +126,37 @@ class DocumentIngestionPipeline:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def process_files(self, files: Sequence[Path]) -> IngestionReport:
+    def process_files(
+        self,
+        files: Sequence[Path],
+        *,
+        legal_metadata: Optional[LegalMetadataConfig] = None,
+    ) -> IngestionReport:
         """Process individual files and ingest them."""
 
         results: List[ProcessingResult] = []
         for file_path in files:
             result = self.processing_pipeline.process_file(file_path)
             results.append(result)
-        return self.ingest_processing_results(results)
+        return self.ingest_processing_results(results, legal_metadata=legal_metadata)
 
     def process_directory(
         self,
         directory: Path,
         *,
         recursive: bool = True,
+        legal_metadata: Optional[LegalMetadataConfig] = None,
     ) -> IngestionReport:
         """Process an entire directory before ingestion."""
 
         results = self.processing_pipeline.process_directory(directory, recursive=recursive)
-        return self.ingest_processing_results(results)
+        return self.ingest_processing_results(results, legal_metadata=legal_metadata)
 
     def ingest_processing_results(
         self,
         results: Iterable[ProcessingResult],
+        *,
+        legal_metadata: Optional[LegalMetadataConfig] = None,
     ) -> IngestionReport:
         """Ingest already processed documents."""
 
@@ -159,7 +170,7 @@ class DocumentIngestionPipeline:
 
             try:
                 chunks = result.chunks
-                doc_props = self._build_document_properties(result)
+                doc_props = self._build_document_properties(result, legal_metadata=legal_metadata)
 
                 embeddings = self._generate_embeddings(
                     chunks,
@@ -178,7 +189,9 @@ class DocumentIngestionPipeline:
 
                 chunk_payloads = self._build_chunk_payloads(result, embedding_vectors)
 
-                qdrant_points = self._build_qdrant_points(result, embedding_vectors, chunk_payloads)
+                qdrant_points = self._build_qdrant_points(
+                    result, embedding_vectors, chunk_payloads, legal_metadata=legal_metadata
+                )
                 inserted = self.qdrant_manager.insert_vectors_batch(
                     qdrant_points,
                     collection_name=self.config.qdrant_collection,
@@ -187,18 +200,23 @@ class DocumentIngestionPipeline:
 
                 graph_stats = self.graph_ingestor.ingest_document(doc_props, chunk_payloads)
 
+                # Extract and store cross-references between provisions
+                xref_count = self._store_cross_references(chunk_payloads)
+
                 report.processed_documents += 1
                 report.qdrant_vectors += inserted
                 report.neo4j_documents += 1
                 report.chunks_ingested += graph_stats.chunks_processed
                 report.sections_linked += graph_stats.sections_linked
                 report.subsections_linked += graph_stats.subsections_linked
+                report.cross_references_stored += xref_count
 
                 logger.success(
-                    "Ingested %s (%d chunks, %d vectors)",
+                    "Ingested %s (%d chunks, %d vectors, %d cross-refs)",
                     doc_props.get("title") or doc_props["doc_id"],
                     graph_stats.chunks_processed,
                     inserted,
+                    xref_count,
                 )
 
             except Exception as exc:  # pragma: no cover - defensive logging
@@ -328,7 +346,12 @@ class DocumentIngestionPipeline:
         self._qdrant_collection_ready = True
         self._embedding_dim = vector_dim
 
-    def _build_document_properties(self, result: ProcessingResult) -> Dict[str, Any]:
+    def _build_document_properties(
+        self,
+        result: ProcessingResult,
+        *,
+        legal_metadata: Optional[LegalMetadataConfig] = None,
+    ) -> Dict[str, Any]:
         doc = result.doctags_doc
         parsed_metadata = result.parsed_doc.metadata if result.parsed_doc else {}
 
@@ -337,7 +360,7 @@ class DocumentIngestionPipeline:
             "parsed": parsed_metadata,
         }
 
-        return {
+        props: Dict[str, Any] = {
             "doc_id": doc.doc_id,
             "title": doc.title,
             "source_path": str(result.file_path),
@@ -348,6 +371,19 @@ class DocumentIngestionPipeline:
             "metadata": metadata,
             "processed_at": datetime.now(UTC).isoformat(),
         }
+
+        # Attach legal version/amendment metadata when provided (Step 5)
+        if legal_metadata is not None:
+            if legal_metadata.in_force_from is not None:
+                props["in_force_from"] = legal_metadata.in_force_from
+            if legal_metadata.in_force_until is not None:
+                props["in_force_until"] = legal_metadata.in_force_until
+            if legal_metadata.amended_by is not None:
+                props["amended_by"] = legal_metadata.amended_by
+            if legal_metadata.supersedes is not None:
+                props["supersedes"] = legal_metadata.supersedes
+
+        return props
 
     def _build_chunk_payloads(
         self,
@@ -392,9 +428,23 @@ class DocumentIngestionPipeline:
         result: ProcessingResult,
         embedding_vectors: Sequence[Sequence[float]],
         chunk_payloads: Sequence[Dict[str, Any]],
+        *,
+        legal_metadata: Optional[LegalMetadataConfig] = None,
     ) -> List[VectorPoint]:
         doc_title = result.doctags_doc.title if result.doctags_doc else None
         points: List[VectorPoint] = []
+
+        # Build legal payload extension once (same for all chunks in document)
+        legal_payload: Dict[str, Any] = {}
+        if legal_metadata is not None:
+            if legal_metadata.in_force_from is not None:
+                legal_payload["in_force_from"] = legal_metadata.in_force_from
+            if legal_metadata.in_force_until is not None:
+                legal_payload["in_force_until"] = legal_metadata.in_force_until
+            if legal_metadata.amended_by is not None:
+                legal_payload["amended_by"] = legal_metadata.amended_by
+            if legal_metadata.supersedes is not None:
+                legal_payload["supersedes"] = legal_metadata.supersedes
 
         for idx, (embedding, chunk) in enumerate(zip(embedding_vectors, chunk_payloads)):
             context = chunk.get("context", {})
@@ -411,6 +461,7 @@ class DocumentIngestionPipeline:
                 "char_end": chunk.get("char_end"),
                 "metadata": chunk.get("metadata", {}),
                 "context": context,
+                **legal_payload,
             }
 
             if chunk.get("content"):
@@ -425,3 +476,33 @@ class DocumentIngestionPipeline:
             )
 
         return points
+
+    def _store_cross_references(self, chunk_payloads: Sequence[Dict[str, Any]]) -> int:
+        """Extract and store cross-reference edges in Neo4j for all chunks.
+
+        Iterates each chunk payload, runs the cross-reference extractor, then
+        writes REFERENCES edges via the graph ingestor's Neo4j connection.
+        Failures are logged as warnings and do not interrupt ingestion.
+
+        Returns:
+            Total number of cross-reference edges stored.
+        """
+        all_refs = []
+        for chunk in chunk_payloads:
+            chunk_id = chunk.get("chunk_id", "")
+            content = chunk.get("content", "")
+            doc_id = chunk.get("doc_id", "")
+            if not chunk_id or not content:
+                continue
+            refs = extract_cross_references(chunk_id, content, doc_id)
+            all_refs.extend(refs)
+
+        if not all_refs:
+            return 0
+
+        try:
+            stored = self.graph_ingestor.neo4j.store_cross_references(all_refs)
+            return stored
+        except Exception as exc:
+            logger.warning("Cross-reference storage failed (non-fatal): %s", exc)
+            return 0

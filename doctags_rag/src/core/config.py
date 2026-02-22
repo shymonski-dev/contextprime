@@ -199,6 +199,27 @@ class RetrievalConfig(BaseModel):
     }, alias="rerank")
 
 
+class LegalMetadataConfig(BaseModel):
+    """Optional metadata for legal documents (version/amendment tracking)."""
+
+    in_force_from: Optional[str] = Field(
+        default=None,
+        description="ISO-8601 date from which this version is in force (e.g. '2018-05-25')"
+    )
+    in_force_until: Optional[str] = Field(
+        default=None,
+        description="ISO-8601 date until which this version is in force, if superseded"
+    )
+    amended_by: Optional[List[str]] = Field(
+        default=None,
+        description="Doc IDs of instruments that amend this document"
+    )
+    supersedes: Optional[List[str]] = Field(
+        default=None,
+        description="Doc IDs of earlier documents that this document supersedes"
+    )
+
+
 class Settings(BaseSettings):
     """Main settings class that combines all configurations."""
 

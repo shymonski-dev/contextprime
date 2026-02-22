@@ -40,6 +40,12 @@ class DocTagType(Enum):
     HEADER = "header"
     FOOTER = "footer"
     PAGE_BREAK = "page_break"
+    # Legal document types (activated by domain detection)
+    ARTICLE = "article"             # Numbered legal article (Art. 1, Article 6)
+    SCHEDULE = "schedule"           # Schedule / Annex / Appendix
+    DEFINITION = "definition"       # Defined term entry
+    EXCEPTION = "exception"         # Exception or derogation clause
+    CROSS_REFERENCE = "cross_reference"  # Explicit "see Article X" reference
 
 
 @dataclass
@@ -123,6 +129,7 @@ class DocTagsProcessor:
     def __init__(self):
         """Initialize DocTags processor."""
         self.tag_counter = 0
+        self._document_domain = "general"
 
     def process(
         self,
@@ -147,6 +154,10 @@ class DocTagsProcessor:
 
         # Extract title
         title = self._extract_title(parsed_doc)
+
+        # Detect document domain for conditional tag mapping
+        self._document_domain = self._detect_document_domain(parsed_doc)
+        logger.debug(f"Document domain detected: {self._document_domain}")
 
         # Convert elements to DocTags
         tags = []
@@ -201,6 +212,34 @@ class DocTagsProcessor:
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
 
         return f"doc_{timestamp}_{content_hash}"
+
+    def _detect_document_domain(self, parsed_doc: "ParsedDocument") -> str:
+        """Detect document domain for conditional tag mapping.
+
+        Returns 'legal' for UK/EU legal documents, 'general' otherwise.
+        """
+        import re
+        legal_patterns = [
+            r'\bArticle\s+\d+',
+            r'\bSchedule\s+\d+',
+            r'\bRegulation\s+\(EU\)',
+            r'\bAct\s+\d{4}',
+            r'\bStatutory\s+Instrument',
+            r'\bSection\s+\d+\s+of\s+the',
+            r'\bHer\s+Majesty',
+            r'\bParliament\s+of',
+        ]
+        text = parsed_doc.text[:10000] if hasattr(parsed_doc, 'text') else ""
+        # Also check element content
+        if hasattr(parsed_doc, 'elements'):
+            for element in parsed_doc.elements[:50]:
+                text += " " + (element.content or "")
+
+        match_count = sum(
+            1 for pattern in legal_patterns
+            if re.search(pattern, text)
+        )
+        return "legal" if match_count >= 3 else "general"
 
     def _extract_title(self, parsed_doc: ParsedDocument) -> str:
         """Extract document title."""
@@ -272,7 +311,7 @@ class DocTagsProcessor:
                 tags.append(tag)
 
                 # Update hierarchy
-                if tag.tag_type in [DocTagType.SECTION, DocTagType.SUBSECTION]:
+                if tag.tag_type in [DocTagType.SECTION, DocTagType.SUBSECTION, DocTagType.ARTICLE, DocTagType.SCHEDULE]:
                     current_section = tag.tag_id
                     hierarchy['sections'][tag.tag_id] = {
                         'title': tag.content,
@@ -336,21 +375,38 @@ class DocTagsProcessor:
         current_section: Optional[str]
     ) -> DocTag:
         """Convert heading to DocTag."""
+        import re
         level = element.level or 1
+        content = element.content or ""
 
-        # Determine if section or subsection
-        if level == 1:
-            tag_type = DocTagType.TITLE
-        elif level == 2:
-            tag_type = DocTagType.SECTION
+        # Legal domain: check for specific legal heading patterns first
+        if self._document_domain == "legal":
+            if re.match(r'^(?:Article|Art\.)\s+\d+', content, re.IGNORECASE):
+                tag_type = DocTagType.ARTICLE
+            elif re.match(r'^(?:Schedule|Annex|Appendix)\s', content, re.IGNORECASE):
+                tag_type = DocTagType.SCHEDULE
+            elif re.match(r'^(?:Definitions?|Interpretation)$', content, re.IGNORECASE):
+                tag_type = DocTagType.DEFINITION
+            elif level == 1:
+                tag_type = DocTagType.TITLE
+            elif level == 2:
+                tag_type = DocTagType.SECTION
+            else:
+                tag_type = DocTagType.SUBSECTION
         else:
-            tag_type = DocTagType.SUBSECTION
+            # Standard mapping
+            if level == 1:
+                tag_type = DocTagType.TITLE
+            elif level == 2:
+                tag_type = DocTagType.SECTION
+            else:
+                tag_type = DocTagType.SUBSECTION
 
         confidence = element.metadata.get('confidence', 1.0)
 
         return self._create_tag(
             tag_type=tag_type,
-            content=element.content,
+            content=content,
             parent_id=parent_id,
             level=level,
             metadata=element.metadata,
@@ -364,11 +420,30 @@ class DocTagsProcessor:
         current_section: Optional[str]
     ) -> DocTag:
         """Convert paragraph to DocTag."""
+        import re
         confidence = element.metadata.get('confidence', 1.0)
+        content = element.content or ""
+        tag_type = DocTagType.PARAGRAPH
+
+        # Legal domain: detect definition, exception, and cross-reference paragraphs
+        if self._document_domain == "legal":
+            if re.match(r'^"[A-Z]', content):
+                tag_type = DocTagType.DEFINITION
+            elif re.search(
+                r'\bexcept\s+(?:where|as|when|in\s+cases?\s+where)\b',
+                content,
+                re.IGNORECASE,
+            ):
+                tag_type = DocTagType.EXCEPTION
+            elif re.search(
+                r'\b(?:see|pursuant\s+to|as\s+defined\s+in|subject\s+to)\s+[Aa]rticle\s+\d+',
+                content,
+            ):
+                tag_type = DocTagType.CROSS_REFERENCE
 
         return self._create_tag(
-            tag_type=DocTagType.PARAGRAPH,
-            content=element.content,
+            tag_type=tag_type,
+            content=content,
             parent_id=parent_id,
             metadata=element.metadata,
             confidence=confidence

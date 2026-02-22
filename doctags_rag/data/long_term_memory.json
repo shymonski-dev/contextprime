@@ -1055,6 +1055,54 @@
       "created_at": "2026-02-21T15:02:50.069412",
       "last_accessed": "2026-02-21T15:02:50.069412",
       "metadata": {}
+    },
+    {
+      "entry_id": "ltm_88",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-22T08:43:12.864788",
+      "last_accessed": "2026-02-22T08:43:12.864788",
+      "metadata": {}
+    },
+    {
+      "entry_id": "promoted_89",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-22T08:43:12.866435",
+      "last_accessed": "2026-02-22T08:43:12.866435",
+      "metadata": {}
+    },
+    {
+      "entry_id": "ltm_90",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-22T08:45:33.950916",
+      "last_accessed": "2026-02-22T08:45:33.950916",
+      "metadata": {}
+    },
+    {
+      "entry_id": "promoted_91",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-22T08:45:33.952133",
+      "last_accessed": "2026-02-22T08:45:33.952133",
+      "metadata": {}
     }
   ]
 }
