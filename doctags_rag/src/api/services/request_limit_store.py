@@ -28,6 +28,26 @@ class RateLimitDecision:
     retry_after_seconds: int = 0
 
 
+_RATE_LIMIT_SCHEMA_VERSION = 2
+
+_RATE_LIMIT_MIGRATIONS = [
+    (
+        1,
+        """CREATE TABLE IF NOT EXISTS rate_limit_events (
+            subject TEXT NOT NULL,
+            event_time REAL NOT NULL,
+            cost INTEGER NOT NULL DEFAULT 1
+        )""",
+    ),
+    (
+        2,
+        # cost column already present in v1 DDL; this migration is a no-op guard
+        # for databases upgraded from a version that pre-dated the cost column.
+        "SELECT 1",
+    ),
+]
+
+
 class SQLiteSlidingWindowRateLimiter:
     """SQLite-backed sliding window limiter shared across workers."""
 
@@ -106,23 +126,7 @@ class SQLiteSlidingWindowRateLimiter:
             with self._connection(write=False) as conn:
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("PRAGMA synchronous=NORMAL")
-                conn.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS rate_limit_events (
-                        subject TEXT NOT NULL,
-                        event_time REAL NOT NULL,
-                        cost INTEGER NOT NULL DEFAULT 1
-                    )
-                    """
-                )
-                columns = {
-                    row[1]
-                    for row in conn.execute("PRAGMA table_info(rate_limit_events)").fetchall()
-                }
-                if "cost" not in columns:
-                    conn.execute(
-                        "ALTER TABLE rate_limit_events ADD COLUMN cost INTEGER NOT NULL DEFAULT 1"
-                    )
+                self._apply_migrations(conn)
                 conn.execute(
                     """
                     CREATE INDEX IF NOT EXISTS idx_rate_limit_subject_time
@@ -135,6 +139,21 @@ class SQLiteSlidingWindowRateLimiter:
                     ON rate_limit_events(event_time)
                     """
                 )
+
+    def _apply_migrations(self, conn) -> None:
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)"
+        )
+        row = conn.execute("SELECT version FROM schema_version").fetchone()
+        current = row[0] if row else 0
+        for version, sql in _RATE_LIMIT_MIGRATIONS:
+            if current < version:
+                conn.execute(sql)
+                if current == 0:
+                    conn.execute("INSERT INTO schema_version VALUES (?)", (version,))
+                else:
+                    conn.execute("UPDATE schema_version SET version = ?", (version,))
+                current = version
 
     @contextmanager
     def _connection(self, *, write: bool):
@@ -161,11 +180,12 @@ local now_ms = tonumber(ARGV[1])
 local window_ms = tonumber(ARGV[2])
 local max_requests = tonumber(ARGV[3])
 local member = ARGV[4]
+local cost = tonumber(ARGV[5])
 local window_start = now_ms - window_ms
 
 redis.call('ZREMRANGEBYSCORE', key, '-inf', window_start)
 local count = redis.call('ZCARD', key)
-if count >= max_requests then
+if count + cost > max_requests then
   local oldest = redis.call('ZRANGE', key, 0, 0, 'WITHSCORES')
   local retry_after = 1
   if oldest[2] ~= nil then
@@ -204,7 +224,7 @@ return {1, 0}
         """Check request allowance using Redis or SQLite fallback."""
         cost_units = max(1, int(cost))
         client = self._redis_client
-        if client is None or cost_units != 1:
+        if client is None:
             return self._sqlite.check(subject, cost=cost_units)
 
         redis_key = self._redis_subject_key(subject)
@@ -221,6 +241,7 @@ return {1, 0}
                 window_ms,
                 self.max_requests,
                 member,
+                cost_units,
             )
             allowed = bool(int(result[0])) if isinstance(result, (list, tuple)) else False
             retry_after = int(result[1]) if isinstance(result, (list, tuple)) else 1

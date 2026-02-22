@@ -29,14 +29,6 @@ qdrant:
   vector_size: 1536  # For OpenAI embeddings
   distance_metric: "cosine"
 
-# Pinecone (Alternative Vector DB)
-pinecone:
-  api_key: null  # Set when using Pinecone
-  environment: "gcp-starter"
-  index_name: "doctags-index"
-  dimension: 1536
-  metric: "cosine"
-
 # Document Processing
 document_processing:
   ocr_engine: "paddleocr"  # paddleocr, tesseract, or docling
@@ -223,6 +215,7 @@ security:
   jwt_roles_claim: "roles"
   jwt_scopes_claim: "scopes"
   jwt_enforce_permissions: true
+  jwt_require_expiry: true
   jwt_required_read_scopes:
     - "api:read"
   jwt_required_write_scopes:

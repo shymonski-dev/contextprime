@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from threading import Lock
 from typing import Dict, Optional
 import os
 
@@ -29,11 +30,14 @@ class AppState:
 
 
 _app_state: Optional[AppState] = None
+_state_lock = Lock()
 
 
 def get_app_state() -> AppState:
-    """Return the singleton application state, creating it if required."""
+    """Return the singleton application state, creating it if required (thread-safe)."""
     global _app_state
     if _app_state is None:
-        _app_state = AppState()
+        with _state_lock:
+            if _app_state is None:
+                _app_state = AppState()
     return _app_state

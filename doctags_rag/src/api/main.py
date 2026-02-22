@@ -91,6 +91,19 @@ async def startup_checks() -> None:
     if enforce_strict and issues:
         raise RuntimeError("Runtime security validation failed: " + "; ".join(issues))
 
+    # OCR startup probe — surface engine availability before the first document is processed.
+    try:
+        from src.processing.ocr_engine import OCREngineFactory
+        engine = OCREngineFactory.create_engine(
+            engine_type=settings.document_processing.ocr_engine
+        )
+        if engine is None:
+            logger.info("OCR engine: disabled by configuration")
+        else:
+            logger.info("OCR engine: {} ready", type(engine).__name__)
+    except Exception as _ocr_exc:
+        logger.warning("OCR engine could not be initialized at startup: {}", _ocr_exc)
+
     if not (settings.startup_readiness.enabled and enforce_strict):
         return
 

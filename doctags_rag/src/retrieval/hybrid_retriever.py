@@ -25,6 +25,21 @@ from ..retrieval.rerankers import MonoT5Reranker
 from .qdrant_manager import QdrantManager, SearchResult as QdrantResult
 from ..core.config import get_settings
 
+try:
+    import neo4j.exceptions as _neo4j_exc
+except Exception:  # pragma: no cover
+    _neo4j_exc = None  # type: ignore[assignment]
+
+try:
+    import requests as _requests
+except Exception:  # pragma: no cover
+    _requests = None  # type: ignore[assignment]
+
+try:
+    from qdrant_client.http import exceptions as _qdrant_exc
+except Exception:  # pragma: no cover
+    _qdrant_exc = None  # type: ignore[assignment]
+
 
 class QueryType(Enum):
     """Types of queries for routing."""
@@ -84,6 +99,7 @@ class SearchMetrics:
     rerank_time_ms: float = 0.0
     rerank_applied: bool = False
     services: Dict[str, Any] = field(default_factory=dict)
+    search_errors: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -550,11 +566,13 @@ class HybridRetriever:
         if strategy in [SearchStrategy.VECTOR_ONLY, SearchStrategy.HYBRID]:
             if can_use_vector:
                 vector_start = time.time()
-                vector_results = self._search_vector(
+                vector_results, _vec_err = self._search_vector(
                     query_vector, top_k, filters, effective_collection_name
                 )
                 metrics.vector_time_ms = (time.time() - vector_start) * 1000
                 metrics.vector_results = len(vector_results)
+                if _vec_err:
+                    metrics.search_errors.append(_vec_err)
             else:
                 logger.warning("Vector search requested but no query embedding provided; skipping vector lookup")
 
@@ -573,7 +591,7 @@ class HybridRetriever:
             if can_use_vector:
                 graph_start = time.time()
                 effective_index = vector_index_name or self.default_graph_vector_index
-                graph_results = self._search_graph(
+                graph_results, _graph_err = self._search_graph(
                     query_vector,
                     query_text,
                     top_k,
@@ -583,6 +601,8 @@ class HybridRetriever:
                 )
                 metrics.graph_time_ms = (time.time() - graph_start) * 1000
                 metrics.graph_results = len(graph_results)
+                if _graph_err:
+                    metrics.search_errors.append(_graph_err)
             else:
                 logger.warning("Graph vector search requested but no query embedding provided; skipping graph lookup")
 
@@ -660,26 +680,41 @@ class HybridRetriever:
         query_vector: List[float],
         top_k: int,
         filters: Optional[Dict[str, Any]],
-        collection_name: Optional[str]
-    ) -> List[QdrantResult]:
-        """Search Qdrant vector database."""
+        collection_name: Optional[str],
+    ) -> Tuple[List[QdrantResult], Optional[str]]:
+        """Search Qdrant vector database. Returns (results, error_message_or_None)."""
         qdrant = self._ensure_qdrant()
         if qdrant is None:
             logger.warning("Qdrant client unavailable; skipping vector search")
-            return []
+            return [], None
 
-        try:
-            results = qdrant.search(
-                query_vector=query_vector,
-                top_k=top_k * 2,  # Get more for fusion
-                filters=filters,
-                collection_name=collection_name,
-            )
-            logger.debug(f"Vector search returned {len(results)} results")
-            return results
-        except Exception as e:
-            logger.error(f"Vector search failed: {e}")
-            return []
+        _transient = (ConnectionError, TimeoutError)
+        if _qdrant_exc is not None:
+            _transient = (*_transient, _qdrant_exc.UnexpectedResponse)  # type: ignore[assignment]
+        if _requests is not None:
+            _transient = (*_transient, _requests.exceptions.RequestException)  # type: ignore[assignment]
+
+        for attempt in range(2):
+            try:
+                results = qdrant.search(
+                    query_vector=query_vector,
+                    top_k=top_k * 2,
+                    filters=filters,
+                    collection_name=collection_name,
+                )
+                logger.debug(f"Vector search returned {len(results)} results")
+                return results, None
+            except _transient as e:
+                if attempt == 0:
+                    logger.warning(f"Transient vector search error (will retry): {e}")
+                    time.sleep(0.1)
+                    continue
+                logger.error(f"Vector search failed after retry: {e}")
+                return [], f"vector: {type(e).__name__}: {e}"
+            except Exception as e:
+                logger.error(f"Vector search failed: {e}")
+                return [], f"vector: {type(e).__name__}: {e}"
+        return [], None  # unreachable
 
     def _search_lexical(
         self,
@@ -721,125 +756,139 @@ class HybridRetriever:
         filters: Optional[Dict[str, Any]],
         vector_index_name: Optional[str],
         graph_policy: GraphRetrievalPolicy,
-    ) -> List[Neo4jResult]:
-        """Search Neo4j graph database."""
+    ) -> Tuple[List[Neo4jResult], Optional[str]]:
+        """Search Neo4j graph database. Returns (results, error_message_or_None)."""
         neo4j = self._ensure_neo4j()
         if neo4j is None:
             logger.warning("Neo4j client unavailable; skipping graph search")
-            return []
+            return [], None
 
-        try:
-            if graph_policy == GraphRetrievalPolicy.GLOBAL:
-                results = neo4j.keyword_search_nodes(
+        _transient_neo4j: tuple = (ConnectionError, TimeoutError)
+        if _neo4j_exc is not None:
+            _transient_neo4j = (*_transient_neo4j, _neo4j_exc.ServiceUnavailable)
+
+        for attempt in range(2):
+            try:
+                if graph_policy == GraphRetrievalPolicy.GLOBAL:
+                    results = neo4j.keyword_search_nodes(
+                        query_text=query_text,
+                        top_k=top_k * 2,
+                        scan_limit=self.graph_global_scan_nodes,
+                        max_terms=self.graph_global_max_terms,
+                    )
+                    logger.debug(f"Graph global keyword search returned {len(results)} results")
+                    return results, None
+
+                if graph_policy == GraphRetrievalPolicy.COMMUNITY:
+                    summary_results = neo4j.community_summary_search(
+                        query_text=query_text,
+                        top_k=max(top_k * 2, self.graph_community_top_communities),
+                        version=self.graph_community_version,
+                        scan_limit=self.graph_community_scan_nodes,
+                        max_terms=self.graph_community_max_terms,
+                    )
+
+                    community_scores: Dict[str, float] = {}
+                    for result in summary_results[: self.graph_community_top_communities]:
+                        community_id = str(result.properties.get("community_id", "")).strip()
+                        if community_id:
+                            community_scores[community_id] = float(result.score)
+
+                    member_results: List[Neo4jResult] = []
+                    if community_scores:
+                        member_results = neo4j.community_member_search(
+                            community_scores=community_scores,
+                            top_k=top_k * 2,
+                            members_per_community=self.graph_community_members_per_community,
+                        )
+
+                    base_results: List[Neo4jResult] = []
+                    if vector_index_name:
+                        base_results = neo4j.vector_similarity_search(
+                            index_name=vector_index_name,
+                            query_vector=query_vector,
+                            top_k=max(top_k * 2, self.graph_local_seed_k),
+                            filters=filters,
+                        )
+
+                    merged = self._merge_weighted_graph_results(
+                        weighted_groups=[
+                            (base_results, self.graph_community_vector_weight),
+                            (summary_results, self.graph_community_summary_weight),
+                            (member_results, self.graph_community_member_weight),
+                        ],
+                        top_k=top_k * 2,
+                    )
+                    if merged:
+                        return merged, None
+                    if member_results:
+                        return member_results, None
+                    if summary_results:
+                        return summary_results, None
+                    if base_results:
+                        return base_results, None
+
+                    # Community summaries might not be available yet; fall back to global scan.
+                    fallback_results = neo4j.keyword_search_nodes(
+                        query_text=query_text,
+                        top_k=top_k * 2,
+                        scan_limit=self.graph_global_scan_nodes,
+                        max_terms=self.graph_global_max_terms,
+                    )
+                    return fallback_results, None
+
+                if not vector_index_name:
+                    logger.warning("No vector index provided for graph search")
+                    return [], None
+
+                # Standard vector graph search anchors all graph policies.
+                base_results = neo4j.vector_similarity_search(
+                    index_name=vector_index_name,
+                    query_vector=query_vector,
+                    top_k=max(top_k * 2, self.graph_local_seed_k),
+                    filters=filters,
+                )
+
+                if graph_policy == GraphRetrievalPolicy.STANDARD:
+                    logger.debug(f"Graph vector search returned {len(base_results)} results")
+                    return base_results, None
+
+                local_results = self._build_local_graph_results(
+                    base_results=base_results,
+                    top_k=top_k,
+                )
+
+                if graph_policy == GraphRetrievalPolicy.LOCAL:
+                    return local_results, None
+
+                global_results = neo4j.keyword_search_nodes(
                     query_text=query_text,
                     top_k=top_k * 2,
                     scan_limit=self.graph_global_scan_nodes,
                     max_terms=self.graph_global_max_terms,
                 )
-                logger.debug(f"Graph global keyword search returned {len(results)} results")
-                return results
 
-            if graph_policy == GraphRetrievalPolicy.COMMUNITY:
-                summary_results = neo4j.community_summary_search(
-                    query_text=query_text,
-                    top_k=max(top_k * 2, self.graph_community_top_communities),
-                    version=self.graph_community_version,
-                    scan_limit=self.graph_community_scan_nodes,
-                    max_terms=self.graph_community_max_terms,
-                )
-
-                community_scores: Dict[str, float] = {}
-                for result in summary_results[: self.graph_community_top_communities]:
-                    community_id = str(result.properties.get("community_id", "")).strip()
-                    if community_id:
-                        community_scores[community_id] = float(result.score)
-
-                member_results: List[Neo4jResult] = []
-                if community_scores:
-                    member_results = neo4j.community_member_search(
-                        community_scores=community_scores,
-                        top_k=top_k * 2,
-                        members_per_community=self.graph_community_members_per_community,
-                    )
-
-                base_results: List[Neo4jResult] = []
-                if vector_index_name:
-                    base_results = neo4j.vector_similarity_search(
-                        index_name=vector_index_name,
-                        query_vector=query_vector,
-                        top_k=max(top_k * 2, self.graph_local_seed_k),
-                        filters=filters,
-                    )
-
+                # Drift policy combines local neighborhood and global thematic anchors.
                 merged = self._merge_weighted_graph_results(
                     weighted_groups=[
-                        (base_results, self.graph_community_vector_weight),
-                        (summary_results, self.graph_community_summary_weight),
-                        (member_results, self.graph_community_member_weight),
+                        (local_results, self.graph_drift_local_weight),
+                        (global_results, self.graph_drift_global_weight),
                     ],
                     top_k=top_k * 2,
                 )
-                if merged:
-                    return merged
-                if member_results:
-                    return member_results
-                if summary_results:
-                    return summary_results
-                if base_results:
-                    return base_results
+                return merged, None
 
-                # Community summaries might not be available yet; fall back to global scan.
-                fallback_results = neo4j.keyword_search_nodes(
-                    query_text=query_text,
-                    top_k=top_k * 2,
-                    scan_limit=self.graph_global_scan_nodes,
-                    max_terms=self.graph_global_max_terms,
-                )
-                return fallback_results
-
-            if not vector_index_name:
-                logger.warning("No vector index provided for graph search")
-                return []
-
-            # Standard vector graph search anchors all graph policies.
-            base_results = neo4j.vector_similarity_search(
-                index_name=vector_index_name,
-                query_vector=query_vector,
-                top_k=max(top_k * 2, self.graph_local_seed_k),
-                filters=filters,
-            )
-
-            if graph_policy == GraphRetrievalPolicy.STANDARD:
-                logger.debug(f"Graph vector search returned {len(base_results)} results")
-                return base_results
-
-            local_results = self._build_local_graph_results(
-                base_results=base_results,
-                top_k=top_k,
-            )
-
-            if graph_policy == GraphRetrievalPolicy.LOCAL:
-                return local_results
-
-            global_results = neo4j.keyword_search_nodes(
-                query_text=query_text,
-                top_k=top_k * 2,
-                scan_limit=self.graph_global_scan_nodes,
-                max_terms=self.graph_global_max_terms,
-            )
-
-            # Drift policy combines local neighborhood and global thematic anchors.
-            merged = self._merge_weighted_graph_results(
-                weighted_groups=[
-                    (local_results, self.graph_drift_local_weight),
-                    (global_results, self.graph_drift_global_weight),
-                ],
-                top_k=top_k * 2,
-            )
-            return merged
-        except Exception as e:
-            logger.error(f"Graph search failed: {e}")
-            return []
+            except _transient_neo4j as e:
+                if attempt == 0:
+                    logger.warning(f"Transient graph search error (will retry): {e}")
+                    time.sleep(0.1)
+                    continue
+                logger.error(f"Graph search failed after retry: {e}")
+                return [], f"graph: {type(e).__name__}: {e}"
+            except Exception as e:
+                logger.error(f"Graph search failed: {e}")
+                return [], f"graph: {type(e).__name__}: {e}"
+        return [], None  # unreachable
 
     def _build_local_graph_results(
         self,

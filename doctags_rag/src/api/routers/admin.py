@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 from loguru import logger
 from neo4j import GraphDatabase
@@ -20,12 +20,22 @@ from src.core.config import get_settings
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
+
+def require_admin_identity(request: Request) -> None:
+    """Reject the request with 403 unless the caller holds an admin or owner role."""
+    identity = getattr(request.state, "auth_identity", None)
+    if identity is None:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    roles = set(identity.get("roles", []))
+    if not roles.intersection({"admin", "owner"}):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 ENV_FILE_PATH = PROJECT_ROOT / ".env"
 
 
 @router.get("/neo4j/connectivity", response_model=Neo4jConnectivityResponse)
-async def neo4j_connectivity() -> Neo4jConnectivityResponse:
+async def neo4j_connectivity(_: None = Depends(require_admin_identity)) -> Neo4jConnectivityResponse:
     """Check whether configured Neo4j credentials are valid."""
     settings = get_settings()
     password = (settings.neo4j.password or "").strip()
@@ -72,10 +82,12 @@ async def neo4j_connectivity() -> Neo4jConnectivityResponse:
 
 @router.post("/neo4j/recover-password", response_model=Neo4jPasswordRecoveryResponse)
 async def recover_neo4j_password(
-    request: Neo4jPasswordRecoveryRequest,
+    body: Neo4jPasswordRecoveryRequest,
+    request: Request,
+    _: None = Depends(require_admin_identity),
 ) -> Neo4jPasswordRecoveryResponse:
     """Verify Neo4j password and optionally write it to local .env."""
-    candidate = request.password.strip()
+    candidate = body.password.strip()
     if not candidate:
         raise HTTPException(status_code=400, detail="Neo4j password is required.")
 
@@ -104,7 +116,7 @@ async def recover_neo4j_password(
 
     settings.neo4j.password = candidate
     persisted = False
-    if request.persist_to_env:
+    if body.persist_to_env:
         await run_in_threadpool(_upsert_env_password, ENV_FILE_PATH, candidate)
         persisted = True
 

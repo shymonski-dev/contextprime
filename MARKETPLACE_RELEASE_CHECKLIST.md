@@ -7,10 +7,12 @@ Use this checklist before publishing the action in GitHub Marketplace.
 1. `action.yml`
 2. `README.md`
 3. `LICENSE`
-4. `SECURITY.md`
-5. `CODE_OF_CONDUCT.md`
-6. `CONTRIBUTING.md`
-7. `SUPPORT.md`
+4. `DUAL_LICENSE.md`
+5. `LICENSES/`
+6. `SECURITY.md`
+7. `CODE_OF_CONDUCT.md`
+8. `CONTRIBUTING.md`
+9. `SUPPORT.md`
 
 ## Required checks
 

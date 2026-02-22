@@ -24,6 +24,16 @@ except Exception:  # pragma: no cover - non-posix fallback
     fcntl = None
 
 
+_FEEDBACK_SCHEMA_VERSION = 1
+
+_FEEDBACK_MIGRATIONS = [
+    (
+        1,
+        None,  # baseline — tables created inline below; migration step is a no-op marker
+    ),
+]
+
+
 class FeedbackCaptureStore:
     """SQLite-backed store for retrieval query and feedback events."""
 
@@ -352,6 +362,7 @@ class FeedbackCaptureStore:
             with self._db_connection(write=False) as conn:
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("PRAGMA synchronous=NORMAL")
+                # Establish full schema (CREATE IF NOT EXISTS is idempotent).
                 conn.execute(
                     """
                     CREATE TABLE IF NOT EXISTS query_events (
@@ -391,6 +402,23 @@ class FeedbackCaptureStore:
                 )
                 conn.execute(
                     "CREATE INDEX IF NOT EXISTS idx_feedback_events_user_id ON feedback_events(user_id)"
+                )
+                self._apply_schema_version(conn)
+
+    def _apply_schema_version(self, conn) -> None:
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)"
+        )
+        row = conn.execute("SELECT version FROM schema_version").fetchone()
+        current = row[0] if row else 0
+        if current < _FEEDBACK_SCHEMA_VERSION:
+            if current == 0:
+                conn.execute(
+                    "INSERT INTO schema_version VALUES (?)", (_FEEDBACK_SCHEMA_VERSION,)
+                )
+            else:
+                conn.execute(
+                    "UPDATE schema_version SET version = ?", (_FEEDBACK_SCHEMA_VERSION,)
                 )
 
     @contextmanager

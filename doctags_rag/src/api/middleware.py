@@ -59,6 +59,7 @@ class AccessControlAndRateLimitMiddleware(BaseHTTPMiddleware):
         self._jwt_roles_claim = (settings.security.jwt_roles_claim or "roles").strip() or "roles"
         self._jwt_scopes_claim = (settings.security.jwt_scopes_claim or "scopes").strip() or "scopes"
         self._jwt_enforce_permissions = bool(settings.security.jwt_enforce_permissions)
+        self._jwt_require_expiry = bool(getattr(settings.security, "jwt_require_expiry", True))
         self._jwt_required_read_scopes = self._normalise_permission_values(
             settings.security.jwt_required_read_scopes
         )
@@ -268,6 +269,8 @@ class AccessControlAndRateLimitMiddleware(BaseHTTPMiddleware):
         skew_seconds = 30
 
         exp_ts = self._coerce_unix_timestamp(claims.get("exp"))
+        if exp_ts is None and self._jwt_require_expiry:
+            return None
         if exp_ts is not None and now >= exp_ts:
             return None
 

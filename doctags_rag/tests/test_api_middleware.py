@@ -56,6 +56,7 @@ def _build_settings(
         jwt_roles_claim="roles",
         jwt_scopes_claim="scopes",
         jwt_enforce_permissions=True,
+        jwt_require_expiry=True,
         jwt_required_read_scopes=["api:read"],
         jwt_required_write_scopes=["api:write"],
         jwt_admin_roles=["admin", "owner"],
@@ -154,6 +155,36 @@ def test_jwt_does_not_accept_plain_access_token(monkeypatch):
     with TestClient(app) as client:
         response = client.post("/api/documents", headers=headers)
         assert response.status_code == 401
+
+
+def test_jwt_without_exp_is_rejected_by_default(monkeypatch):
+    secret = "this_is_a_minimum_32_character_jwt_secret_value"
+    settings = _build_settings(jwt_secret=secret)
+    # jwt_require_expiry=True is the default set in _build_settings
+    app = _create_app(monkeypatch, settings)
+
+    claims = {"sub": "no-exp-user", "roles": [], "scopes": ["api:read"]}
+    token = _build_jwt(secret=secret, claims=claims)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    with TestClient(app) as client:
+        response = client.post("/api/search/hybrid", headers=headers)
+    assert response.status_code == 401
+
+
+def test_jwt_without_exp_is_accepted_when_require_expiry_disabled(monkeypatch):
+    secret = "this_is_a_minimum_32_character_jwt_secret_value"
+    settings = _build_settings(jwt_secret=secret)
+    settings.security.jwt_require_expiry = False
+    app = _create_app(monkeypatch, settings)
+
+    claims = {"sub": "no-exp-user", "roles": [], "scopes": ["api:read"]}
+    token = _build_jwt(secret=secret, claims=claims)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    with TestClient(app) as client:
+        response = client.post("/api/search/hybrid", headers=headers)
+    assert response.status_code == 200
 
 
 def test_token_budget_rate_limit(monkeypatch, tmp_path):

@@ -161,6 +161,7 @@ print(f"Created {len(result.chunks)} chunks")
 - Relationship detection (20+ types)
 - Entity resolution with fuzzy matching
 - Cross-document linking
+- **Full-text index on Neo4j** — keyword search uses `CALL db.index.fulltext.queryNodes` for sub-millisecond lookups with automatic fallback to Python scan if the index is not yet created ✨
 
 ```python
 from src.knowledge_graph import KnowledgeGraphPipeline
@@ -313,8 +314,14 @@ Test coverage:
 ✅ Flexible embedding injection
 ✅ Comprehensive error handling
 ✅ Extensive logging and monitoring
-✅ Thread-safe operations
+✅ Thread-safe singleton initialization (double-checked locking)
 ✅ Graceful degradation
+✅ Admin-role-gated management endpoints
+✅ JWT expiry enforcement (configurable)
+✅ Distributed rate limiting with per-request cost weights
+✅ OCR engine health logged at startup
+✅ Versioned SQLite schema migrations
+✅ Partial backend failures surfaced in `search_errors` metadata
 
 ---
 
@@ -546,10 +553,34 @@ NEO4J_PASSWORD=<strong_neo4j_password>
 SECURITY__REQUIRE_ACCESS_TOKEN=true
 SECURITY__AUTH_MODE=jwt
 SECURITY__JWT_SECRET=<long_random_jwt_secret_min_32_chars>
+SECURITY__JWT_REQUIRE_EXPIRY=true
 ```
 
 The API enforces startup checks in docker mode. The app service now fails fast
 if required secrets are missing or default-valued.
+
+### Security Hardening (2026-02-22)
+
+The following security and reliability improvements are included:
+
+**Admin endpoint protection** — `GET /api/admin/neo4j/connectivity` and
+`POST /api/admin/neo4j/recover-password` now require the caller's JWT to carry
+an `admin` or `owner` role. Tokens with only `api:write` scope are rejected
+with 403. In `token` auth mode the admin endpoints are always blocked (use JWT
+mode with roles for production admin access).
+
+**JWT expiry enforcement** — By default, tokens without an `exp` claim are
+rejected. Set `SECURITY__JWT_REQUIRE_EXPIRY=false` only for internal service
+accounts that intentionally use non-expiring tokens.
+
+**Token budget rate limiting** — The Redis-backed rate limiter now correctly
+applies per-request cost weights (for LLM token budgeting) through a Lua
+script, so cost accounting is consistent across distributed workers.
+
+**Partial backend failures surfaced** — When the vector or graph backend is
+temporarily unavailable, the search response now includes a `search_errors`
+list in the metadata rather than silently returning an empty result set. Use
+this field to distinguish "no matches" from "backend error".
 
 Runtime probes:
 
@@ -633,7 +664,16 @@ This is a research implementation. For production use:
 
 ## 📄 License
 
-Research and educational use.
+Contextprime is dual licensed:
+
+1. GNU Affero General Public License, version 3 or any later version
+2. Contextprime Commercial License (separate signed agreement)
+
+See:
+
+- `DUAL_LICENSE.md`
+- `LICENSE`
+- `LICENSES/CONTEXTPRIME_COMMERCIAL_LICENSE.md`
 
 ---
 
@@ -664,4 +704,4 @@ For issues or questions:
 
 Built following IBM DocTags, Microsoft GraphRAG, and RAPTOR principles.
 
-Last Updated: February 20, 2026
+Last Updated: February 22, 2026

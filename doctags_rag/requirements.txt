@@ -20,17 +20,12 @@ pytesseract==0.3.10
 
 # Graph Database
 neo4j==5.15.0
-py2neo==2021.2.4
 
 # Vector Database
 qdrant-client==1.17.0
-pinecone-client==3.0.0
 
 # Embeddings and LLMs
 openai==1.40.2
-langchain==0.2.3
-langchain-community==0.2.3
-langchain-openai==0.1.7
 sentence-transformers==2.6.1
 transformers==4.36.2
 sentencepiece==0.1.99

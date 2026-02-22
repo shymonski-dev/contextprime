@@ -68,3 +68,39 @@ def test_sqlite_backed_limiter_supports_weighted_cost(tmp_path):
     assert limiter.check("ip:weighted", cost=2).allowed is True
     decision = limiter.check("ip:weighted", cost=1)
     assert decision.allowed is False
+
+
+def test_redis_path_used_for_cost_greater_than_one(tmp_path):
+    """Redis path must be exercised even when cost > 1 (no bypass)."""
+    lua_calls = []
+
+    class FakeRedis:
+        def eval(self, script, num_keys, *args):
+            # args layout: redis_key, now_ms, window_ms, max_requests, member, cost_units
+            lua_calls.append(args)
+            cost = int(args[5])  # ARGV[5] = cost_units (0-indexed: args[5])
+            if len(lua_calls) == 1:
+                return [1, 0]   # allow
+            return [0, 10]      # deny
+
+        def ping(self):
+            return True
+
+    limiter = SharedSlidingWindowRateLimiter(
+        max_requests=5,
+        window_seconds=60,
+        redis_url=None,
+        sqlite_path=tmp_path / "rate_limit.db",
+    )
+    limiter._redis_client = FakeRedis()
+
+    first = limiter.check("ip:redis-cost", cost=3)
+    second = limiter.check("ip:redis-cost", cost=5)
+
+    assert first.allowed is True
+    assert second.allowed is False
+    # Both calls must have gone through Redis (not the old SQLite bypass)
+    assert len(lua_calls) == 2
+    # Each Lua call must have received the correct cost as ARGV[5]
+    assert int(lua_calls[0][5]) == 3
+    assert int(lua_calls[1][5]) == 5

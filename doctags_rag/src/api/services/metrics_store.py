@@ -9,6 +9,9 @@ from typing import Dict
 import sqlite3
 
 
+_METRICS_SCHEMA_VERSION = 1
+
+
 class OperationalMetricsStore:
     """SQLite-backed counter store shared across workers."""
 
@@ -105,6 +108,23 @@ class OperationalMetricsStore:
                     VALUES ('total_queries', 0)
                     ON CONFLICT(metric_key) DO NOTHING
                     """
+                )
+                self._apply_schema_version(conn)
+
+    def _apply_schema_version(self, conn) -> None:
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)"
+        )
+        row = conn.execute("SELECT version FROM schema_version").fetchone()
+        current = row[0] if row else 0
+        if current < _METRICS_SCHEMA_VERSION:
+            if current == 0:
+                conn.execute(
+                    "INSERT INTO schema_version VALUES (?)", (_METRICS_SCHEMA_VERSION,)
+                )
+            else:
+                conn.execute(
+                    "UPDATE schema_version SET version = ?", (_METRICS_SCHEMA_VERSION,)
                 )
 
     @contextmanager

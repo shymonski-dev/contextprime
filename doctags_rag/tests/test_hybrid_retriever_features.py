@@ -29,13 +29,13 @@ def test_hybrid_retriever_cache():
                 vector=None,
                 metadata={"text": "doc-1"},
             )
-        ]
+        ], None
 
     def fake_fusion(self, vector_results, graph_results, lexical_results, top_k):
         return self._convert_vector_results(vector_results)
 
     retriever._search_vector = fake_search_vector.__get__(retriever, HybridRetriever)
-    retriever._search_graph = lambda *args, **kwargs: []
+    retriever._search_graph = lambda *args, **kwargs: ([], None)
     retriever._fusion_combine = fake_fusion.__get__(retriever, HybridRetriever)
 
     query_vec = [0.1, 0.2, 0.3]
@@ -51,7 +51,7 @@ def test_hybrid_retriever_cache():
     assert results1
 
     # Subsequent call should hit cache (no additional vector search)
-    retriever._search_vector = lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("Cache miss"))
+    retriever._search_vector = lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("Cache miss"))  # type: ignore[return-value]
     results2, metrics2 = retriever.search(
         query_vector=query_vec,
         query_text="test query",
@@ -93,8 +93,8 @@ def test_hybrid_retriever_applies_reranker():
     ]
 
     retriever._fusion_combine = lambda vector_results, graph_results, lexical_results, top_k: dummy_results
-    retriever._search_vector = lambda *args, **kwargs: []
-    retriever._search_graph = lambda *args, **kwargs: []
+    retriever._search_vector = lambda *args, **kwargs: ([], None)
+    retriever._search_graph = lambda *args, **kwargs: ([], None)
 
     results, _ = retriever.search(
         query_vector=[0.1, 0.2, 0.3],
@@ -114,8 +114,8 @@ def test_hybrid_retriever_includes_lexical_signal():
     retriever.lexical_weight = 0.3
     retriever.reranker = None
 
-    retriever._search_vector = lambda *args, **kwargs: []
-    retriever._search_graph = lambda *args, **kwargs: []
+    retriever._search_vector = lambda *args, **kwargs: ([], None)
+    retriever._search_graph = lambda *args, **kwargs: ([], None)
     retriever._search_lexical = lambda *args, **kwargs: [
         QdrantResult(
             id="lex-1",
@@ -216,7 +216,7 @@ def test_hybrid_retriever_graph_policies():
     fake_neo4j = FakeNeo4j()
     retriever._ensure_neo4j = lambda: fake_neo4j
 
-    local_results = retriever._search_graph(
+    local_results, _ = retriever._search_graph(
         query_vector=[0.1, 0.2, 0.3],
         query_text="graph policy test",
         top_k=3,
@@ -229,7 +229,7 @@ def test_hybrid_retriever_graph_policies():
     assert "local_expand" in fake_neo4j.calls
 
     fake_neo4j.calls.clear()
-    global_results = retriever._search_graph(
+    global_results, _ = retriever._search_graph(
         query_vector=[0.1, 0.2, 0.3],
         query_text="graph policy test",
         top_k=3,
@@ -241,7 +241,7 @@ def test_hybrid_retriever_graph_policies():
     assert fake_neo4j.calls == ["global_keyword"]
 
     fake_neo4j.calls.clear()
-    drift_results = retriever._search_graph(
+    drift_results, _ = retriever._search_graph(
         query_vector=[0.1, 0.2, 0.3],
         query_text="graph policy test",
         top_k=3,
@@ -255,7 +255,7 @@ def test_hybrid_retriever_graph_policies():
     assert "global_keyword" in fake_neo4j.calls
 
     fake_neo4j.calls.clear()
-    community_results = retriever._search_graph(
+    community_results, _ = retriever._search_graph(
         query_vector=[0.1, 0.2, 0.3],
         query_text="graph policy test",
         top_k=3,
@@ -267,6 +267,41 @@ def test_hybrid_retriever_graph_policies():
     assert "community_summary" in fake_neo4j.calls
     assert "community_member" in fake_neo4j.calls
     assert "vector" in fake_neo4j.calls
+
+
+def test_hybrid_retriever_backend_errors_surfaced_in_search_errors():
+    """Backend failures must appear in metrics.search_errors, not be silently swallowed.
+
+    _search_vector and _search_graph return (results, Optional[str]) — when an error
+    string is returned the search() method must collect it in metrics.search_errors.
+    """
+    retriever = HybridRetriever(neo4j_manager=None, qdrant_manager=None)
+    retriever.cache_enabled = False
+    retriever.reranker = None
+
+    # Mock both backends to return the error-tuple contract (results=[], error=str)
+    retriever._search_vector = lambda *args, **kwargs: (
+        [],
+        "vector: TimeoutError: qdrant timed out",
+    )
+    retriever._search_graph = lambda *args, **kwargs: (
+        [],
+        "graph: ConnectionError: neo4j unreachable",
+    )
+
+    results, metrics = retriever.search(
+        query_vector=[0.1, 0.2, 0.3],
+        query_text="failure test",
+        top_k=3,
+        strategy=SearchStrategy.HYBRID,
+    )
+
+    # Both backends returned errors — results should be empty but no exception raised
+    assert results == []
+    # Both error messages must be collected
+    assert len(metrics.search_errors) == 2
+    assert any("vector" in e for e in metrics.search_errors)
+    assert any("graph" in e for e in metrics.search_errors)
 
 
 def test_hybrid_retriever_adaptive_policy_selection():

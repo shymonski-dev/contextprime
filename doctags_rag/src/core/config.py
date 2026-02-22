@@ -4,6 +4,7 @@ Handles loading and validation of configuration from YAML and environment variab
 """
 
 import os
+import threading
 import yaml
 from typing import Dict, Any, Optional, List
 from pathlib import Path
@@ -98,6 +99,7 @@ class SecurityConfig(BaseModel):
     jwt_roles_claim: str = Field(default="roles")
     jwt_scopes_claim: str = Field(default="scopes")
     jwt_enforce_permissions: bool = Field(default=True)
+    jwt_require_expiry: bool = Field(default=True)
     jwt_required_read_scopes: List[str] = Field(default_factory=lambda: ["api:read"])
     jwt_required_write_scopes: List[str] = Field(default_factory=lambda: ["api:write"])
     jwt_admin_roles: List[str] = Field(default_factory=lambda: ["admin", "owner"])
@@ -309,6 +311,7 @@ class Settings(BaseSettings):
             "SECURITY__JWT_ROLES_CLAIM": ("security", "jwt_roles_claim"),
             "SECURITY__JWT_SCOPES_CLAIM": ("security", "jwt_scopes_claim"),
             "SECURITY__JWT_ENFORCE_PERMISSIONS": ("security", "jwt_enforce_permissions"),
+            "SECURITY__JWT_REQUIRE_EXPIRY": ("security", "jwt_require_expiry"),
             "SECURITY__JWT_REQUIRED_READ_SCOPES": ("security", "jwt_required_read_scopes"),
             "SECURITY__JWT_REQUIRED_WRITE_SCOPES": ("security", "jwt_required_write_scopes"),
             "SECURITY__JWT_ADMIN_ROLES": ("security", "jwt_admin_roles"),
@@ -338,6 +341,7 @@ class Settings(BaseSettings):
             "trust_proxy_headers",
             "enabled",
             "jwt_enforce_permissions",
+            "jwt_require_expiry",
         }
         list_fields = {
             "cors_origins",
@@ -488,12 +492,15 @@ class Settings(BaseSettings):
 
 
 # Global settings instance
-settings: Optional[Settings] = None
+_settings: Optional[Settings] = None
+_settings_lock = threading.Lock()
 
 
 def get_settings() -> Settings:
-    """Get or create the global settings instance."""
-    global settings
-    if settings is None:
-        settings = Settings.load_from_yaml()
-    return settings
+    """Get or create the global settings instance (thread-safe)."""
+    global _settings
+    if _settings is None:
+        with _settings_lock:
+            if _settings is None:
+                _settings = Settings.load_from_yaml()
+    return _settings

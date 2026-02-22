@@ -70,6 +70,8 @@ async def hybrid_search(request: AdvancedQueryRequest) -> QueryResponse:
         "rerank_time_ms": round(metrics.rerank_time_ms, 2),
         "services": metrics.services,
     }
+    if metrics.search_errors:
+        metadata["search_errors"] = metrics.search_errors
 
     query_event_payload: List[Dict[str, Any]] = [
         {

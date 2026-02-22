@@ -800,17 +800,53 @@ class Neo4jManager:
         max_terms: int = 8,
     ) -> List[SearchResult]:
         """
-        Perform lightweight keyword search over graph node payload fields.
+        Perform keyword search over graph node payload fields.
+
+        Uses the Neo4j full-text index when available, falling back to the
+        O(n) Python scan when the index does not yet exist.
 
         Args:
             query_text: Query text
             top_k: Number of results to return
-            scan_limit: Maximum nodes to scan
-            max_terms: Maximum query terms to use
+            scan_limit: Maximum nodes to scan (Python fallback only)
+            max_terms: Maximum query terms to use (Python fallback only)
 
         Returns:
             Keyword-scored graph results
         """
+        # Attempt fast path via full-text index
+        try:
+            lucene_query = " ".join(
+                f'"{term}"' for term in query_text.strip().split()[:max_terms] if term
+            ) or query_text.strip()
+            ft_query = """
+            CALL db.index.fulltext.queryNodes('node_text_search', $query_text)
+            YIELD node, score
+            RETURN elementId(node) AS node_id, labels(node) AS labels, node AS n, score
+            LIMIT $top_k
+            """
+            rows = self.execute_query(ft_query, {"query_text": lucene_query, "top_k": int(top_k)})
+            if rows is not None:
+                results: List[SearchResult] = []
+                raw_scores = [float(row.get("score", 0.0)) for row in rows]
+                max_score = max(raw_scores) if raw_scores else 1.0
+                for row, raw_score in zip(rows, raw_scores):
+                    properties = dict(row.get("n") or {})
+                    normalized = raw_score / max(max_score, 1e-9)
+                    results.append(
+                        SearchResult(
+                            node_id=row["node_id"],
+                            score=normalized,
+                            labels=row.get("labels", []),
+                            properties=properties,
+                            metadata={"graph_signal": "fulltext_index"},
+                        )
+                    )
+                return results
+        except Exception:
+            pass  # Index not yet available; fall through to Python scan
+
+        # Python fallback: O(n) scan
         terms = self._tokenize_keyword_query(query_text, max_terms=max_terms)
         if not terms:
             return []
@@ -1190,8 +1226,23 @@ class Neo4jManager:
                 if "already exists" not in str(e).lower():
                     logger.warning(f"Constraint creation failed: {e}")
 
+    def initialize_fulltext_index(self) -> None:
+        """Create the full-text search index used by keyword_search_nodes()."""
+        try:
+            self.execute_query(
+                """
+                CREATE FULLTEXT INDEX node_text_search IF NOT EXISTS
+                FOR (n:DocumentChunk|Entity|Summary|Community)
+                ON EACH [n.text, n.content, n.title, n.name]
+                """
+            )
+            logger.info("Full-text index 'node_text_search' is ready")
+        except Exception as e:
+            logger.warning("Could not create full-text index 'node_text_search': {}", e)
+
     def create_indexes(self) -> None:
         """Create indexes for common query patterns."""
+        self.initialize_fulltext_index()
         indexes = [
             # Index on document properties
             """
