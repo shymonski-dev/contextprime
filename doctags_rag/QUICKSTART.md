@@ -119,6 +119,20 @@ config = PipelineConfig(
 )
 ```
 
+### LLM-backed query decomposition
+
+By default, complex queries are split using fast heuristics (conjunction splitting, comparison
+detection). To enable an LLM-backed fallback for ambiguous queries set:
+
+```bash
+DOCTAGS_LLM_DECOMPOSITION=true
+OPENAI_API_KEY=sk-...
+```
+
+When enabled, the planner runs heuristics first. If they produce no split, an LLM generates
+2–4 focused sub-questions (2s timeout, silent fallback on failure). Each sub-question becomes
+a parallel retrieval step, improving coverage on multi-part legal and analytical queries.
+
 ### Semantic Chunking
 
 Semantic chunking requires a local embedding model. Set the environment variable `DOCTAGS_SEMANTIC_MODEL`

@@ -222,6 +222,9 @@ response = pipeline.answer_global_query("What are the main themes?")
 - Memory systems
 - **Context-first synthesis**: Evidence block appears before the question in the LLM prompt, reducing hallucination on long-context retrieval (FinanceBench-informed)
 - **Chain-of-thought for complex queries**: `PlanningAgent` classifies queries as `simple`, `analytical`, or `multi_hop`; analytical and multi-hop queries append step-by-step reasoning instructions and raise `max_tokens` to 1600
+- **Coordinator pull model**: `coordinate_workflow` now genuinely drives agent execution — delivers messages via `route_message`, then awaits `agent.process_inbox()` with a 30s timeout; responses contain real agent output instead of a fabricated status
+- **Parallel multi-agent execution**: new `coordinate_parallel` delivers all messages first, then drives all agents concurrently with `asyncio.gather`
+- **LLM-backed query decomposition**: `_decompose_query` is now async; heuristics run first at zero cost; an LLM fallback (opt-in via `DOCTAGS_LLM_DECOMPOSITION=true`) generates targeted sub-questions that become parallel retrieval steps
 
 ```python
 from src.agents import AgenticPipeline, AgenticMode

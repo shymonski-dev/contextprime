@@ -10,7 +10,9 @@ All components have been fully implemented with production-ready code:
 
 ### ✓ Core Agent Framework
 - Base agent architecture with state management
-- Inter-agent communication protocols
+- Inter-agent communication protocols with request/response correlation (`parent_message_id`)
+- Coordinator-driven pull model: `coordinate_workflow` delivers messages then drives `process_inbox`
+- `coordinate_parallel`: parallel multi-agent execution via `asyncio.gather`
 - Action history and goal tracking
 - Comprehensive metrics collection
 
@@ -187,9 +189,9 @@ docs/
 
 2. Planning Phase
    ├─→ Complexity Analysis
-   ├─→ Query Decomposition (if needed)
+   ├─→ Query Decomposition — heuristics first; optional LLM fallback (DOCTAGS_LLM_DECOMPOSITION)
    ├─→ Strategy Selection (RL-based)
-   └─→ Execution Plan Generation
+   └─→ Execution Plan Generation (sub-queries become parallel PlanSteps)
 
 3. Execution Phase
    ├─→ Parallel/Sequential Step Execution
@@ -276,6 +278,71 @@ docs/
 - **Graceful Degradation**: Fallback strategies
 - **Error Propagation**: Structured error information
 - **Recovery Mechanisms**: Automatic failure recovery
+
+## Multi-Agent Coordination
+
+### Message bus (coordinator-driven pull model)
+
+The agent message infrastructure — `AgentMessage`, `send_message`, `receive_message`, inbox
+queue, `process_inbox` — is now fully wired for real request/response cycles.
+
+**How a sequential workflow step executes:**
+
+1. Coordinator calls `send_message` → creates a correlated `AgentMessage`
+2. `route_message` delivers it into the target agent's `asyncio.Queue` inbox
+3. `asyncio.wait_for(agent.process_inbox(), timeout=30)` drives the agent to process the message
+4. `process_inbox` calls `process_message`, which returns a reply with `parent_message_id` set
+5. The coordinator captures the real response content — no sleep, no fabricated status
+
+**Request/response correlation** — `AgentMessage.parent_message_id` links every reply to its
+source. `BaseAgent.send_message` now accepts this as an optional parameter; all `process_message`
+implementations that return replies set it automatically.
+
+### Parallel multi-agent execution: `coordinate_parallel`
+
+```python
+from src.agents.coordinator import AgentCoordinator
+
+coordinator = AgentCoordinator()
+coordinator.register_agent(planner)
+coordinator.register_agent(retriever_a)
+coordinator.register_agent(retriever_b)
+
+results = await coordinator.coordinate_parallel(
+    tasks=[
+        {"agent_id": "retriever_a", "content": {"action": "retrieve", "query": "Article 6 scope"}},
+        {"agent_id": "retriever_b", "content": {"action": "retrieve", "query": "Article 6 exceptions"}},
+    ],
+    timeout=30.0,
+)
+# results → {"retriever_a": {"status": "completed", "result": {...}},
+#             "retriever_b": {"status": "completed", "result": {...}}}
+```
+
+`coordinate_parallel` delivers all messages to agent inboxes first, then drives all agents
+concurrently via `asyncio.gather`. Each agent's `process_inbox` is called in parallel; results
+are collected once all agents finish or time out.
+
+### LLM-backed query decomposition (opt-in)
+
+`PlanningAgent._decompose_query` is now `async` and supports a two-tier strategy:
+
+1. **Heuristic decomposition** (always runs, zero cost): splits on multiple `?`, `" and "`,
+   comparison keywords
+2. **LLM fallback** (opt-in): when heuristics produce no split, an LLM call generates 2–4
+   targeted sub-questions as a JSON array. Fires on a thread pool with a 2s timeout; falls
+   back to the original query on any failure
+
+Enable via environment variable:
+
+```bash
+DOCTAGS_LLM_DECOMPOSITION=true   # default: false
+OPENAI_API_KEY=sk-...            # required when enabled
+```
+
+The resulting sub-queries are embedded directly in parallel `PlanStep` objects and executed
+concurrently by `ExecutionAgent`, so better decomposition translates immediately into better
+parallel retrieval coverage.
 
 ## Legal RAG Synthesis Improvements
 
