@@ -204,7 +204,8 @@ class BaseAgent(ABC):
         recipient_id: str,
         content: Dict[str, Any],
         priority: MessagePriority = MessagePriority.NORMAL,
-        requires_response: bool = False
+        requires_response: bool = False,
+        parent_message_id: Optional[str] = None,
     ) -> AgentMessage:
         """
         Send a message to another agent.
@@ -214,6 +215,7 @@ class BaseAgent(ABC):
             content: Message content
             priority: Message priority
             requires_response: Whether response is required
+            parent_message_id: ID of the message this is a reply to
 
         Returns:
             The sent message
@@ -224,7 +226,8 @@ class BaseAgent(ABC):
             role=self.role,
             priority=priority,
             content=content,
-            requires_response=requires_response
+            requires_response=requires_response,
+            parent_message_id=parent_message_id,
         )
 
         self.sent_messages.append(message)

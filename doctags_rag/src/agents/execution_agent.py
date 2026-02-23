@@ -122,7 +122,8 @@ class ExecutionAgent(BaseAgent):
                 content={
                     "action": "step_completed",
                     "result": result.__dict__
-                }
+                },
+                parent_message_id=message.id,
             )
         elif action == "execute_plan":
             steps = content.get("steps", [])
@@ -133,7 +134,8 @@ class ExecutionAgent(BaseAgent):
                 content={
                     "action": "plan_completed",
                     "results": [r.__dict__ for r in results]
-                }
+                },
+                parent_message_id=message.id,
             )
 
         return None

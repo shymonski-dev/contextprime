@@ -121,7 +121,7 @@ class TestPlanningAgent:
         """Test query decomposition."""
         planner = PlanningAgent()
 
-        sub_queries = planner._decompose_query(
+        sub_queries = await planner._decompose_query(
             "What is machine learning and how does it differ from deep learning?"
         )
 
@@ -725,16 +725,16 @@ from types import SimpleNamespace as _SimpleNamespace
 
 
 class _FakeCompletion:
-    """Fake OpenAI completion object for synthesis tests."""
-    class _Choice:
-        message = _SimpleNamespace(content="answer")
-    choices = [_Choice()]
+    """Fake OpenAI completion object. Accepts configurable response content."""
+    def __init__(self, content: str = "answer"):
+        self.choices = [_SimpleNamespace(message=_SimpleNamespace(content=content))]
 
 
 class _FakeLLMClient:
-    """Fake LLM client that captures all call arguments."""
-    def __init__(self):
+    """Fake LLM client that captures all call arguments and returns configurable content."""
+    def __init__(self, response_content: str = "answer"):
         self.last_call = {}
+        self._response_content = response_content
 
     @property
     def chat(self):
@@ -746,7 +746,7 @@ class _FakeLLMClient:
 
     def create(self, **kwargs):
         self.last_call = kwargs
-        return _FakeCompletion()
+        return _FakeCompletion(self._response_content)
 
 
 class TestSynthesisPromptConstruction:
@@ -813,6 +813,128 @@ class TestSynthesisPromptConstruction:
             "What is Article 6?", results, query_type="simple"
         )
         assert client.last_call["max_tokens"] < 1600
+
+
+# ---------------------------------------------------------------------------
+# Coordinator workflow tests
+# ---------------------------------------------------------------------------
+
+class _EchoAgent(BaseAgent):
+    """Fake agent that echoes back the content it receives as a response."""
+
+    def __init__(self, agent_id: str = "echo"):
+        super().__init__(
+            agent_id=agent_id,
+            role=AgentRole.EXECUTOR,
+            capabilities={"echo"},
+        )
+
+    async def process_message(self, message: AgentMessage):
+        return await self.send_message(
+            recipient_id=message.sender_id,
+            content={"echoed": message.content, "action": "echo_response"},
+            parent_message_id=message.id,
+        )
+
+    async def execute_action(self, action_type: str, parameters):
+        return {}
+
+
+class TestCoordinatorWorkflow:
+    """Tests for AgentCoordinator.coordinate_workflow and coordinate_parallel."""
+
+    @pytest.mark.asyncio
+    async def test_coordinate_workflow_captures_real_response(self):
+        coordinator = AgentCoordinator()
+        echo = _EchoAgent("echo1")
+        coordinator.register_agent(echo)
+
+        result = await coordinator.coordinate_workflow(
+            [{"agent_role": "executor", "action": "ping", "parameters": {}}]
+        )
+
+        assert result.success
+        agent_result = result.agent_results["echo1"]
+        assert agent_result["status"] == "completed"
+        assert agent_result["result"].get("action") == "echo_response"
+
+    @pytest.mark.asyncio
+    async def test_coordinate_workflow_records_conflict_on_missing_role(self):
+        coordinator = AgentCoordinator()
+        # No agents registered for "planner" role
+        result = await coordinator.coordinate_workflow(
+            [{"agent_role": "planner", "action": "create_plan", "parameters": {}}]
+        )
+
+        assert len(result.conflicts) >= 1
+        assert not result.success
+
+    @pytest.mark.asyncio
+    async def test_coordinate_parallel_runs_all_agents(self):
+        coordinator = AgentCoordinator()
+        echo_a = _EchoAgent("echo_a")
+        echo_b = _EchoAgent("echo_b")
+        coordinator.register_agent(echo_a)
+        coordinator.register_agent(echo_b)
+
+        results = await coordinator.coordinate_parallel(
+            [
+                {"agent_id": "echo_a", "content": {"msg": "hello a"}},
+                {"agent_id": "echo_b", "content": {"msg": "hello b"}},
+            ]
+        )
+
+        assert "echo_a" in results
+        assert "echo_b" in results
+        assert results["echo_a"]["status"] == "completed"
+        assert results["echo_b"]["status"] == "completed"
+
+
+# ---------------------------------------------------------------------------
+# LLM decomposition tests
+# ---------------------------------------------------------------------------
+
+class TestLLMQueryDecomposition:
+    """Tests for PlanningAgent LLM-backed _decompose_query fallback."""
+
+    def test_llm_decomposition_disabled_by_default(self):
+        planner = PlanningAgent()
+        assert planner._llm_decomposition_enabled is False
+        assert planner._llm_decomposition_client is None
+
+    @pytest.mark.asyncio
+    async def test_llm_decomposition_uses_llm_when_heuristics_fail(self):
+        """When heuristics return [query], the LLM client is called."""
+        planner = PlanningAgent()
+        planner._llm_decomposition_enabled = True
+
+        # Inject a fake client that returns a valid JSON array
+        planner._llm_decomposition_client = _FakeLLMClient(
+            response_content='["What are the Article 6 lawful bases?", "When does consent apply?"]'
+        )
+
+        # Plain prose — heuristics won't split it
+        result = await planner._decompose_query(
+            "Explain the lawful bases for processing under Article 6"
+        )
+
+        assert result == [
+            "What are the Article 6 lawful bases?",
+            "When does consent apply?",
+        ]
+
+    @pytest.mark.asyncio
+    async def test_llm_decomposition_fallback_on_parse_error(self):
+        """A non-JSON LLM response falls back to the original query, no exception."""
+        planner = PlanningAgent()
+        planner._llm_decomposition_enabled = True
+        planner._llm_decomposition_client = _FakeLLMClient(
+            response_content="not valid JSON"
+        )
+
+        query = "Explain the lawful bases"
+        result = await planner._decompose_query(query)
+        assert result == [query]
 
 
 if __name__ == "__main__":
