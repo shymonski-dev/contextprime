@@ -696,13 +696,13 @@ class Neo4jManager:
             batch = params_list[i : i + batch_size]
             query = """
             UNWIND $batch AS ref
-            MATCH (src:Chunk {chunk_id: ref.source_chunk_id})
-            MATCH (tgt:Chunk)
-            WHERE tgt.doc_id = ref.doc_id
+            MATCH (src:Chunk {chunk_id: ref.source_chunk_id, doc_id: ref.doc_id})
+            MATCH (tgt:Chunk {doc_id: ref.doc_id})
+            WHERE elementId(src) <> elementId(tgt)
               AND (
                 tgt.content STARTS WITH ref.target_label
                 OR tgt.chunk_id CONTAINS ref.target_label
-                OR tgt.metadata IS NOT NULL AND tgt.metadata CONTAINS ref.target_label
+                OR (tgt.metadata IS NOT NULL AND tgt.metadata CONTAINS ref.target_label)
               )
             MERGE (src)-[r:REFERENCES {ref_type: ref.ref_type, target_label: ref.target_label}]->(tgt)
             RETURN count(r) AS merged
@@ -713,12 +713,12 @@ class Neo4jManager:
                     total_merged += int(result[0].get("merged", 0))
             except Exception as exc:
                 logger.warning(
-                    "store_cross_references batch %d failed (skipping): %s",
+                    "store_cross_references batch {} failed (skipping): {}",
                     i // batch_size,
                     exc,
                 )
 
-        logger.info("Stored %d cross-reference edges", total_merged)
+        logger.info("Stored {} cross-reference edges", total_merged)
         return total_merged
 
     def traverse_graph(

@@ -236,6 +236,20 @@ result = await pipeline.process_query(
 )
 ```
 
+### Phase 8: Web Ingestion (ContextWeb) ✨
+- **Dynamic Crawling**: Integration with `crawl4ai` for headless browser (Playwright) rendering of JS-heavy sites
+- **Structural Web Mapping**: `WebDocTagsMapper` translates HTML semantic markers (Headers, Lists, Tables) directly into the `DocTags` hierarchy
+- **Web-to-Graph**: Automatic extraction of internal and external links, mapped as `(:Page)-[:LINKS_TO]->(:Page)` edges in Neo4j
+- **Agentic Research**: `ExecutionAgent` capability `web_ingestion` allows the system to actively acquire new knowledge from URLs on-demand
+
+```python
+from src.pipelines.web_ingestion import WebIngestionPipeline
+
+pipeline = WebIngestionPipeline()
+report = await pipeline.ingest_url("https://fastapi.tiangolo.com/")
+print(f"Ingested {report.chunks_ingested} chunks from web")
+```
+
 ---
 
 ## 🧪 Testing

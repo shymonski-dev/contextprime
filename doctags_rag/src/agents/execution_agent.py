@@ -55,6 +55,7 @@ class ExecutionAgent(BaseAgent):
         graph_queries: Optional[Any] = None,
         raptor_pipeline: Optional[Any] = None,
         community_pipeline: Optional[Any] = None,
+        web_pipeline: Optional[Any] = None,
         embedding_model: Optional[Any] = None
     ):
         """
@@ -66,6 +67,7 @@ class ExecutionAgent(BaseAgent):
             graph_queries: Graph query handler
             raptor_pipeline: RAPTOR pipeline
             community_pipeline: Community detection pipeline
+            web_pipeline: Web ingestion pipeline
         """
         super().__init__(
             agent_id=agent_id,
@@ -76,6 +78,7 @@ class ExecutionAgent(BaseAgent):
                 "summarization",
                 "community_analysis",
                 "raptor_query",
+                "web_ingestion",
                 "retry_logic"
             }
         )
@@ -85,6 +88,7 @@ class ExecutionAgent(BaseAgent):
         self.graph_queries = graph_queries
         self.raptor_pipeline = raptor_pipeline
         self.community_pipeline = community_pipeline
+        self.web_pipeline = web_pipeline
 
         self.embedding_model = embedding_model
 
@@ -165,6 +169,8 @@ class ExecutionAgent(BaseAgent):
             return await self._execute_community_analysis(parameters)
         elif action_type == "raptor_query":
             return await self._execute_raptor_query(parameters)
+        elif action_type == "web_ingestion":
+            return await self._execute_web_ingestion(parameters)
         else:
             raise ValueError(f"Unknown action type: {action_type}")
 
@@ -204,8 +210,14 @@ class ExecutionAgent(BaseAgent):
                 results = await self._execute_reranking(step.parameters)
             elif step.step_type == StepType.SYNTHESIS:
                 results = await self._execute_synthesis(step.parameters)
+            elif step.step_type.value == "web_ingestion": # Handle custom/string types if needed
+                results = await self._execute_web_ingestion(step.parameters)
             else:
-                raise ValueError(f"Unknown step type: {step.step_type}")
+                # Fallback for dynamic types
+                if step.step_type.value == "web_ingestion":
+                     results = await self._execute_web_ingestion(step.parameters)
+                else:
+                     raise ValueError(f"Unknown step type: {step.step_type}")
 
             # Calculate confidence
             confidence = self._calculate_confidence(results)
@@ -501,6 +513,42 @@ class ExecutionAgent(BaseAgent):
         ]
 
         return results
+
+    async def _execute_web_ingestion(
+        self,
+        parameters: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Execute web ingestion."""
+        url = parameters.get("url", "")
+        
+        if not self.web_pipeline:
+            logger.warning("Web pipeline not configured")
+            return []
+            
+        if not url:
+            logger.error("No URL provided for web ingestion")
+            return []
+
+        # Execute ingestion (this calls the async ingest_url)
+        try:
+            report = await self.web_pipeline.ingest_url(url)
+            
+            # Return result formatted as a list of "items" (in this case, just a summary)
+            return [{
+                "content": f"Ingested content from {url}",
+                "url": url,
+                "chunks_ingested": report.chunks_ingested,
+                "success": len(report.failed_documents) == 0,
+                "metadata": report.metadata
+            }]
+        except Exception as e:
+            logger.exception(f"Web ingestion failed for {url}")
+            return [{
+                "content": f"Failed to ingest {url}",
+                "url": url,
+                "error": str(e),
+                "success": False
+            }]
 
     async def _execute_reranking(
         self,

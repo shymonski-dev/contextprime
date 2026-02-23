@@ -1,0 +1,5208 @@
+{
+  "doc_id": "web_c889b62860c33a44",
+  "title": "FastAPI",
+  "source_type": "web",
+  "source_url": "https://fastapi.tiangolo.com/",
+  "created_at": "2026-02-23T10:33:08.262319",
+  "tags": [
+    {
+      "tag_id": "tag_000000",
+      "tag_type": "document",
+      "content": "FastAPI",
+      "level": 0,
+      "order": 1,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000001",
+      "tag_type": "paragraph",
+      "content": "[ Skip to content ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#fastapi>)",
+      "level": null,
+      "order": 2,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000002",
+      "tag_type": "paragraph",
+      "content": "[ Join the **FastAPI Cloud** waiting list 🚀 ](https://fastapi.tiangolo.com/<https:/fastapicloud.com>)",
+      "level": null,
+      "order": 3,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000003",
+      "tag_type": "paragraph",
+      "content": "[ Follow **@fastapi** on **X (Twitter)** to stay updated ](https://fastapi.tiangolo.com/<https:/x.com/fastapi>)",
+      "level": null,
+      "order": 4,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000004",
+      "tag_type": "paragraph",
+      "content": "[ Follow **FastAPI** on **LinkedIn** to stay updated ](https://fastapi.tiangolo.com/<https:/www.linkedin.com/company/fastapi>)",
+      "level": null,
+      "order": 5,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000005",
+      "tag_type": "paragraph",
+      "content": "[ Subscribe to the **FastAPI and friends** newsletter 🎉 ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/newsletter/>)",
+      "level": null,
+      "order": 6,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000006",
+      "tag_type": "paragraph",
+      "content": "[ sponsor ![](https://fastapi.tiangolo.com/img/sponsors/blockbee-banner.png) ](https://fastapi.tiangolo.com/<https:/blockbee.io?ref=fastapi> \"BlockBee Cryptocurrency Payment Gateway\")",
+      "level": null,
+      "order": 7,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000007",
+      "tag_type": "paragraph",
+      "content": "[ sponsor ![](https://fastapi.tiangolo.com/img/sponsors/scalar-banner.svg) ](https://fastapi.tiangolo.com/<https:/github.com/scalar/scalar/?utm_source=fastapi&utm_medium=website&utm_campaign=top-banner> \"Scalar: Beautiful Open-Source API References from Swagger/OpenAPI files\")",
+      "level": null,
+      "order": 8,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000008",
+      "tag_type": "paragraph",
+      "content": "[ sponsor ![](https://fastapi.tiangolo.com/img/sponsors/propelauth-banner.png) ](https://fastapi.tiangolo.com/<https:/www.propelauth.com/?utm_source=fastapi&utm_campaign=1223&utm_medium=topbanner> \"Auth, user management and more for your B2B product\")",
+      "level": null,
+      "order": 9,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000009",
+      "tag_type": "paragraph",
+      "content": "[ sponsor ![](https://fastapi.tiangolo.com/img/sponsors/zuplo-banner.png) ](https://fastapi.tiangolo.com/<https:/zuplo.link/fastapi-web> \"Zuplo: Scale, Protect, Document, and Monetize your FastAPI\")",
+      "level": null,
+      "order": 10,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000010",
+      "tag_type": "paragraph",
+      "content": "[ sponsor ![](https://fastapi.tiangolo.com/img/sponsors/liblab-banner.png) ](https://fastapi.tiangolo.com/<https:/liblab.com?utm_source=fastapi> \"liblab - Generate SDKs from FastAPI\")",
+      "level": null,
+      "order": 11,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000011",
+      "tag_type": "paragraph",
+      "content": "[ sponsor ![](https://fastapi.tiangolo.com/img/sponsors/render-banner.svg) ](https://fastapi.tiangolo.com/<https:/docs.render.com/deploy-fastapi?utm_source=deploydoc&utm_medium=referral&utm_campaign=fastapi> \"Deploy & scale any full-stack web app on Render. Focus on building apps, not infra.\")",
+      "level": null,
+      "order": 12,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000012",
+      "tag_type": "paragraph",
+      "content": "[ sponsor ![](https://fastapi.tiangolo.com/img/sponsors/coderabbit-banner.png) ](https://fastapi.tiangolo.com/<https:/www.coderabbit.ai/?utm_source=fastapi&utm_medium=banner&utm_campaign=fastapi> \"Cut Code Review Time & Bugs in Half with CodeRabbit\")",
+      "level": null,
+      "order": 13,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000013",
+      "tag_type": "paragraph",
+      "content": "[ sponsor ![](https://fastapi.tiangolo.com/img/sponsors/subtotal-banner.svg) ](https://fastapi.tiangolo.com/<https:/subtotal.com/?utm_source=fastapi&utm_medium=sponsorship&utm_campaign=open-source> \"Making Retail Purchases Actionable for Brands and Developers\")",
+      "level": null,
+      "order": 14,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000014",
+      "tag_type": "paragraph",
+      "content": "[ sponsor ![](https://fastapi.tiangolo.com/img/sponsors/railway-banner.png) ](https://fastapi.tiangolo.com/<https:/docs.railway.com/guides/fastapi?utm_medium=integration&utm_source=docs&utm_campaign=fastapi> \"Deploy enterprise applications at startup speed\")",
+      "level": null,
+      "order": 15,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000015",
+      "tag_type": "paragraph",
+      "content": "[ sponsor ![](https://fastapi.tiangolo.com/img/sponsors/serpapi-banner.png) ](https://fastapi.tiangolo.com/<https:/serpapi.com/?utm_source=fastapi_website> \"SerpApi: Web Search API\")",
+      "level": null,
+      "order": 16,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000016",
+      "tag_type": "paragraph",
+      "content": "[ sponsor ![](https://fastapi.tiangolo.com/img/sponsors/greptile-banner.png) ](https://fastapi.tiangolo.com/<https:/www.greptile.com/?utm_source=fastapi&utm_medium=sponsorship&utm_campaign=fastapi_sponsor_page> \"Greptile: The AI Code Reviewer\")",
+      "level": null,
+      "order": 17,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000017",
+      "tag_type": "paragraph",
+      "content": "[ ![logo](https://fastapi.tiangolo.com/img/icon-white.svg) ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/> \"FastAPI\")",
+      "level": null,
+      "order": 18,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000018",
+      "tag_type": "paragraph",
+      "content": "FastAPI",
+      "level": null,
+      "order": 19,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000019",
+      "tag_type": "paragraph",
+      "content": "FastAPI",
+      "level": null,
+      "order": 20,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000020",
+      "tag_type": "list",
+      "content": "[ en - English ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/>)",
+      "level": null,
+      "order": 21,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000021",
+      "tag_type": "list",
+      "content": "[ de - Deutsch ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/de/>)",
+      "level": null,
+      "order": 22,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000022",
+      "tag_type": "list",
+      "content": "[ es - español ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/es/>)",
+      "level": null,
+      "order": 23,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000023",
+      "tag_type": "list",
+      "content": "[ fr - français ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/fr/>)",
+      "level": null,
+      "order": 24,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000024",
+      "tag_type": "list",
+      "content": "[ ja - 日本語 ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/ja/>)",
+      "level": null,
+      "order": 25,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000025",
+      "tag_type": "list",
+      "content": "[ ko - 한국어 ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/ko/>)",
+      "level": null,
+      "order": 26,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000026",
+      "tag_type": "list",
+      "content": "[ pt - português ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/pt/>)",
+      "level": null,
+      "order": 27,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000027",
+      "tag_type": "list",
+      "content": "[ ru - русский язык ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/ru/>)",
+      "level": null,
+      "order": 28,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000028",
+      "tag_type": "list",
+      "content": "[ tr - Türkçe ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tr/>)",
+      "level": null,
+      "order": 29,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000029",
+      "tag_type": "list",
+      "content": "[ uk - українська мова ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/uk/>)",
+      "level": null,
+      "order": 30,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000030",
+      "tag_type": "list",
+      "content": "[ zh - 简体中文 ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/zh/>)",
+      "level": null,
+      "order": 31,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000031",
+      "tag_type": "list",
+      "content": "[ zh-hant - 繁體中文 ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/zh-hant/>)",
+      "level": null,
+      "order": 32,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000032",
+      "tag_type": "paragraph",
+      "content": "[ ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/?q=> \"Share\")",
+      "level": null,
+      "order": 33,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000033",
+      "tag_type": "paragraph",
+      "content": "Initializing search",
+      "level": null,
+      "order": 34,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000034",
+      "tag_type": "paragraph",
+      "content": "[ fastapi/fastapi  ](https://fastapi.tiangolo.com/<https:/github.com/fastapi/fastapi> \"Go to repository\")",
+      "level": null,
+      "order": 35,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000035",
+      "tag_type": "list",
+      "content": "[ FastAPI ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/>)",
+      "level": null,
+      "order": 36,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000036",
+      "tag_type": "list",
+      "content": "[ Features ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/features/>)",
+      "level": null,
+      "order": 37,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000037",
+      "tag_type": "list",
+      "content": "[ Learn ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/learn/>)",
+      "level": null,
+      "order": 38,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000038",
+      "tag_type": "list",
+      "content": "[ Reference ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/>)",
+      "level": null,
+      "order": 39,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000039",
+      "tag_type": "list",
+      "content": "[ FastAPI People ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/fastapi-people/>)",
+      "level": null,
+      "order": 40,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000040",
+      "tag_type": "list",
+      "content": "[ Resources ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/resources/>)",
+      "level": null,
+      "order": 41,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000041",
+      "tag_type": "list",
+      "content": "[ About ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/about/>)",
+      "level": null,
+      "order": 42,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000042",
+      "tag_type": "list",
+      "content": "[ Release Notes ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/release-notes/>)",
+      "level": null,
+      "order": 43,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000043",
+      "tag_type": "paragraph",
+      "content": "[ ![logo](https://fastapi.tiangolo.com/img/icon-white.svg) ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/> \"FastAPI\") FastAPI",
+      "level": null,
+      "order": 44,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000044",
+      "tag_type": "paragraph",
+      "content": "[ fastapi/fastapi  ](https://fastapi.tiangolo.com/<https:/github.com/fastapi/fastapi> \"Go to repository\")",
+      "level": null,
+      "order": 45,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000045",
+      "tag_type": "list",
+      "content": "FastAPI  [ FastAPI  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/>) Table of contents",
+      "level": null,
+      "order": 46,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000046",
+      "tag_type": "list",
+      "content": "[ Sponsors  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#sponsors>)",
+      "level": null,
+      "order": 47,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000047",
+      "tag_type": "list",
+      "content": "[ Keystone Sponsor  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#keystone-sponsor>)",
+      "level": null,
+      "order": 48,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000048",
+      "tag_type": "list",
+      "content": "[ Gold and Silver Sponsors  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#gold-and-silver-sponsors>)",
+      "level": null,
+      "order": 49,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000049",
+      "tag_type": "list",
+      "content": "[ Opinions  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#opinions>)",
+      "level": null,
+      "order": 50,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000050",
+      "tag_type": "list",
+      "content": "[ FastAPI mini documentary  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#fastapi-mini-documentary>)",
+      "level": null,
+      "order": 51,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000051",
+      "tag_type": "list",
+      "content": "[ **Typer** , the FastAPI of CLIs  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#typer-the-fastapi-of-clis>)",
+      "level": null,
+      "order": 52,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000052",
+      "tag_type": "list",
+      "content": "[ Requirements  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#requirements>)",
+      "level": null,
+      "order": 53,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000053",
+      "tag_type": "list",
+      "content": "[ Installation  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#installation>)",
+      "level": null,
+      "order": 54,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000054",
+      "tag_type": "list",
+      "content": "[ Example  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#example>)",
+      "level": null,
+      "order": 55,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000055",
+      "tag_type": "list",
+      "content": "[ Create it  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#create-it>)",
+      "level": null,
+      "order": 56,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000056",
+      "tag_type": "list",
+      "content": "[ Run it  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#run-it>)",
+      "level": null,
+      "order": 57,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000057",
+      "tag_type": "list",
+      "content": "[ Check it  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#check-it>)",
+      "level": null,
+      "order": 58,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000058",
+      "tag_type": "list",
+      "content": "[ Interactive API docs  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#interactive-api-docs>)",
+      "level": null,
+      "order": 59,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000059",
+      "tag_type": "list",
+      "content": "[ Alternative API docs  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#alternative-api-docs>)",
+      "level": null,
+      "order": 60,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000060",
+      "tag_type": "list",
+      "content": "[ Example upgrade  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#example-upgrade>)",
+      "level": null,
+      "order": 61,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000061",
+      "tag_type": "list",
+      "content": "[ Interactive API docs upgrade  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#interactive-api-docs-upgrade>)",
+      "level": null,
+      "order": 62,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000062",
+      "tag_type": "list",
+      "content": "[ Alternative API docs upgrade  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#alternative-api-docs-upgrade>)",
+      "level": null,
+      "order": 63,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000063",
+      "tag_type": "list",
+      "content": "[ Recap  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#recap>)",
+      "level": null,
+      "order": 64,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000064",
+      "tag_type": "list",
+      "content": "[ Deploy your app (optional)  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#deploy-your-app-optional>)",
+      "level": null,
+      "order": 65,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000065",
+      "tag_type": "list",
+      "content": "[ About FastAPI Cloud  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#about-fastapi-cloud>)",
+      "level": null,
+      "order": 66,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000066",
+      "tag_type": "list",
+      "content": "[ Deploy to other cloud providers  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#deploy-to-other-cloud-providers>)",
+      "level": null,
+      "order": 67,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000067",
+      "tag_type": "list",
+      "content": "[ Performance  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#performance>)",
+      "level": null,
+      "order": 68,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000068",
+      "tag_type": "list",
+      "content": "[ Dependencies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#dependencies>)",
+      "level": null,
+      "order": 69,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000069",
+      "tag_type": "list",
+      "content": "[ `standard` Dependencies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#standard-dependencies>)",
+      "level": null,
+      "order": 70,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000070",
+      "tag_type": "list",
+      "content": "[ Without `standard` Dependencies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#without-standard-dependencies>)",
+      "level": null,
+      "order": 71,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000071",
+      "tag_type": "list",
+      "content": "[ Without `fastapi-cloud-cli` ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#without-fastapi-cloud-cli>)",
+      "level": null,
+      "order": 72,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000072",
+      "tag_type": "list",
+      "content": "[ Additional Optional Dependencies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#additional-optional-dependencies>)",
+      "level": null,
+      "order": 73,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000073",
+      "tag_type": "list",
+      "content": "[ License  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#license>)",
+      "level": null,
+      "order": 74,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000074",
+      "tag_type": "list",
+      "content": "[ Features  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/features/>)",
+      "level": null,
+      "order": 75,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000075",
+      "tag_type": "list",
+      "content": "[ Learn  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/learn/>)",
+      "level": null,
+      "order": 76,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000076",
+      "tag_type": "paragraph",
+      "content": "Learn",
+      "level": null,
+      "order": 77,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000077",
+      "tag_type": "list",
+      "content": "[ Python Types Intro  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/python-types/>)",
+      "level": null,
+      "order": 78,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000078",
+      "tag_type": "list",
+      "content": "[ Concurrency and async / await  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/async/>)",
+      "level": null,
+      "order": 79,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000079",
+      "tag_type": "list",
+      "content": "[ Environment Variables  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/environment-variables/>)",
+      "level": null,
+      "order": 80,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000080",
+      "tag_type": "list",
+      "content": "[ Virtual Environments  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/virtual-environments/>)",
+      "level": null,
+      "order": 81,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000081",
+      "tag_type": "list",
+      "content": "[ Tutorial - User Guide  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/>)",
+      "level": null,
+      "order": 82,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000082",
+      "tag_type": "paragraph",
+      "content": "Tutorial - User Guide",
+      "level": null,
+      "order": 83,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000083",
+      "tag_type": "list",
+      "content": "[ First Steps  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/first-steps/>)",
+      "level": null,
+      "order": 84,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000084",
+      "tag_type": "list",
+      "content": "[ Path Parameters  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/path-params/>)",
+      "level": null,
+      "order": 85,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000085",
+      "tag_type": "list",
+      "content": "[ Query Parameters  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/query-params/>)",
+      "level": null,
+      "order": 86,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000086",
+      "tag_type": "list",
+      "content": "[ Request Body  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/body/>)",
+      "level": null,
+      "order": 87,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000087",
+      "tag_type": "list",
+      "content": "[ Query Parameters and String Validations  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/query-params-str-validations/>)",
+      "level": null,
+      "order": 88,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000088",
+      "tag_type": "list",
+      "content": "[ Path Parameters and Numeric Validations  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/path-params-numeric-validations/>)",
+      "level": null,
+      "order": 89,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000089",
+      "tag_type": "list",
+      "content": "[ Query Parameter Models  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/query-param-models/>)",
+      "level": null,
+      "order": 90,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000090",
+      "tag_type": "list",
+      "content": "[ Body - Multiple Parameters  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/body-multiple-params/>)",
+      "level": null,
+      "order": 91,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000091",
+      "tag_type": "list",
+      "content": "[ Body - Fields  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/body-fields/>)",
+      "level": null,
+      "order": 92,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000092",
+      "tag_type": "list",
+      "content": "[ Body - Nested Models  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/body-nested-models/>)",
+      "level": null,
+      "order": 93,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000093",
+      "tag_type": "list",
+      "content": "[ Declare Request Example Data  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/schema-extra-example/>)",
+      "level": null,
+      "order": 94,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000094",
+      "tag_type": "list",
+      "content": "[ Extra Data Types  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/extra-data-types/>)",
+      "level": null,
+      "order": 95,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000095",
+      "tag_type": "list",
+      "content": "[ Cookie Parameters  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/cookie-params/>)",
+      "level": null,
+      "order": 96,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000096",
+      "tag_type": "list",
+      "content": "[ Header Parameters  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/header-params/>)",
+      "level": null,
+      "order": 97,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000097",
+      "tag_type": "list",
+      "content": "[ Cookie Parameter Models  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/cookie-param-models/>)",
+      "level": null,
+      "order": 98,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000098",
+      "tag_type": "list",
+      "content": "[ Header Parameter Models  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/header-param-models/>)",
+      "level": null,
+      "order": 99,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000099",
+      "tag_type": "list",
+      "content": "[ Response Model - Return Type  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/response-model/>)",
+      "level": null,
+      "order": 100,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000100",
+      "tag_type": "list",
+      "content": "[ Extra Models  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/extra-models/>)",
+      "level": null,
+      "order": 101,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000101",
+      "tag_type": "list",
+      "content": "[ Response Status Code  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/response-status-code/>)",
+      "level": null,
+      "order": 102,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000102",
+      "tag_type": "list",
+      "content": "[ Form Data  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/request-forms/>)",
+      "level": null,
+      "order": 103,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000103",
+      "tag_type": "list",
+      "content": "[ Form Models  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/request-form-models/>)",
+      "level": null,
+      "order": 104,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000104",
+      "tag_type": "list",
+      "content": "[ Request Files  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/request-files/>)",
+      "level": null,
+      "order": 105,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000105",
+      "tag_type": "list",
+      "content": "[ Request Forms and Files  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/request-forms-and-files/>)",
+      "level": null,
+      "order": 106,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000106",
+      "tag_type": "list",
+      "content": "[ Handling Errors  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/handling-errors/>)",
+      "level": null,
+      "order": 107,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000107",
+      "tag_type": "list",
+      "content": "[ Path Operation Configuration  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/path-operation-configuration/>)",
+      "level": null,
+      "order": 108,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000108",
+      "tag_type": "list",
+      "content": "[ JSON Compatible Encoder  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/encoder/>)",
+      "level": null,
+      "order": 109,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000109",
+      "tag_type": "list",
+      "content": "[ Body - Updates  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/body-updates/>)",
+      "level": null,
+      "order": 110,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000110",
+      "tag_type": "list",
+      "content": "[ Dependencies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/dependencies/>)",
+      "level": null,
+      "order": 111,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000111",
+      "tag_type": "paragraph",
+      "content": "Dependencies",
+      "level": null,
+      "order": 112,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000112",
+      "tag_type": "list",
+      "content": "[ Classes as Dependencies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/dependencies/classes-as-dependencies/>)",
+      "level": null,
+      "order": 113,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000113",
+      "tag_type": "list",
+      "content": "[ Sub-dependencies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/dependencies/sub-dependencies/>)",
+      "level": null,
+      "order": 114,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000114",
+      "tag_type": "list",
+      "content": "[ Dependencies in path operation decorators  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/dependencies/dependencies-in-path-operation-decorators/>)",
+      "level": null,
+      "order": 115,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000115",
+      "tag_type": "list",
+      "content": "[ Global Dependencies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/dependencies/global-dependencies/>)",
+      "level": null,
+      "order": 116,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000116",
+      "tag_type": "list",
+      "content": "[ Dependencies with yield  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/>)",
+      "level": null,
+      "order": 117,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000117",
+      "tag_type": "list",
+      "content": "[ Security  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/security/>)",
+      "level": null,
+      "order": 118,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000118",
+      "tag_type": "paragraph",
+      "content": "Security",
+      "level": null,
+      "order": 119,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000119",
+      "tag_type": "list",
+      "content": "[ Security - First Steps  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/security/first-steps/>)",
+      "level": null,
+      "order": 120,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000120",
+      "tag_type": "list",
+      "content": "[ Get Current User  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/security/get-current-user/>)",
+      "level": null,
+      "order": 121,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000121",
+      "tag_type": "list",
+      "content": "[ Simple OAuth2 with Password and Bearer  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/security/simple-oauth2/>)",
+      "level": null,
+      "order": 122,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000122",
+      "tag_type": "list",
+      "content": "[ OAuth2 with Password (and hashing), Bearer with JWT tokens  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/security/oauth2-jwt/>)",
+      "level": null,
+      "order": 123,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000123",
+      "tag_type": "list",
+      "content": "[ Middleware  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/middleware/>)",
+      "level": null,
+      "order": 124,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000124",
+      "tag_type": "list",
+      "content": "[ CORS (Cross-Origin Resource Sharing)  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/cors/>)",
+      "level": null,
+      "order": 125,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000125",
+      "tag_type": "list",
+      "content": "[ SQL (Relational) Databases  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/sql-databases/>)",
+      "level": null,
+      "order": 126,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000126",
+      "tag_type": "list",
+      "content": "[ Bigger Applications - Multiple Files  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/bigger-applications/>)",
+      "level": null,
+      "order": 127,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000127",
+      "tag_type": "list",
+      "content": "[ Background Tasks  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/background-tasks/>)",
+      "level": null,
+      "order": 128,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000128",
+      "tag_type": "list",
+      "content": "[ Metadata and Docs URLs  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/metadata/>)",
+      "level": null,
+      "order": 129,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000129",
+      "tag_type": "list",
+      "content": "[ Static Files  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/static-files/>)",
+      "level": null,
+      "order": 130,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000130",
+      "tag_type": "list",
+      "content": "[ Testing  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/testing/>)",
+      "level": null,
+      "order": 131,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000131",
+      "tag_type": "list",
+      "content": "[ Debugging  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/debugging/>)",
+      "level": null,
+      "order": 132,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000132",
+      "tag_type": "list",
+      "content": "[ Advanced User Guide  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/>)",
+      "level": null,
+      "order": 133,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000133",
+      "tag_type": "paragraph",
+      "content": "Advanced User Guide",
+      "level": null,
+      "order": 134,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000134",
+      "tag_type": "list",
+      "content": "[ Path Operation Advanced Configuration  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/path-operation-advanced-configuration/>)",
+      "level": null,
+      "order": 135,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000135",
+      "tag_type": "list",
+      "content": "[ Additional Status Codes  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/additional-status-codes/>)",
+      "level": null,
+      "order": 136,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000136",
+      "tag_type": "list",
+      "content": "[ Return a Response Directly  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/response-directly/>)",
+      "level": null,
+      "order": 137,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000137",
+      "tag_type": "list",
+      "content": "[ Custom Response - HTML, Stream, File, others  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/custom-response/>)",
+      "level": null,
+      "order": 138,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000138",
+      "tag_type": "list",
+      "content": "[ Additional Responses in OpenAPI  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/additional-responses/>)",
+      "level": null,
+      "order": 139,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000139",
+      "tag_type": "list",
+      "content": "[ Response Cookies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/response-cookies/>)",
+      "level": null,
+      "order": 140,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000140",
+      "tag_type": "list",
+      "content": "[ Response Headers  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/response-headers/>)",
+      "level": null,
+      "order": 141,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000141",
+      "tag_type": "list",
+      "content": "[ Response - Change Status Code  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/response-change-status-code/>)",
+      "level": null,
+      "order": 142,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000142",
+      "tag_type": "list",
+      "content": "[ Advanced Dependencies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/advanced-dependencies/>)",
+      "level": null,
+      "order": 143,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000143",
+      "tag_type": "list",
+      "content": "[ Advanced Security  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/security/>)",
+      "level": null,
+      "order": 144,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000144",
+      "tag_type": "paragraph",
+      "content": "Advanced Security",
+      "level": null,
+      "order": 145,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000145",
+      "tag_type": "list",
+      "content": "[ OAuth2 scopes  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/security/oauth2-scopes/>)",
+      "level": null,
+      "order": 146,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000146",
+      "tag_type": "list",
+      "content": "[ HTTP Basic Auth  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/security/http-basic-auth/>)",
+      "level": null,
+      "order": 147,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000147",
+      "tag_type": "list",
+      "content": "[ Using the Request Directly  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/using-request-directly/>)",
+      "level": null,
+      "order": 148,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000148",
+      "tag_type": "list",
+      "content": "[ Using Dataclasses  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/dataclasses/>)",
+      "level": null,
+      "order": 149,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000149",
+      "tag_type": "list",
+      "content": "[ Advanced Middleware  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/middleware/>)",
+      "level": null,
+      "order": 150,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000150",
+      "tag_type": "list",
+      "content": "[ Sub Applications - Mounts  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/sub-applications/>)",
+      "level": null,
+      "order": 151,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000151",
+      "tag_type": "list",
+      "content": "[ Behind a Proxy  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/behind-a-proxy/>)",
+      "level": null,
+      "order": 152,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000152",
+      "tag_type": "list",
+      "content": "[ Templates  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/templates/>)",
+      "level": null,
+      "order": 153,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000153",
+      "tag_type": "list",
+      "content": "[ WebSockets  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/websockets/>)",
+      "level": null,
+      "order": 154,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000154",
+      "tag_type": "list",
+      "content": "[ Lifespan Events  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/events/>)",
+      "level": null,
+      "order": 155,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000155",
+      "tag_type": "list",
+      "content": "[ Testing WebSockets  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/testing-websockets/>)",
+      "level": null,
+      "order": 156,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000156",
+      "tag_type": "list",
+      "content": "[ Testing Events: lifespan and startup - shutdown  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/testing-events/>)",
+      "level": null,
+      "order": 157,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000157",
+      "tag_type": "list",
+      "content": "[ Testing Dependencies with Overrides  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/testing-dependencies/>)",
+      "level": null,
+      "order": 158,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000158",
+      "tag_type": "list",
+      "content": "[ Async Tests  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/async-tests/>)",
+      "level": null,
+      "order": 159,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000159",
+      "tag_type": "list",
+      "content": "[ Settings and Environment Variables  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/settings/>)",
+      "level": null,
+      "order": 160,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000160",
+      "tag_type": "list",
+      "content": "[ OpenAPI Callbacks  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/openapi-callbacks/>)",
+      "level": null,
+      "order": 161,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000161",
+      "tag_type": "list",
+      "content": "[ OpenAPI Webhooks  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/openapi-webhooks/>)",
+      "level": null,
+      "order": 162,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000162",
+      "tag_type": "list",
+      "content": "[ Including WSGI - Flask, Django, others  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/wsgi/>)",
+      "level": null,
+      "order": 163,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000163",
+      "tag_type": "list",
+      "content": "[ Generating SDKs  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/generate-clients/>)",
+      "level": null,
+      "order": 164,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000164",
+      "tag_type": "list",
+      "content": "[ Advanced Python Types  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/advanced-python-types/>)",
+      "level": null,
+      "order": 165,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000165",
+      "tag_type": "list",
+      "content": "[ JSON with Bytes as Base64  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/advanced/json-base64-bytes/>)",
+      "level": null,
+      "order": 166,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000166",
+      "tag_type": "list",
+      "content": "[ FastAPI CLI  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/fastapi-cli/>)",
+      "level": null,
+      "order": 167,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000167",
+      "tag_type": "list",
+      "content": "[ Deployment  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/deployment/>)",
+      "level": null,
+      "order": 168,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000168",
+      "tag_type": "paragraph",
+      "content": "Deployment",
+      "level": null,
+      "order": 169,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000169",
+      "tag_type": "list",
+      "content": "[ About FastAPI versions  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/deployment/versions/>)",
+      "level": null,
+      "order": 170,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000170",
+      "tag_type": "list",
+      "content": "[ FastAPI Cloud  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/deployment/fastapicloud/>)",
+      "level": null,
+      "order": 171,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000171",
+      "tag_type": "list",
+      "content": "[ About HTTPS  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/deployment/https/>)",
+      "level": null,
+      "order": 172,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000172",
+      "tag_type": "list",
+      "content": "[ Run a Server Manually  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/deployment/manually/>)",
+      "level": null,
+      "order": 173,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000173",
+      "tag_type": "list",
+      "content": "[ Deployments Concepts  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/deployment/concepts/>)",
+      "level": null,
+      "order": 174,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000174",
+      "tag_type": "list",
+      "content": "[ Deploy FastAPI on Cloud Providers  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/deployment/cloud/>)",
+      "level": null,
+      "order": 175,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000175",
+      "tag_type": "list",
+      "content": "[ Server Workers - Uvicorn with Workers  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/deployment/server-workers/>)",
+      "level": null,
+      "order": 176,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000176",
+      "tag_type": "list",
+      "content": "[ FastAPI in Containers - Docker  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/deployment/docker/>)",
+      "level": null,
+      "order": 177,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000177",
+      "tag_type": "list",
+      "content": "[ How To - Recipes  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/how-to/>)",
+      "level": null,
+      "order": 178,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000178",
+      "tag_type": "paragraph",
+      "content": "How To - Recipes",
+      "level": null,
+      "order": 179,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000179",
+      "tag_type": "list",
+      "content": "[ General - How To - Recipes  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/how-to/general/>)",
+      "level": null,
+      "order": 180,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000180",
+      "tag_type": "list",
+      "content": "[ Migrate from Pydantic v1 to Pydantic v2  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/how-to/migrate-from-pydantic-v1-to-pydantic-v2/>)",
+      "level": null,
+      "order": 181,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000181",
+      "tag_type": "list",
+      "content": "[ GraphQL  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/how-to/graphql/>)",
+      "level": null,
+      "order": 182,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000182",
+      "tag_type": "list",
+      "content": "[ Custom Request and APIRoute class  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/how-to/custom-request-and-route/>)",
+      "level": null,
+      "order": 183,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000183",
+      "tag_type": "list",
+      "content": "[ Conditional OpenAPI  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/how-to/conditional-openapi/>)",
+      "level": null,
+      "order": 184,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000184",
+      "tag_type": "list",
+      "content": "[ Extending OpenAPI  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/how-to/extending-openapi/>)",
+      "level": null,
+      "order": 185,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000185",
+      "tag_type": "list",
+      "content": "[ Separate OpenAPI Schemas for Input and Output or Not  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/how-to/separate-openapi-schemas/>)",
+      "level": null,
+      "order": 186,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000186",
+      "tag_type": "list",
+      "content": "[ Custom Docs UI Static Assets (Self-Hosting)  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/how-to/custom-docs-ui-assets/>)",
+      "level": null,
+      "order": 187,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000187",
+      "tag_type": "list",
+      "content": "[ Configure Swagger UI  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/how-to/configure-swagger-ui/>)",
+      "level": null,
+      "order": 188,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000188",
+      "tag_type": "list",
+      "content": "[ Testing a Database  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/how-to/testing-database/>)",
+      "level": null,
+      "order": 189,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000189",
+      "tag_type": "list",
+      "content": "[ Use Old 403 Authentication Error Status Codes  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/how-to/authentication-error-status-code/>)",
+      "level": null,
+      "order": 190,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000190",
+      "tag_type": "list",
+      "content": "[ Reference  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/>)",
+      "level": null,
+      "order": 191,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000191",
+      "tag_type": "paragraph",
+      "content": "Reference",
+      "level": null,
+      "order": 192,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000192",
+      "tag_type": "list",
+      "content": "[ `FastAPI` class  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/fastapi/>)",
+      "level": null,
+      "order": 193,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000193",
+      "tag_type": "list",
+      "content": "[ Request Parameters  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/parameters/>)",
+      "level": null,
+      "order": 194,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000194",
+      "tag_type": "list",
+      "content": "[ Status Codes  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/status/>)",
+      "level": null,
+      "order": 195,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000195",
+      "tag_type": "list",
+      "content": "[ `UploadFile` class  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/uploadfile/>)",
+      "level": null,
+      "order": 196,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000196",
+      "tag_type": "list",
+      "content": "[ Exceptions - `HTTPException` and `WebSocketException` ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/exceptions/>)",
+      "level": null,
+      "order": 197,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000197",
+      "tag_type": "list",
+      "content": "[ Dependencies - `Depends()` and `Security()` ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/dependencies/>)",
+      "level": null,
+      "order": 198,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000198",
+      "tag_type": "list",
+      "content": "[ `APIRouter` class  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/apirouter/>)",
+      "level": null,
+      "order": 199,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000199",
+      "tag_type": "list",
+      "content": "[ Background Tasks - `BackgroundTasks` ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/background/>)",
+      "level": null,
+      "order": 200,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000200",
+      "tag_type": "list",
+      "content": "[ `Request` class  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/request/>)",
+      "level": null,
+      "order": 201,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000201",
+      "tag_type": "list",
+      "content": "[ WebSockets  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/websockets/>)",
+      "level": null,
+      "order": 202,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000202",
+      "tag_type": "list",
+      "content": "[ `HTTPConnection` class  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/httpconnection/>)",
+      "level": null,
+      "order": 203,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000203",
+      "tag_type": "list",
+      "content": "[ `Response` class  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/response/>)",
+      "level": null,
+      "order": 204,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000204",
+      "tag_type": "list",
+      "content": "[ Custom Response Classes - File, HTML, Redirect, Streaming, etc.  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/responses/>)",
+      "level": null,
+      "order": 205,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000205",
+      "tag_type": "list",
+      "content": "[ Middleware  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/middleware/>)",
+      "level": null,
+      "order": 206,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000206",
+      "tag_type": "list",
+      "content": "[ OpenAPI  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/openapi/>)",
+      "level": null,
+      "order": 207,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000207",
+      "tag_type": "paragraph",
+      "content": "OpenAPI",
+      "level": null,
+      "order": 208,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000208",
+      "tag_type": "list",
+      "content": "[ OpenAPI `docs` ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/openapi/docs/>)",
+      "level": null,
+      "order": 209,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000209",
+      "tag_type": "list",
+      "content": "[ OpenAPI `models` ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/openapi/models/>)",
+      "level": null,
+      "order": 210,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000210",
+      "tag_type": "list",
+      "content": "[ Security Tools  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/security/>)",
+      "level": null,
+      "order": 211,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000211",
+      "tag_type": "list",
+      "content": "[ Encoders - `jsonable_encoder` ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/encoders/>)",
+      "level": null,
+      "order": 212,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000212",
+      "tag_type": "list",
+      "content": "[ Static Files - `StaticFiles` ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/staticfiles/>)",
+      "level": null,
+      "order": 213,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000213",
+      "tag_type": "list",
+      "content": "[ Templating - `Jinja2Templates` ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/templating/>)",
+      "level": null,
+      "order": 214,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000214",
+      "tag_type": "list",
+      "content": "[ Test Client - `TestClient` ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/reference/testclient/>)",
+      "level": null,
+      "order": 215,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000215",
+      "tag_type": "list",
+      "content": "[ FastAPI People  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/fastapi-people/>)",
+      "level": null,
+      "order": 216,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000216",
+      "tag_type": "list",
+      "content": "[ Resources  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/resources/>)",
+      "level": null,
+      "order": 217,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000217",
+      "tag_type": "paragraph",
+      "content": "Resources",
+      "level": null,
+      "order": 218,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000218",
+      "tag_type": "list",
+      "content": "[ Help FastAPI - Get Help  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/help-fastapi/>)",
+      "level": null,
+      "order": 219,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000219",
+      "tag_type": "list",
+      "content": "[ Development - Contributing  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/contributing/>)",
+      "level": null,
+      "order": 220,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000220",
+      "tag_type": "list",
+      "content": "[ Full Stack FastAPI Template  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/project-generation/>)",
+      "level": null,
+      "order": 221,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000221",
+      "tag_type": "list",
+      "content": "[ External Links  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/external-links/>)",
+      "level": null,
+      "order": 222,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000222",
+      "tag_type": "list",
+      "content": "[ FastAPI and friends newsletter  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/newsletter/>)",
+      "level": null,
+      "order": 223,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000223",
+      "tag_type": "list",
+      "content": "[ Repository Management Tasks  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/management-tasks/>)",
+      "level": null,
+      "order": 224,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000224",
+      "tag_type": "list",
+      "content": "[ About  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/about/>)",
+      "level": null,
+      "order": 225,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000225",
+      "tag_type": "paragraph",
+      "content": "About",
+      "level": null,
+      "order": 226,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000226",
+      "tag_type": "list",
+      "content": "[ Alternatives, Inspiration and Comparisons  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/alternatives/>)",
+      "level": null,
+      "order": 227,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000227",
+      "tag_type": "list",
+      "content": "[ History, Design and Future  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/history-design-future/>)",
+      "level": null,
+      "order": 228,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000228",
+      "tag_type": "list",
+      "content": "[ Benchmarks  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/benchmarks/>)",
+      "level": null,
+      "order": 229,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000229",
+      "tag_type": "list",
+      "content": "[ Repository Management  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/management/>)",
+      "level": null,
+      "order": 230,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000230",
+      "tag_type": "list",
+      "content": "[ Release Notes  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/release-notes/>)",
+      "level": null,
+      "order": 231,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000231",
+      "tag_type": "paragraph",
+      "content": "Table of contents",
+      "level": null,
+      "order": 232,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000232",
+      "tag_type": "list",
+      "content": "[ Sponsors  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#sponsors>)",
+      "level": null,
+      "order": 233,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000233",
+      "tag_type": "list",
+      "content": "[ Keystone Sponsor  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#keystone-sponsor>)",
+      "level": null,
+      "order": 234,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000234",
+      "tag_type": "list",
+      "content": "[ Gold and Silver Sponsors  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#gold-and-silver-sponsors>)",
+      "level": null,
+      "order": 235,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000235",
+      "tag_type": "list",
+      "content": "[ Opinions  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#opinions>)",
+      "level": null,
+      "order": 236,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000236",
+      "tag_type": "list",
+      "content": "[ FastAPI mini documentary  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#fastapi-mini-documentary>)",
+      "level": null,
+      "order": 237,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000237",
+      "tag_type": "list",
+      "content": "[ **Typer** , the FastAPI of CLIs  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#typer-the-fastapi-of-clis>)",
+      "level": null,
+      "order": 238,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000238",
+      "tag_type": "list",
+      "content": "[ Requirements  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#requirements>)",
+      "level": null,
+      "order": 239,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000239",
+      "tag_type": "list",
+      "content": "[ Installation  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#installation>)",
+      "level": null,
+      "order": 240,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000240",
+      "tag_type": "list",
+      "content": "[ Example  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#example>)",
+      "level": null,
+      "order": 241,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000241",
+      "tag_type": "list",
+      "content": "[ Create it  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#create-it>)",
+      "level": null,
+      "order": 242,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000242",
+      "tag_type": "list",
+      "content": "[ Run it  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#run-it>)",
+      "level": null,
+      "order": 243,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000243",
+      "tag_type": "list",
+      "content": "[ Check it  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#check-it>)",
+      "level": null,
+      "order": 244,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000244",
+      "tag_type": "list",
+      "content": "[ Interactive API docs  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#interactive-api-docs>)",
+      "level": null,
+      "order": 245,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000245",
+      "tag_type": "list",
+      "content": "[ Alternative API docs  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#alternative-api-docs>)",
+      "level": null,
+      "order": 246,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000246",
+      "tag_type": "list",
+      "content": "[ Example upgrade  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#example-upgrade>)",
+      "level": null,
+      "order": 247,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000247",
+      "tag_type": "list",
+      "content": "[ Interactive API docs upgrade  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#interactive-api-docs-upgrade>)",
+      "level": null,
+      "order": 248,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000248",
+      "tag_type": "list",
+      "content": "[ Alternative API docs upgrade  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#alternative-api-docs-upgrade>)",
+      "level": null,
+      "order": 249,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000249",
+      "tag_type": "list",
+      "content": "[ Recap  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#recap>)",
+      "level": null,
+      "order": 250,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000250",
+      "tag_type": "list",
+      "content": "[ Deploy your app (optional)  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#deploy-your-app-optional>)",
+      "level": null,
+      "order": 251,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000251",
+      "tag_type": "list",
+      "content": "[ About FastAPI Cloud  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#about-fastapi-cloud>)",
+      "level": null,
+      "order": 252,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000252",
+      "tag_type": "list",
+      "content": "[ Deploy to other cloud providers  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#deploy-to-other-cloud-providers>)",
+      "level": null,
+      "order": 253,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000253",
+      "tag_type": "list",
+      "content": "[ Performance  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#performance>)",
+      "level": null,
+      "order": 254,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000254",
+      "tag_type": "list",
+      "content": "[ Dependencies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#dependencies>)",
+      "level": null,
+      "order": 255,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000255",
+      "tag_type": "list",
+      "content": "[ `standard` Dependencies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#standard-dependencies>)",
+      "level": null,
+      "order": 256,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000256",
+      "tag_type": "list",
+      "content": "[ Without `standard` Dependencies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#without-standard-dependencies>)",
+      "level": null,
+      "order": 257,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000257",
+      "tag_type": "list",
+      "content": "[ Without `fastapi-cloud-cli` ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#without-fastapi-cloud-cli>)",
+      "level": null,
+      "order": 258,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000258",
+      "tag_type": "list",
+      "content": "[ Additional Optional Dependencies  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#additional-optional-dependencies>)",
+      "level": null,
+      "order": 259,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000259",
+      "tag_type": "list",
+      "content": "[ License  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#license>)",
+      "level": null,
+      "order": 260,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000260",
+      "tag_type": "title",
+      "content": "FastAPI[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#fastapi>)",
+      "level": 1,
+      "order": 261,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000261",
+      "tag_type": "paragraph",
+      "content": "[![FastAPI](https://fastapi.tiangolo.com/img/logo-margin/logo-teal.png)](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com>)",
+      "level": null,
+      "order": 262,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000262",
+      "tag_type": "paragraph",
+      "content": "_FastAPI framework, high performance, easy to learn, fast to code, ready for production_",
+      "level": null,
+      "order": 263,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000263",
+      "tag_type": "paragraph",
+      "content": "[ ![Test](https://github.com/fastapi/fastapi/actions/workflows/test.yml/badge.svg?event=push&branch=master) ](https://fastapi.tiangolo.com/<https:/github.com/fastapi/fastapi/actions?query=workflow%3ATest+event%3Apush+branch%3Amaster>) [ ![Coverage](https://coverage-badge.samuelcolvin.workers.dev/fastapi/fastapi.svg) ](https://fastapi.tiangolo.com/<https:/coverage-badge.samuelcolvin.workers.dev/redirect/fastapi/fastapi>) [ ![Package version](https://img.shields.io/pypi/v/fastapi?color=%2334D058&label=pypi%20package) ](https://fastapi.tiangolo.com/<https:/pypi.org/project/fastapi>) [ ![Supported Python versions](https://img.shields.io/pypi/pyversions/fastapi.svg?color=%2334D058) ](https://fastapi.tiangolo.com/<https:/pypi.org/project/fastapi>)",
+      "level": null,
+      "order": 264,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000264",
+      "tag_type": "paragraph",
+      "content": "**Documentation** : <https://fastapi.tiangolo.com>",
+      "level": null,
+      "order": 265,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000265",
+      "tag_type": "paragraph",
+      "content": "**Source Code** : <https://github.com/fastapi/fastapi>",
+      "level": null,
+      "order": 266,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000266",
+      "tag_type": "paragraph",
+      "content": "FastAPI is a modern, fast (high-performance), web framework for building APIs with Python based on standard Python type hints.",
+      "level": null,
+      "order": 267,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000267",
+      "tag_type": "paragraph",
+      "content": "The key features are:",
+      "level": null,
+      "order": 268,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000268",
+      "tag_type": "list",
+      "content": "**Fast** : Very high performance, on par with **NodeJS** and **Go** (thanks to Starlette and Pydantic). [One of the fastest Python frameworks available](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#performance>).",
+      "level": null,
+      "order": 269,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000269",
+      "tag_type": "list",
+      "content": "**Fast to code** : Increase the speed to develop features by about 200% to 300%. *",
+      "level": null,
+      "order": 270,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000270",
+      "tag_type": "list",
+      "content": "**Fewer bugs** : Reduce about 40% of human (developer) induced errors. *",
+      "level": null,
+      "order": 271,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000271",
+      "tag_type": "list",
+      "content": "**Intuitive** : Great editor support. Completion everywhere. Less time debugging.",
+      "level": null,
+      "order": 272,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000272",
+      "tag_type": "list",
+      "content": "**Easy** : Designed to be easy to use and learn. Less time reading docs.",
+      "level": null,
+      "order": 273,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000273",
+      "tag_type": "list",
+      "content": "**Short** : Minimize code duplication. Multiple features from each parameter declaration. Fewer bugs.",
+      "level": null,
+      "order": 274,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000274",
+      "tag_type": "list",
+      "content": "**Robust** : Get production-ready code. With automatic interactive documentation.",
+      "level": null,
+      "order": 275,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000275",
+      "tag_type": "list",
+      "content": "**Standards-based** : Based on (and fully compatible with) the open standards for APIs: [OpenAPI](https://fastapi.tiangolo.com/<https:/github.com/OAI/OpenAPI-Specification>) (previously known as Swagger) and [JSON Schema](https://fastapi.tiangolo.com/<https:/json-schema.org/>).",
+      "level": null,
+      "order": 276,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000276",
+      "tag_type": "list",
+      "content": "estimation based on tests conducted by an internal development team, building production applications.",
+      "level": null,
+      "order": 277,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000000"
+    },
+    {
+      "tag_id": "tag_000277",
+      "tag_type": "section",
+      "content": "Sponsors[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#sponsors>)",
+      "level": 2,
+      "order": 278,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000278",
+      "tag_type": "subsection",
+      "content": "Keystone Sponsor[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#keystone-sponsor>)",
+      "level": 3,
+      "order": 279,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000279",
+      "tag_type": "paragraph",
+      "content": "[![](https://fastapi.tiangolo.com/img/sponsors/fastapicloud.png)](https://fastapi.tiangolo.com/<https:/fastapicloud.com> \"FastAPI Cloud. By the same team behind FastAPI. You code. We Cloud.\")",
+      "level": null,
+      "order": 280,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000278"
+    },
+    {
+      "tag_id": "tag_000280",
+      "tag_type": "subsection",
+      "content": "Gold and Silver Sponsors[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#gold-and-silver-sponsors>)",
+      "level": 3,
+      "order": 281,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000281",
+      "tag_type": "paragraph",
+      "content": "[![](https://fastapi.tiangolo.com/img/sponsors/blockbee.png)](https://fastapi.tiangolo.com/<https:/blockbee.io?ref=fastapi> \"BlockBee Cryptocurrency Payment Gateway\") [![](https://fastapi.tiangolo.com/img/sponsors/scalar.svg)](https://fastapi.tiangolo.com/<https:/github.com/scalar/scalar/?utm_source=fastapi&utm_medium=website&utm_campaign=main-badge> \"Scalar: Beautiful Open-Source API References from Swagger/OpenAPI files\") [![](https://fastapi.tiangolo.com/img/sponsors/propelauth.png)](https://fastapi.tiangolo.com/<https:/www.propelauth.com/?utm_source=fastapi&utm_campaign=1223&utm_medium=mainbadge> \"Auth, user management and more for your B2B product\") [![](https://fastapi.tiangolo.com/img/sponsors/zuplo.png)](https://fastapi.tiangolo.com/<https:/zuplo.link/fastapi-gh> \"Zuplo: Deploy, Secure, Document, and Monetize your FastAPI\") [![](https://fastapi.tiangolo.com/img/sponsors/liblab.png)](https://fastapi.tiangolo.com/<https:/liblab.com?utm_source=fastapi> \"liblab - Generate SDKs from FastAPI\") [![](https://fastapi.tiangolo.com/img/sponsors/render.svg)](https://fastapi.tiangolo.com/<https:/docs.render.com/deploy-fastapi?utm_source=deploydoc&utm_medium=referral&utm_campaign=fastapi> \"Deploy & scale any full-stack web app on Render. Focus on building apps, not infra.\") [![](https://fastapi.tiangolo.com/img/sponsors/coderabbit.png)](https://fastapi.tiangolo.com/<https:/www.coderabbit.ai/?utm_source=fastapi&utm_medium=badge&utm_campaign=fastapi> \"Cut Code Review Time & Bugs in Half with CodeRabbit\") [![](https://fastapi.tiangolo.com/img/sponsors/subtotal.svg)](https://fastapi.tiangolo.com/<https:/subtotal.com/?utm_source=fastapi&utm_medium=sponsorship&utm_campaign=open-source> \"The Gold Standard in Retail Account Linking\") [![](https://fastapi.tiangolo.com/img/sponsors/railway.png)](https://fastapi.tiangolo.com/<https:/docs.railway.com/guides/fastapi?utm_medium=integration&utm_source=docs&utm_campaign=fastapi> \"Deploy enterprise applications at startup speed\") [![](https://fastapi.tiangolo.com/img/sponsors/serpapi.png)](https://fastapi.tiangolo.com/<https:/serpapi.com/?utm_source=fastapi_website> \"SerpApi: Web Search API\") [![](https://fastapi.tiangolo.com/img/sponsors/greptile.png)](https://fastapi.tiangolo.com/<https:/www.greptile.com/?utm_source=fastapi&utm_medium=sponsorship&utm_campaign=fastapi_sponsor_page> \"Greptile: The AI Code Reviewer\") [![](https://fastapi.tiangolo.com/img/sponsors/databento.svg)](https://fastapi.tiangolo.com/<https:/databento.com/?utm_source=fastapi&utm_medium=sponsor&utm_content=display> \"Pay as you go for market data\") [![](https://fastapi.tiangolo.com/img/sponsors/speakeasy.png)](https://fastapi.tiangolo.com/<https:/speakeasy.com/editor?utm_source=fastapi+repo&utm_medium=github+sponsorship> \"SDKs for your API | Speakeasy\") [![](https://fastapi.tiangolo.com/img/sponsors/svix.svg)](https://fastapi.tiangolo.com/<https:/www.svix.com/> \"Svix - Webhooks as a service\") [![](https://fastapi.tiangolo.com/img/sponsors/stainless.png)](https://fastapi.tiangolo.com/<https:/www.stainlessapi.com/?utm_source=fastapi&utm_medium=referral> \"Stainless | Generate best-in-class SDKs\") [![](https://fastapi.tiangolo.com/img/sponsors/permit.png)](https://fastapi.tiangolo.com/<https:/www.permit.io/blog/implement-authorization-in-fastapi?utm_source=github&utm_medium=referral&utm_campaign=fastapi> \"Fine-Grained Authorization for FastAPI\") [![](https://fastapi.tiangolo.com/img/sponsors/interviewpal.png)](https://fastapi.tiangolo.com/<https:/www.interviewpal.com/?utm_source=fastapi&utm_medium=open-source&utm_campaign=dev-hiring> \"InterviewPal - AI Interview Coach for Engineers and Devs\") [![](https://fastapi.tiangolo.com/img/sponsors/dribia.png)](https://fastapi.tiangolo.com/<https:/dribia.com/en/> \"Dribia - Data Science within your reach\")",
+      "level": null,
+      "order": 282,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000280"
+    },
+    {
+      "tag_id": "tag_000282",
+      "tag_type": "paragraph",
+      "content": "[Other sponsors](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/fastapi-people/#sponsors>)",
+      "level": null,
+      "order": 283,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000280"
+    },
+    {
+      "tag_id": "tag_000283",
+      "tag_type": "section",
+      "content": "Opinions[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#opinions>)",
+      "level": 2,
+      "order": 284,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000284",
+      "tag_type": "paragraph",
+      "content": "\"_[...] I'm using**FastAPI** a ton these days. [...] I'm actually planning to use it for all of my team's **ML services at Microsoft**. Some of them are getting integrated into the core **Windows** product and some **Office** products._\"",
+      "level": null,
+      "order": 285,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000285",
+      "tag_type": "paragraph",
+      "content": "Kabir Khan - **Microsoft** [(ref)](https://fastapi.tiangolo.com/<https:/github.com/fastapi/fastapi/pull/26>)",
+      "level": null,
+      "order": 286,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000286",
+      "tag_type": "paragraph",
+      "content": "\"_We adopted the**FastAPI** library to spawn a **REST** server that can be queried to obtain **predictions**. [for Ludwig]_\"",
+      "level": null,
+      "order": 287,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000287",
+      "tag_type": "paragraph",
+      "content": "Piero Molino, Yaroslav Dudin, and Sai Sumanth Miryala - **Uber** [(ref)](https://fastapi.tiangolo.com/<https:/eng.uber.com/ludwig-v0-2/>)",
+      "level": null,
+      "order": 288,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000288",
+      "tag_type": "paragraph",
+      "content": "\"_**Netflix** is pleased to announce the open-source release of our **crisis management** orchestration framework: **Dispatch**! [built with **FastAPI**]_\"",
+      "level": null,
+      "order": 289,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000289",
+      "tag_type": "paragraph",
+      "content": "Kevin Glisson, Marc Vilanova, Forest Monsen - **Netflix** [(ref)](https://fastapi.tiangolo.com/<https:/netflixtechblog.com/introducing-dispatch-da4b8a2a8072>)",
+      "level": null,
+      "order": 290,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000290",
+      "tag_type": "paragraph",
+      "content": "\"_I’m over the moon excited about**FastAPI**. It’s so fun!_\"",
+      "level": null,
+      "order": 291,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000291",
+      "tag_type": "paragraph",
+      "content": "Brian Okken - **[Python Bytes](https://fastapi.tiangolo.com/<https:/pythonbytes.fm/episodes/show/123/time-to-right-the-py-wrongs?time_in_sec=855>) podcast host** [(ref)](https://fastapi.tiangolo.com/<https:/x.com/brianokken/status/1112220079972728832>)",
+      "level": null,
+      "order": 292,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000292",
+      "tag_type": "paragraph",
+      "content": "\"_Honestly, what you've built looks super solid and polished. In many ways, it's what I wanted**Hug** to be - it's really inspiring to see someone build that._\"",
+      "level": null,
+      "order": 293,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000293",
+      "tag_type": "paragraph",
+      "content": "Timothy Crosley - **[Hug](https://fastapi.tiangolo.com/<https:/github.com/hugapi/hug>) creator** [(ref)](https://fastapi.tiangolo.com/<https:/news.ycombinator.com/item?id=19455465>)",
+      "level": null,
+      "order": 294,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000294",
+      "tag_type": "paragraph",
+      "content": "\"_If you're looking to learn one**modern framework** for building REST APIs, check out **FastAPI** [...] It's fast, easy to use and easy to learn [...]_\"",
+      "level": null,
+      "order": 295,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000295",
+      "tag_type": "paragraph",
+      "content": "\"_We've switched over to**FastAPI** for our **APIs** [...] I think you'll like it [...]_\"",
+      "level": null,
+      "order": 296,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000296",
+      "tag_type": "paragraph",
+      "content": "Ines Montani - Matthew Honnibal - **[Explosion AI](https://fastapi.tiangolo.com/<https:/explosion.ai>) founders - [spaCy](https://fastapi.tiangolo.com/<https:/spacy.io>) creators** [(ref)](https://fastapi.tiangolo.com/<https:/x.com/_inesmontani/status/1144173225322143744>) - [(ref)](https://fastapi.tiangolo.com/<https:/x.com/honnibal/status/1144031421859655680>)",
+      "level": null,
+      "order": 297,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000297",
+      "tag_type": "paragraph",
+      "content": "\"_If anyone is looking to build a production Python API, I would highly recommend**FastAPI**. It is **beautifully designed** , **simple to use** and **highly scalable** , it has become a **key component** in our API first development strategy and is driving many automations and services such as our Virtual TAC Engineer._\"",
+      "level": null,
+      "order": 298,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000298",
+      "tag_type": "paragraph",
+      "content": "Deon Pillsbury - **Cisco** [(ref)](https://fastapi.tiangolo.com/<https:/www.linkedin.com/posts/deonpillsbury_cisco-cx-python-activity-6963242628536487936-trAp/>)",
+      "level": null,
+      "order": 299,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000283"
+    },
+    {
+      "tag_id": "tag_000299",
+      "tag_type": "section",
+      "content": "FastAPI mini documentary[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#fastapi-mini-documentary>)",
+      "level": 2,
+      "order": 300,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000300",
+      "tag_type": "paragraph",
+      "content": "There's a [FastAPI mini documentary](https://fastapi.tiangolo.com/<https:/www.youtube.com/watch?v=mpR8ngthqiE>) released at the end of 2025, you can watch it online:",
+      "level": null,
+      "order": 301,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000299"
+    },
+    {
+      "tag_id": "tag_000301",
+      "tag_type": "paragraph",
+      "content": "[![FastAPI Mini Documentary](https://fastapi.tiangolo.com/img/fastapi-documentary.jpg)](https://fastapi.tiangolo.com/<https:/www.youtube.com/watch?v=mpR8ngthqiE>)",
+      "level": null,
+      "order": 302,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000299"
+    },
+    {
+      "tag_id": "tag_000302",
+      "tag_type": "section",
+      "content": "**Typer** , the FastAPI of CLIs[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#typer-the-fastapi-of-clis>)",
+      "level": 2,
+      "order": 303,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000303",
+      "tag_type": "paragraph",
+      "content": "[![](https://typer.tiangolo.com/img/logo-margin/logo-margin-vector.svg)](https://fastapi.tiangolo.com/<https:/typer.tiangolo.com>)",
+      "level": null,
+      "order": 304,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000302"
+    },
+    {
+      "tag_id": "tag_000304",
+      "tag_type": "paragraph",
+      "content": "If you are building a CLI app to be used in the terminal instead of a web API, check out [**Typer**](https://fastapi.tiangolo.com/<https:/typer.tiangolo.com/>).",
+      "level": null,
+      "order": 305,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000302"
+    },
+    {
+      "tag_id": "tag_000305",
+      "tag_type": "paragraph",
+      "content": "**Typer** is FastAPI's little sibling. And it's intended to be the **FastAPI of CLIs**. ⌨️ 🚀",
+      "level": null,
+      "order": 306,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000302"
+    },
+    {
+      "tag_id": "tag_000306",
+      "tag_type": "section",
+      "content": "Requirements[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#requirements>)",
+      "level": 2,
+      "order": 307,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000307",
+      "tag_type": "paragraph",
+      "content": "FastAPI stands on the shoulders of giants:",
+      "level": null,
+      "order": 308,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000306"
+    },
+    {
+      "tag_id": "tag_000308",
+      "tag_type": "list",
+      "content": "[Starlette](https://fastapi.tiangolo.com/<https:/www.starlette.dev/>) for the web parts.",
+      "level": null,
+      "order": 309,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000306"
+    },
+    {
+      "tag_id": "tag_000309",
+      "tag_type": "list",
+      "content": "[Pydantic](https://fastapi.tiangolo.com/<https:/docs.pydantic.dev/>) for the data parts.",
+      "level": null,
+      "order": 310,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000306"
+    },
+    {
+      "tag_id": "tag_000310",
+      "tag_type": "section",
+      "content": "Installation[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#installation>)",
+      "level": 2,
+      "order": 311,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000311",
+      "tag_type": "paragraph",
+      "content": "Create and activate a [virtual environment](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/virtual-environments/>) and then install FastAPI:",
+      "level": null,
+      "order": 312,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000310"
+    },
+    {
+      "tag_id": "tag_000312",
+      "tag_type": "paragraph",
+      "content": "pip install \"fastapi[standard]\"",
+      "level": null,
+      "order": 313,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000310"
+    },
+    {
+      "tag_id": "tag_000313",
+      "tag_type": "paragraph",
+      "content": "fast →[](https://fastapi.tiangolo.com/<javascript:void\\(0\\)>)pip install \"fastapi[standard]\"restart ↻[](https://fastapi.tiangolo.com/<javascript:void\\(0\\)>)",
+      "level": null,
+      "order": 314,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000310"
+    },
+    {
+      "tag_id": "tag_000314",
+      "tag_type": "paragraph",
+      "content": "**Note** : Make sure you put `\"fastapi[standard]\"` in quotes to ensure it works in all terminals.",
+      "level": null,
+      "order": 315,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000310"
+    },
+    {
+      "tag_id": "tag_000315",
+      "tag_type": "section",
+      "content": "Example[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#example>)",
+      "level": 2,
+      "order": 316,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000316",
+      "tag_type": "subsection",
+      "content": "Create it[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#create-it>)",
+      "level": 3,
+      "order": 317,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000317",
+      "tag_type": "paragraph",
+      "content": "Create a file `main.py` with:",
+      "level": null,
+      "order": 318,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000318",
+      "tag_type": "paragraph",
+      "content": "fromfastapiimport FastAPI",
+      "level": null,
+      "order": 319,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000319",
+      "tag_type": "paragraph",
+      "content": "app = FastAPI()",
+      "level": null,
+      "order": 320,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000320",
+      "tag_type": "paragraph",
+      "content": "@app.get(\"/\")",
+      "level": null,
+      "order": 321,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000321",
+      "tag_type": "paragraph",
+      "content": "defread_root():",
+      "level": null,
+      "order": 322,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000322",
+      "tag_type": "paragraph",
+      "content": "return {\"Hello\": \"World\"}",
+      "level": null,
+      "order": 323,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000323",
+      "tag_type": "paragraph",
+      "content": "@app.get(\"/items/{item_id}\")",
+      "level": null,
+      "order": 324,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000324",
+      "tag_type": "paragraph",
+      "content": "defread_item(item_id: int, q: str | None = None):",
+      "level": null,
+      "order": 325,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000325",
+      "tag_type": "paragraph",
+      "content": "return {\"item_id\": item_id, \"q\": q}",
+      "level": null,
+      "order": 326,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000326",
+      "tag_type": "paragraph",
+      "content": "Or use `async def`...",
+      "level": null,
+      "order": 327,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000327",
+      "tag_type": "paragraph",
+      "content": "If your code uses `async` / `await`, use `async def`:",
+      "level": null,
+      "order": 328,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000328",
+      "tag_type": "paragraph",
+      "content": "fromfastapiimport FastAPI",
+      "level": null,
+      "order": 329,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000329",
+      "tag_type": "paragraph",
+      "content": "app = FastAPI()",
+      "level": null,
+      "order": 330,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000330",
+      "tag_type": "paragraph",
+      "content": "@app.get(\"/\")",
+      "level": null,
+      "order": 331,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000331",
+      "tag_type": "paragraph",
+      "content": "async defread_root():",
+      "level": null,
+      "order": 332,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000332",
+      "tag_type": "paragraph",
+      "content": "return {\"Hello\": \"World\"}",
+      "level": null,
+      "order": 333,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000333",
+      "tag_type": "paragraph",
+      "content": "@app.get(\"/items/{item_id}\")",
+      "level": null,
+      "order": 334,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000334",
+      "tag_type": "paragraph",
+      "content": "async defread_item(item_id: int, q: str | None = None):",
+      "level": null,
+      "order": 335,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000335",
+      "tag_type": "paragraph",
+      "content": "return {\"item_id\": item_id, \"q\": q}",
+      "level": null,
+      "order": 336,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000336",
+      "tag_type": "paragraph",
+      "content": "**Note** :",
+      "level": null,
+      "order": 337,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000337",
+      "tag_type": "paragraph",
+      "content": "If you don't know, check the _\"In a hurry?\"_ section about `async`[ and `await` in the docs](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/async/#in-a-hurry>).",
+      "level": null,
+      "order": 338,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000316"
+    },
+    {
+      "tag_id": "tag_000338",
+      "tag_type": "subsection",
+      "content": "Run it[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#run-it>)",
+      "level": 3,
+      "order": 339,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000339",
+      "tag_type": "paragraph",
+      "content": "Run the server with:",
+      "level": null,
+      "order": 340,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000338"
+    },
+    {
+      "tag_id": "tag_000340",
+      "tag_type": "paragraph",
+      "content": "fastapi dev main.py",
+      "level": null,
+      "order": 341,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000338"
+    },
+    {
+      "tag_id": "tag_000341",
+      "tag_type": "paragraph",
+      "content": "fast →[](https://fastapi.tiangolo.com/<javascript:void\\(0\\)>)fastapi dev main.py ╭────────── FastAPI CLI - Development mode ───────────╮ │                           │ │ Serving at: http://127.0.0.1:8000         │ │                           │ │ API docs: http://127.0.0.1:8000/docs        │ │                           │ │ Running in development mode, for production use:  │ │                           │ │ fastapi run                    │ │                           │ ╰─────────────────────────────────────────────────────╯INFO:   Will watch for changes in these directories: ['/home/user/code/awesomeapp']INFO:   Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)INFO:   Started reloader process [2248755] using WatchFilesINFO:   Started server process [2248757]INFO:   Waiting for application startup.INFO:   Application startup complete.restart ↻[](https://fastapi.tiangolo.com/<javascript:void\\(0\\)>)",
+      "level": null,
+      "order": 342,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000338"
+    },
+    {
+      "tag_id": "tag_000342",
+      "tag_type": "paragraph",
+      "content": "About the command `fastapi dev main.py`...",
+      "level": null,
+      "order": 343,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000338"
+    },
+    {
+      "tag_id": "tag_000343",
+      "tag_type": "paragraph",
+      "content": "The command `fastapi dev` reads your `main.py` file, detects the **FastAPI** app in it, and starts a server using [Uvicorn](https://fastapi.tiangolo.com/<https:/www.uvicorn.dev>).",
+      "level": null,
+      "order": 344,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000338"
+    },
+    {
+      "tag_id": "tag_000344",
+      "tag_type": "paragraph",
+      "content": "By default, `fastapi dev` will start with auto-reload enabled for local development.",
+      "level": null,
+      "order": 345,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000338"
+    },
+    {
+      "tag_id": "tag_000345",
+      "tag_type": "paragraph",
+      "content": "You can read more about it in the [FastAPI CLI docs](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/fastapi-cli/>).",
+      "level": null,
+      "order": 346,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000338"
+    },
+    {
+      "tag_id": "tag_000346",
+      "tag_type": "subsection",
+      "content": "Check it[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#check-it>)",
+      "level": 3,
+      "order": 347,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000347",
+      "tag_type": "paragraph",
+      "content": "Open your browser at <http://127.0.0.1:8000/items/5?q=somequery>.",
+      "level": null,
+      "order": 348,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000346"
+    },
+    {
+      "tag_id": "tag_000348",
+      "tag_type": "paragraph",
+      "content": "You will see the JSON response as:",
+      "level": null,
+      "order": 349,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000346"
+    },
+    {
+      "tag_id": "tag_000349",
+      "tag_type": "paragraph",
+      "content": "{\"item_id\":5,\"q\":\"somequery\"}",
+      "level": null,
+      "order": 350,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000346"
+    },
+    {
+      "tag_id": "tag_000350",
+      "tag_type": "paragraph",
+      "content": "You already created an API that:",
+      "level": null,
+      "order": 351,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000346"
+    },
+    {
+      "tag_id": "tag_000351",
+      "tag_type": "list",
+      "content": "Receives HTTP requests in the _paths_ `/` and `/items/{item_id}`.",
+      "level": null,
+      "order": 352,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000346"
+    },
+    {
+      "tag_id": "tag_000352",
+      "tag_type": "list",
+      "content": "Both _paths_ take `GET` _operations_ (also known as HTTP _methods_).",
+      "level": null,
+      "order": 353,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000346"
+    },
+    {
+      "tag_id": "tag_000353",
+      "tag_type": "list",
+      "content": "The _path_ `/items/{item_id}` has a _path parameter_ `item_id` that should be an `int`.",
+      "level": null,
+      "order": 354,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000346"
+    },
+    {
+      "tag_id": "tag_000354",
+      "tag_type": "list",
+      "content": "The _path_ `/items/{item_id}` has an optional `str` _query parameter_ `q`.",
+      "level": null,
+      "order": 355,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000346"
+    },
+    {
+      "tag_id": "tag_000355",
+      "tag_type": "subsection",
+      "content": "Interactive API docs[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#interactive-api-docs>)",
+      "level": 3,
+      "order": 356,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000356",
+      "tag_type": "paragraph",
+      "content": "Now go to <http://127.0.0.1:8000/docs>.",
+      "level": null,
+      "order": 357,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000355"
+    },
+    {
+      "tag_id": "tag_000357",
+      "tag_type": "paragraph",
+      "content": "You will see the automatic interactive API documentation (provided by [Swagger UI](https://fastapi.tiangolo.com/<https:/github.com/swagger-api/swagger-ui>)):",
+      "level": null,
+      "order": 358,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000355"
+    },
+    {
+      "tag_id": "tag_000358",
+      "tag_type": "paragraph",
+      "content": "![Swagger UI](https://fastapi.tiangolo.com/img/index/index-01-swagger-ui-simple.png)",
+      "level": null,
+      "order": 359,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000355"
+    },
+    {
+      "tag_id": "tag_000359",
+      "tag_type": "subsection",
+      "content": "Alternative API docs[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#alternative-api-docs>)",
+      "level": 3,
+      "order": 360,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000360",
+      "tag_type": "paragraph",
+      "content": "And now, go to <http://127.0.0.1:8000/redoc>.",
+      "level": null,
+      "order": 361,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000359"
+    },
+    {
+      "tag_id": "tag_000361",
+      "tag_type": "paragraph",
+      "content": "You will see the alternative automatic documentation (provided by [ReDoc](https://fastapi.tiangolo.com/<https:/github.com/Rebilly/ReDoc>)):",
+      "level": null,
+      "order": 362,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000359"
+    },
+    {
+      "tag_id": "tag_000362",
+      "tag_type": "paragraph",
+      "content": "![ReDoc](https://fastapi.tiangolo.com/img/index/index-02-redoc-simple.png)",
+      "level": null,
+      "order": 363,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000359"
+    },
+    {
+      "tag_id": "tag_000363",
+      "tag_type": "section",
+      "content": "Example upgrade[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#example-upgrade>)",
+      "level": 2,
+      "order": 364,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000364",
+      "tag_type": "paragraph",
+      "content": "Now modify the file `main.py` to receive a body from a `PUT` request.",
+      "level": null,
+      "order": 365,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000365",
+      "tag_type": "paragraph",
+      "content": "Declare the body using standard Python types, thanks to Pydantic.",
+      "level": null,
+      "order": 366,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000366",
+      "tag_type": "paragraph",
+      "content": "fromfastapiimport FastAPI",
+      "level": null,
+      "order": 367,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000367",
+      "tag_type": "paragraph",
+      "content": "frompydanticimport BaseModel",
+      "level": null,
+      "order": 368,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000368",
+      "tag_type": "paragraph",
+      "content": "app = FastAPI()",
+      "level": null,
+      "order": 369,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000369",
+      "tag_type": "paragraph",
+      "content": "classItem(BaseModel):",
+      "level": null,
+      "order": 370,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000370",
+      "tag_type": "paragraph",
+      "content": "name: str",
+      "level": null,
+      "order": 371,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000371",
+      "tag_type": "paragraph",
+      "content": "price: float",
+      "level": null,
+      "order": 372,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000372",
+      "tag_type": "paragraph",
+      "content": "is_offer: bool | None = None",
+      "level": null,
+      "order": 373,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000373",
+      "tag_type": "paragraph",
+      "content": "@app.get(\"/\")",
+      "level": null,
+      "order": 374,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000374",
+      "tag_type": "paragraph",
+      "content": "defread_root():",
+      "level": null,
+      "order": 375,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000375",
+      "tag_type": "paragraph",
+      "content": "return {\"Hello\": \"World\"}",
+      "level": null,
+      "order": 376,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000376",
+      "tag_type": "paragraph",
+      "content": "@app.get(\"/items/{item_id}\")",
+      "level": null,
+      "order": 377,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000377",
+      "tag_type": "paragraph",
+      "content": "defread_item(item_id: int, q: str | None = None):",
+      "level": null,
+      "order": 378,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000378",
+      "tag_type": "paragraph",
+      "content": "return {\"item_id\": item_id, \"q\": q}",
+      "level": null,
+      "order": 379,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000379",
+      "tag_type": "paragraph",
+      "content": "@app.put(\"/items/{item_id}\")",
+      "level": null,
+      "order": 380,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000380",
+      "tag_type": "paragraph",
+      "content": "defupdate_item(item_id: int, item: Item):",
+      "level": null,
+      "order": 381,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000381",
+      "tag_type": "paragraph",
+      "content": "return {\"item_name\": item.name, \"item_id\": item_id}",
+      "level": null,
+      "order": 382,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000382",
+      "tag_type": "paragraph",
+      "content": "The `fastapi dev` server should reload automatically.",
+      "level": null,
+      "order": 383,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000363"
+    },
+    {
+      "tag_id": "tag_000383",
+      "tag_type": "subsection",
+      "content": "Interactive API docs upgrade[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#interactive-api-docs-upgrade>)",
+      "level": 3,
+      "order": 384,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000384",
+      "tag_type": "paragraph",
+      "content": "Now go to <http://127.0.0.1:8000/docs>.",
+      "level": null,
+      "order": 385,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000383"
+    },
+    {
+      "tag_id": "tag_000385",
+      "tag_type": "list",
+      "content": "The interactive API documentation will be automatically updated, including the new body:",
+      "level": null,
+      "order": 386,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000383"
+    },
+    {
+      "tag_id": "tag_000386",
+      "tag_type": "paragraph",
+      "content": "![Swagger UI](https://fastapi.tiangolo.com/img/index/index-03-swagger-02.png)",
+      "level": null,
+      "order": 387,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000383"
+    },
+    {
+      "tag_id": "tag_000387",
+      "tag_type": "list",
+      "content": "Click on the button \"Try it out\", it allows you to fill the parameters and directly interact with the API:",
+      "level": null,
+      "order": 388,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000383"
+    },
+    {
+      "tag_id": "tag_000388",
+      "tag_type": "paragraph",
+      "content": "![Swagger UI interaction](https://fastapi.tiangolo.com/img/index/index-04-swagger-03.png)",
+      "level": null,
+      "order": 389,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000383"
+    },
+    {
+      "tag_id": "tag_000389",
+      "tag_type": "list",
+      "content": "Then click on the \"Execute\" button, the user interface will communicate with your API, send the parameters, get the results and show them on the screen:",
+      "level": null,
+      "order": 390,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000383"
+    },
+    {
+      "tag_id": "tag_000390",
+      "tag_type": "paragraph",
+      "content": "![Swagger UI interaction](https://fastapi.tiangolo.com/img/index/index-05-swagger-04.png)",
+      "level": null,
+      "order": 391,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000383"
+    },
+    {
+      "tag_id": "tag_000391",
+      "tag_type": "subsection",
+      "content": "Alternative API docs upgrade[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#alternative-api-docs-upgrade>)",
+      "level": 3,
+      "order": 392,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000392",
+      "tag_type": "paragraph",
+      "content": "And now, go to <http://127.0.0.1:8000/redoc>.",
+      "level": null,
+      "order": 393,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000391"
+    },
+    {
+      "tag_id": "tag_000393",
+      "tag_type": "list",
+      "content": "The alternative documentation will also reflect the new query parameter and body:",
+      "level": null,
+      "order": 394,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000391"
+    },
+    {
+      "tag_id": "tag_000394",
+      "tag_type": "paragraph",
+      "content": "![ReDoc](https://fastapi.tiangolo.com/img/index/index-06-redoc-02.png)",
+      "level": null,
+      "order": 395,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000391"
+    },
+    {
+      "tag_id": "tag_000395",
+      "tag_type": "subsection",
+      "content": "Recap[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#recap>)",
+      "level": 3,
+      "order": 396,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000396",
+      "tag_type": "paragraph",
+      "content": "In summary, you declare **once** the types of parameters, body, etc. as function parameters.",
+      "level": null,
+      "order": 397,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000397",
+      "tag_type": "paragraph",
+      "content": "You do that with standard modern Python types.",
+      "level": null,
+      "order": 398,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000398",
+      "tag_type": "paragraph",
+      "content": "You don't have to learn a new syntax, the methods or classes of a specific library, etc.",
+      "level": null,
+      "order": 399,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000399",
+      "tag_type": "paragraph",
+      "content": "Just standard **Python**.",
+      "level": null,
+      "order": 400,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000400",
+      "tag_type": "paragraph",
+      "content": "For example, for an `int`:",
+      "level": null,
+      "order": 401,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000401",
+      "tag_type": "paragraph",
+      "content": "item_id: int",
+      "level": null,
+      "order": 402,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000402",
+      "tag_type": "paragraph",
+      "content": "or for a more complex `Item` model:",
+      "level": null,
+      "order": 403,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000403",
+      "tag_type": "paragraph",
+      "content": "item: Item",
+      "level": null,
+      "order": 404,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000404",
+      "tag_type": "paragraph",
+      "content": "...and with that single declaration you get:",
+      "level": null,
+      "order": 405,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000405",
+      "tag_type": "list",
+      "content": "Editor support, including:",
+      "level": null,
+      "order": 406,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000406",
+      "tag_type": "list",
+      "content": "Completion.",
+      "level": null,
+      "order": 407,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000407",
+      "tag_type": "list",
+      "content": "Type checks.",
+      "level": null,
+      "order": 408,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000408",
+      "tag_type": "list",
+      "content": "Validation of data:",
+      "level": null,
+      "order": 409,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000409",
+      "tag_type": "list",
+      "content": "Automatic and clear errors when the data is invalid.",
+      "level": null,
+      "order": 410,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000410",
+      "tag_type": "list",
+      "content": "Validation even for deeply nested JSON objects.",
+      "level": null,
+      "order": 411,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000411",
+      "tag_type": "list",
+      "content": "Conversion of input data: coming from the network to Python data and types. Reading from:",
+      "level": null,
+      "order": 412,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000412",
+      "tag_type": "list",
+      "content": "JSON.",
+      "level": null,
+      "order": 413,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000413",
+      "tag_type": "list",
+      "content": "Path parameters.",
+      "level": null,
+      "order": 414,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000414",
+      "tag_type": "list",
+      "content": "Query parameters.",
+      "level": null,
+      "order": 415,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000415",
+      "tag_type": "list",
+      "content": "Cookies.",
+      "level": null,
+      "order": 416,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000416",
+      "tag_type": "list",
+      "content": "Headers.",
+      "level": null,
+      "order": 417,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000417",
+      "tag_type": "list",
+      "content": "Forms.",
+      "level": null,
+      "order": 418,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000418",
+      "tag_type": "list",
+      "content": "Files.",
+      "level": null,
+      "order": 419,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000419",
+      "tag_type": "list",
+      "content": "Conversion of output data: converting from Python data and types to network data (as JSON):",
+      "level": null,
+      "order": 420,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000420",
+      "tag_type": "list",
+      "content": "Convert Python types (`str`, `int`, `float`, `bool`, `list`, etc).",
+      "level": null,
+      "order": 421,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000421",
+      "tag_type": "list",
+      "content": "`datetime` objects.",
+      "level": null,
+      "order": 422,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000422",
+      "tag_type": "list",
+      "content": "`UUID` objects.",
+      "level": null,
+      "order": 423,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000423",
+      "tag_type": "list",
+      "content": "Database models.",
+      "level": null,
+      "order": 424,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000424",
+      "tag_type": "list",
+      "content": "...and many more.",
+      "level": null,
+      "order": 425,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000425",
+      "tag_type": "list",
+      "content": "Automatic interactive API documentation, including 2 alternative user interfaces:",
+      "level": null,
+      "order": 426,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000426",
+      "tag_type": "list",
+      "content": "Swagger UI.",
+      "level": null,
+      "order": 427,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000427",
+      "tag_type": "list",
+      "content": "ReDoc.",
+      "level": null,
+      "order": 428,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000428",
+      "tag_type": "paragraph",
+      "content": "Coming back to the previous code example, **FastAPI** will:",
+      "level": null,
+      "order": 429,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000429",
+      "tag_type": "list",
+      "content": "Validate that there is an `item_id` in the path for `GET` and `PUT` requests.",
+      "level": null,
+      "order": 430,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000430",
+      "tag_type": "list",
+      "content": "Validate that the `item_id` is of type `int` for `GET` and `PUT` requests.",
+      "level": null,
+      "order": 431,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000431",
+      "tag_type": "list",
+      "content": "If it is not, the client will see a useful, clear error.",
+      "level": null,
+      "order": 432,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000432",
+      "tag_type": "list",
+      "content": "Check if there is an optional query parameter named `q` (as in `http://127.0.0.1:8000/items/foo?q=somequery`) for `GET` requests.",
+      "level": null,
+      "order": 433,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000433",
+      "tag_type": "list",
+      "content": "As the `q` parameter is declared with `= None`, it is optional.",
+      "level": null,
+      "order": 434,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000434",
+      "tag_type": "list",
+      "content": "Without the `None` it would be required (as is the body in the case with `PUT`).",
+      "level": null,
+      "order": 435,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000435",
+      "tag_type": "list",
+      "content": "For `PUT` requests to `/items/{item_id}`, read the body as JSON:",
+      "level": null,
+      "order": 436,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000436",
+      "tag_type": "list",
+      "content": "Check that it has a required attribute `name` that should be a `str`.",
+      "level": null,
+      "order": 437,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000437",
+      "tag_type": "list",
+      "content": "Check that it has a required attribute `price` that has to be a `float`.",
+      "level": null,
+      "order": 438,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000438",
+      "tag_type": "list",
+      "content": "Check that it has an optional attribute `is_offer`, that should be a `bool`, if present.",
+      "level": null,
+      "order": 439,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000439",
+      "tag_type": "list",
+      "content": "All this would also work for deeply nested JSON objects.",
+      "level": null,
+      "order": 440,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000440",
+      "tag_type": "list",
+      "content": "Convert from and to JSON automatically.",
+      "level": null,
+      "order": 441,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000441",
+      "tag_type": "list",
+      "content": "Document everything with OpenAPI, that can be used by:",
+      "level": null,
+      "order": 442,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000442",
+      "tag_type": "list",
+      "content": "Interactive documentation systems.",
+      "level": null,
+      "order": 443,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000443",
+      "tag_type": "list",
+      "content": "Automatic client code generation systems, for many languages.",
+      "level": null,
+      "order": 444,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000444",
+      "tag_type": "list",
+      "content": "Provide 2 interactive documentation web interfaces directly.",
+      "level": null,
+      "order": 445,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000445",
+      "tag_type": "paragraph",
+      "content": "We just scratched the surface, but you already get the idea of how it all works.",
+      "level": null,
+      "order": 446,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000446",
+      "tag_type": "paragraph",
+      "content": "Try changing the line with:",
+      "level": null,
+      "order": 447,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000447",
+      "tag_type": "paragraph",
+      "content": "return {\"item_name\": item.name, \"item_id\": item_id}",
+      "level": null,
+      "order": 448,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000448",
+      "tag_type": "paragraph",
+      "content": "...from:",
+      "level": null,
+      "order": 449,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000449",
+      "tag_type": "paragraph",
+      "content": "... \"item_name\": item.name ...",
+      "level": null,
+      "order": 450,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000450",
+      "tag_type": "paragraph",
+      "content": "...to:",
+      "level": null,
+      "order": 451,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000451",
+      "tag_type": "paragraph",
+      "content": "... \"item_price\": item.price ...",
+      "level": null,
+      "order": 452,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000452",
+      "tag_type": "paragraph",
+      "content": "...and see how your editor will auto-complete the attributes and know their types:",
+      "level": null,
+      "order": 453,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000453",
+      "tag_type": "paragraph",
+      "content": "![editor support](https://fastapi.tiangolo.com/img/vscode-completion.png)",
+      "level": null,
+      "order": 454,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000454",
+      "tag_type": "paragraph",
+      "content": "For a more complete example including more features, see the [Tutorial - User Guide](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/tutorial/>).",
+      "level": null,
+      "order": 455,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000455",
+      "tag_type": "paragraph",
+      "content": "**Spoiler alert** : the tutorial - user guide includes:",
+      "level": null,
+      "order": 456,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000456",
+      "tag_type": "list",
+      "content": "Declaration of **parameters** from other different places as: **headers** , **cookies** , **form fields** and **files**.",
+      "level": null,
+      "order": 457,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000457",
+      "tag_type": "list",
+      "content": "How to set **validation constraints** as `maximum_length` or `regex`.",
+      "level": null,
+      "order": 458,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000458",
+      "tag_type": "list",
+      "content": "A very powerful and easy to use **Dependency Injection** system.",
+      "level": null,
+      "order": 459,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000459",
+      "tag_type": "list",
+      "content": "Security and authentication, including support for **OAuth2** with **JWT tokens** and **HTTP Basic** auth.",
+      "level": null,
+      "order": 460,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000460",
+      "tag_type": "list",
+      "content": "More advanced (but equally easy) techniques for declaring **deeply nested JSON models** (thanks to Pydantic).",
+      "level": null,
+      "order": 461,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000461",
+      "tag_type": "list",
+      "content": "**GraphQL** integration with [Strawberry](https://fastapi.tiangolo.com/<https:/strawberry.rocks>) and other libraries.",
+      "level": null,
+      "order": 462,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000462",
+      "tag_type": "list",
+      "content": "Many extra features (thanks to Starlette) as:",
+      "level": null,
+      "order": 463,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000463",
+      "tag_type": "list",
+      "content": "**WebSockets**",
+      "level": null,
+      "order": 464,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000464",
+      "tag_type": "list",
+      "content": "extremely easy tests based on HTTPX and `pytest`",
+      "level": null,
+      "order": 465,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000465",
+      "tag_type": "list",
+      "content": "**CORS**",
+      "level": null,
+      "order": 466,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000466",
+      "tag_type": "list",
+      "content": "**Cookie Sessions**",
+      "level": null,
+      "order": 467,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000467",
+      "tag_type": "list",
+      "content": "...and more.",
+      "level": null,
+      "order": 468,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000395"
+    },
+    {
+      "tag_id": "tag_000468",
+      "tag_type": "subsection",
+      "content": "Deploy your app (optional)[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#deploy-your-app-optional>)",
+      "level": 3,
+      "order": 469,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000469",
+      "tag_type": "paragraph",
+      "content": "You can optionally deploy your FastAPI app to [FastAPI Cloud](https://fastapi.tiangolo.com/<https:/fastapicloud.com>), go and join the waiting list if you haven't. 🚀",
+      "level": null,
+      "order": 470,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000470",
+      "tag_type": "paragraph",
+      "content": "If you already have a **FastAPI Cloud** account (we invited you from the waiting list 😉), you can deploy your application with one command.",
+      "level": null,
+      "order": 471,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000471",
+      "tag_type": "paragraph",
+      "content": "Before deploying, make sure you are logged in:",
+      "level": null,
+      "order": 472,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000472",
+      "tag_type": "paragraph",
+      "content": "fastapi login",
+      "level": null,
+      "order": 473,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000473",
+      "tag_type": "paragraph",
+      "content": "fast →[](https://fastapi.tiangolo.com/<javascript:void\\(0\\)>)fastapi loginYou are logged in to FastAPI Cloud 🚀restart ↻[](https://fastapi.tiangolo.com/<javascript:void\\(0\\)>)",
+      "level": null,
+      "order": 474,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000474",
+      "tag_type": "paragraph",
+      "content": "Then deploy your app:",
+      "level": null,
+      "order": 475,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000475",
+      "tag_type": "paragraph",
+      "content": "fastapi deploy",
+      "level": null,
+      "order": 476,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000476",
+      "tag_type": "paragraph",
+      "content": "fast →[](https://fastapi.tiangolo.com/<javascript:void\\(0\\)>)fastapi deployDeploying to FastAPI Cloud...✅ Deployment successful!🐔 Ready the chicken! Your app is ready at https://myapp.fastapicloud.devrestart ↻[](https://fastapi.tiangolo.com/<javascript:void\\(0\\)>)",
+      "level": null,
+      "order": 477,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000477",
+      "tag_type": "paragraph",
+      "content": "That's it! Now you can access your app at that URL. ✨",
+      "level": null,
+      "order": 478,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000478",
+      "tag_type": "paragraph",
+      "content": "#### About FastAPI Cloud[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#about-fastapi-cloud>)",
+      "level": null,
+      "order": 479,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000479",
+      "tag_type": "paragraph",
+      "content": "**[FastAPI Cloud](https://fastapi.tiangolo.com/<https:/fastapicloud.com>)** is built by the same author and team behind **FastAPI**.",
+      "level": null,
+      "order": 480,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000480",
+      "tag_type": "paragraph",
+      "content": "It streamlines the process of **building** , **deploying** , and **accessing** an API with minimal effort.",
+      "level": null,
+      "order": 481,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000481",
+      "tag_type": "paragraph",
+      "content": "It brings the same **developer experience** of building apps with FastAPI to **deploying** them to the cloud. 🎉",
+      "level": null,
+      "order": 482,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000482",
+      "tag_type": "paragraph",
+      "content": "FastAPI Cloud is the primary sponsor and funding provider for the _FastAPI and friends_ open source projects. ✨",
+      "level": null,
+      "order": 483,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000483",
+      "tag_type": "paragraph",
+      "content": "#### Deploy to other cloud providers[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#deploy-to-other-cloud-providers>)",
+      "level": null,
+      "order": 484,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000484",
+      "tag_type": "paragraph",
+      "content": "FastAPI is open source and based on standards. You can deploy FastAPI apps to any cloud provider you choose.",
+      "level": null,
+      "order": 485,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000485",
+      "tag_type": "paragraph",
+      "content": "Follow your cloud provider's guides to deploy FastAPI apps with them. 🤓",
+      "level": null,
+      "order": 486,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000468"
+    },
+    {
+      "tag_id": "tag_000486",
+      "tag_type": "section",
+      "content": "Performance[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#performance>)",
+      "level": 2,
+      "order": 487,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000487",
+      "tag_type": "paragraph",
+      "content": "Independent TechEmpower benchmarks show **FastAPI** applications running under Uvicorn as [one of the fastest Python frameworks available](https://fastapi.tiangolo.com/<https:/www.techempower.com/benchmarks/#section=test&runid=7464e520-0dc2-473d-bd34-dbdfd7e85911&hw=ph&test=query&l=zijzen-7>), only below Starlette and Uvicorn themselves (used internally by FastAPI). (*)",
+      "level": null,
+      "order": 488,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000486"
+    },
+    {
+      "tag_id": "tag_000488",
+      "tag_type": "paragraph",
+      "content": "To understand more about it, see the section [Benchmarks](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/benchmarks/>).",
+      "level": null,
+      "order": 489,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000486"
+    },
+    {
+      "tag_id": "tag_000489",
+      "tag_type": "section",
+      "content": "Dependencies[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#dependencies>)",
+      "level": 2,
+      "order": 490,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000490",
+      "tag_type": "paragraph",
+      "content": "FastAPI depends on Pydantic and Starlette.",
+      "level": null,
+      "order": 491,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000489"
+    },
+    {
+      "tag_id": "tag_000491",
+      "tag_type": "subsection",
+      "content": "`standard` Dependencies[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#standard-dependencies>)",
+      "level": 3,
+      "order": 492,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000492",
+      "tag_type": "paragraph",
+      "content": "When you install FastAPI with `pip install \"fastapi[standard]\"` it comes with the `standard` group of optional dependencies:",
+      "level": null,
+      "order": 493,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000491"
+    },
+    {
+      "tag_id": "tag_000493",
+      "tag_type": "paragraph",
+      "content": "Used by Pydantic:",
+      "level": null,
+      "order": 494,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000491"
+    },
+    {
+      "tag_id": "tag_000494",
+      "tag_type": "list",
+      "content": "`email-validator`[](https://fastapi.tiangolo.com/<https:/github.com/JoshData/python-email-validator>) - for email validation.",
+      "level": null,
+      "order": 495,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000491"
+    },
+    {
+      "tag_id": "tag_000495",
+      "tag_type": "paragraph",
+      "content": "Used by Starlette:",
+      "level": null,
+      "order": 496,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000491"
+    },
+    {
+      "tag_id": "tag_000496",
+      "tag_type": "list",
+      "content": "`httpx`[](https://fastapi.tiangolo.com/<https:/www.python-httpx.org>) - Required if you want to use the `TestClient`.",
+      "level": null,
+      "order": 497,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000491"
+    },
+    {
+      "tag_id": "tag_000497",
+      "tag_type": "list",
+      "content": "`jinja2`[](https://fastapi.tiangolo.com/<https:/jinja.palletsprojects.com>) - Required if you want to use the default template configuration.",
+      "level": null,
+      "order": 498,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000491"
+    },
+    {
+      "tag_id": "tag_000498",
+      "tag_type": "list",
+      "content": "`python-multipart`[](https://fastapi.tiangolo.com/<https:/github.com/Kludex/python-multipart>) - Required if you want to support form \"parsing\", with `request.form()`.",
+      "level": null,
+      "order": 499,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000491"
+    },
+    {
+      "tag_id": "tag_000499",
+      "tag_type": "paragraph",
+      "content": "Used by FastAPI:",
+      "level": null,
+      "order": 500,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000491"
+    },
+    {
+      "tag_id": "tag_000500",
+      "tag_type": "list",
+      "content": "`uvicorn`[](https://fastapi.tiangolo.com/<https:/www.uvicorn.dev>) - for the server that loads and serves your application. This includes `uvicorn[standard]`, which includes some dependencies (e.g. `uvloop`) needed for high performance serving.",
+      "level": null,
+      "order": 501,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000491"
+    },
+    {
+      "tag_id": "tag_000501",
+      "tag_type": "list",
+      "content": "`fastapi-cli[standard]` - to provide the `fastapi` command.",
+      "level": null,
+      "order": 502,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000491"
+    },
+    {
+      "tag_id": "tag_000502",
+      "tag_type": "list",
+      "content": "This includes `fastapi-cloud-cli`, which allows you to deploy your FastAPI application to [FastAPI Cloud](https://fastapi.tiangolo.com/<https:/fastapicloud.com>).",
+      "level": null,
+      "order": 503,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000491"
+    },
+    {
+      "tag_id": "tag_000503",
+      "tag_type": "subsection",
+      "content": "Without `standard` Dependencies[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#without-standard-dependencies>)",
+      "level": 3,
+      "order": 504,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000504",
+      "tag_type": "paragraph",
+      "content": "If you don't want to include the `standard` optional dependencies, you can install with `pip install fastapi` instead of `pip install \"fastapi[standard]\"`.",
+      "level": null,
+      "order": 505,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000503"
+    },
+    {
+      "tag_id": "tag_000505",
+      "tag_type": "subsection",
+      "content": "Without `fastapi-cloud-cli`[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#without-fastapi-cloud-cli>)",
+      "level": 3,
+      "order": 506,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000506",
+      "tag_type": "paragraph",
+      "content": "If you want to install FastAPI with the standard dependencies but without the `fastapi-cloud-cli`, you can install with `pip install \"fastapi[standard-no-fastapi-cloud-cli]\"`.",
+      "level": null,
+      "order": 507,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000505"
+    },
+    {
+      "tag_id": "tag_000507",
+      "tag_type": "subsection",
+      "content": "Additional Optional Dependencies[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#additional-optional-dependencies>)",
+      "level": 3,
+      "order": 508,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000508",
+      "tag_type": "paragraph",
+      "content": "There are some additional dependencies you might want to install.",
+      "level": null,
+      "order": 509,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000507"
+    },
+    {
+      "tag_id": "tag_000509",
+      "tag_type": "paragraph",
+      "content": "Additional optional Pydantic dependencies:",
+      "level": null,
+      "order": 510,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000507"
+    },
+    {
+      "tag_id": "tag_000510",
+      "tag_type": "list",
+      "content": "`pydantic-settings`[](https://fastapi.tiangolo.com/<https:/docs.pydantic.dev/latest/usage/pydantic_settings/>) - for settings management.",
+      "level": null,
+      "order": 511,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000507"
+    },
+    {
+      "tag_id": "tag_000511",
+      "tag_type": "list",
+      "content": "`pydantic-extra-types`[](https://fastapi.tiangolo.com/<https:/docs.pydantic.dev/latest/usage/types/extra_types/extra_types/>) - for extra types to be used with Pydantic.",
+      "level": null,
+      "order": 512,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000507"
+    },
+    {
+      "tag_id": "tag_000512",
+      "tag_type": "paragraph",
+      "content": "Additional optional FastAPI dependencies:",
+      "level": null,
+      "order": 513,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000507"
+    },
+    {
+      "tag_id": "tag_000513",
+      "tag_type": "list",
+      "content": "`orjson`[](https://fastapi.tiangolo.com/<https:/github.com/ijl/orjson>) - Required if you want to use `ORJSONResponse`.",
+      "level": null,
+      "order": 514,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000507"
+    },
+    {
+      "tag_id": "tag_000514",
+      "tag_type": "list",
+      "content": "`ujson`[](https://fastapi.tiangolo.com/<https:/github.com/esnme/ultrajson>) - Required if you want to use `UJSONResponse`.",
+      "level": null,
+      "order": 515,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000507"
+    },
+    {
+      "tag_id": "tag_000515",
+      "tag_type": "section",
+      "content": "License[¶](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/#license>)",
+      "level": 2,
+      "order": 516,
+      "children_ids": [],
+      "metadata": {}
+    },
+    {
+      "tag_id": "tag_000516",
+      "tag_type": "paragraph",
+      "content": "This project is licensed under the terms of the MIT license.",
+      "level": null,
+      "order": 517,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000515"
+    },
+    {
+      "tag_id": "tag_000517",
+      "tag_type": "paragraph",
+      "content": "Back to top  [ Next  Features  ](https://fastapi.tiangolo.com/<https:/fastapi.tiangolo.com/features/>)",
+      "level": null,
+      "order": 518,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000515"
+    },
+    {
+      "tag_id": "tag_000518",
+      "tag_type": "paragraph",
+      "content": "The FastAPI trademark is owned by [@tiangolo](https://fastapi.tiangolo.com/<https:/tiangolo.com>) and is registered in the US and across other regions",
+      "level": null,
+      "order": 519,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000515"
+    },
+    {
+      "tag_id": "tag_000519",
+      "tag_type": "paragraph",
+      "content": "Made with [ Material for MkDocs ](https://fastapi.tiangolo.com/<https:/squidfunk.github.io/mkdocs-material/>)",
+      "level": null,
+      "order": 520,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000515"
+    },
+    {
+      "tag_id": "tag_000520",
+      "tag_type": "paragraph",
+      "content": "[ ](https://fastapi.tiangolo.com/<https:/github.com/fastapi/fastapi> \"github.com\") [ ](https://fastapi.tiangolo.com/<https:/discord.gg/VQjSZaeJmf> \"discord.gg\") [ ](https://fastapi.tiangolo.com/<https:/x.com/fastapi> \"x.com\") [ ](https://fastapi.tiangolo.com/<https:/www.linkedin.com/company/fastapi> \"www.linkedin.com\") [ ](https://fastapi.tiangolo.com/<https:/tiangolo.com> \"tiangolo.com\")",
+      "level": null,
+      "order": 521,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000515"
+    },
+    {
+      "tag_id": "tag_000521",
+      "tag_type": "paragraph",
+      "content": "*[CLI]: Command Line Interface",
+      "level": null,
+      "order": 522,
+      "children_ids": [],
+      "metadata": {},
+      "parent_id": "tag_000515"
+    }
+  ],
+  "metadata": {
+    "crawled_at": "2026-02-23T10:33:08.202100",
+    "http_status": 200,
+    "domain": "fastapi.tiangolo.com",
+    "total_links": 258
+  }
+}

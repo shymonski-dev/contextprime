@@ -1,0 +1,24 @@
+{
+  "doc_id": "web_9980c588c4f09889",
+  "title": "Just a moment...",
+  "source_type": "web",
+  "source_url": "https://www.w3.org/standards/",
+  "created_at": "2026-02-23T10:32:58.459187",
+  "tags": [
+    {
+      "tag_id": "tag_000000",
+      "tag_type": "document",
+      "content": "Just a moment...",
+      "level": 0,
+      "order": 1,
+      "children_ids": [],
+      "metadata": {}
+    }
+  ],
+  "metadata": {
+    "crawled_at": "2026-02-23T10:32:58.373906",
+    "http_status": 200,
+    "domain": "www.w3.org",
+    "total_links": 0
+  }
+}
