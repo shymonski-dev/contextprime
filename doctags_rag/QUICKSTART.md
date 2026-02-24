@@ -377,6 +377,79 @@ refs = extract_cross_references(
 # refs → [CrossRef(ref_type='article', target_label='article_17(3)', ...)]
 ```
 
+## Web Ingestion
+
+Crawl a live URL and index it into the knowledge base directly (no local files needed).
+
+### Prerequisites
+
+```bash
+pip install -r requirements.txt
+playwright install chromium
+```
+
+### Ingest a URL
+
+```python
+import asyncio
+from src.pipelines.web_ingestion import WebIngestionPipeline
+
+async def main():
+    pipeline = WebIngestionPipeline()
+    report = await pipeline.ingest_url("https://example.com/")
+    print(f"Chunks ingested: {report.chunks_ingested}")
+    pipeline.close()
+
+asyncio.run(main())
+```
+
+### Query Ingested Web Content
+
+```python
+import asyncio
+from src.agents.agentic_pipeline import AgenticPipeline
+from src.retrieval.hybrid_retriever import HybridRetriever
+from src.retrieval.qdrant_manager import QdrantManager
+from src.core.config import QdrantConfig
+
+async def main():
+    qdrant_cfg = QdrantConfig(host="localhost", port=6333, collection_name="web_kb")
+    retriever = HybridRetriever(
+        qdrant_manager=QdrantManager(config=qdrant_cfg),
+        vector_weight=1.0,
+        graph_weight=0.0,
+    )
+    pipeline = AgenticPipeline(
+        retrieval_pipeline=retriever,
+        enable_synthesis=True,   # requires OPENAI_API_KEY
+    )
+    result = await pipeline.process_query("What services does the site offer?")
+    print(result.answer)
+
+asyncio.run(main())
+```
+
+### Agentic On-Demand Crawl
+
+If a query contains a URL, the planning agent inserts an automatic web ingestion step before retrieval:
+
+```python
+result = await pipeline.process_query(
+    "Summarise the content at https://example.com/news/article"
+)
+```
+
+The agent crawls the URL, indexes it, then retrieves and synthesises the answer — all in one call.
+
+### API Endpoint
+
+```bash
+curl -X POST http://localhost:8000/api/documents/web \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com/"}'
+# {"status": "ok", "chunks_ingested": 42, "failed": []}
+```
+
 ## Next Steps
 
 1. ✓ Install dependencies: `pip install -r requirements.txt`
@@ -384,6 +457,7 @@ refs = extract_cross_references(
 3. ✓ Try demo: `python scripts/demo_processing.py`
 4. ✓ Process your documents: Use examples above
 5. ✓ Integrate with RAG: Feed chunks to Qdrant + Neo4j
+6. ✓ Ingest websites: Use `WebIngestionPipeline` (see above)
 
 ## Full Documentation
 

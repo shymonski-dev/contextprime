@@ -81,13 +81,14 @@ Reliable action execution with error handling:
 - Summarization tasks
 - Community analysis
 - RAPTOR hierarchical queries
+- **Web ingestion** (`WEB_INGESTION` step type) — triggers `WebIngestionPipeline.ingest_url()`
 - Automatic retry with exponential backoff
 
 **Features:**
 - Progress monitoring
 - Confidence scoring
 - Provenance tracking
-- Graceful degradation
+- Graceful degradation: unconfigured or failed pipelines return `[]` (no simulated data)
 
 ### 4. Evaluation Agent (`evaluation_agent.py`)
 
@@ -260,6 +261,31 @@ print(f"Quality: {result.assessment.overall_score:.2f}")
 print(f"Answer: {result.answer}")
 ```
 
+### With LLM Synthesis Enabled
+
+Pass `enable_synthesis=True` to activate GPT answer generation without needing the
+`DOCTAGS_ENABLE_AGENTIC_SYNTHESIS` environment variable. The pipeline reads
+`OPENAI_API_KEY` automatically.
+
+```python
+from src.retrieval.hybrid_retriever import HybridRetriever
+from src.retrieval.qdrant_manager import QdrantManager
+from src.core.config import QdrantConfig
+
+qdrant_cfg = QdrantConfig(host="localhost", port=6333, collection_name="my_kb")
+retriever = HybridRetriever(
+    qdrant_manager=QdrantManager(config=qdrant_cfg),
+    vector_weight=1.0,
+    graph_weight=0.0,
+)
+pipeline = AgenticPipeline(
+    retrieval_pipeline=retriever,
+    enable_synthesis=True,   # reads OPENAI_API_KEY; forces synthesis on
+)
+result = await pipeline.process_query("What safety rules apply to the Acme Widget?")
+print(result.answer)
+```
+
 ### With Custom Components
 
 ```python
@@ -323,7 +349,9 @@ pipeline = AgenticPipeline(
     retrieval_pipeline=retrieval_pipeline,
     graph_queries=graph_queries,
     raptor_pipeline=raptor_pipeline,
-    community_pipeline=community_pipeline
+    community_pipeline=community_pipeline,
+    web_pipeline=web_pipeline,       # Optional; auto-instantiated if crawl4ai is installed
+    enable_synthesis=True,           # Force LLM synthesis on (reads OPENAI_API_KEY)
 )
 ```
 
@@ -356,21 +384,37 @@ learner = LearningAgent(
 
 ## Testing
 
-Run comprehensive test suite:
+### Tier 1 — Unit tests (always, no Docker required)
 
 ```bash
-# All tests
+# Core agent tests
 pytest tests/test_agents.py -v
 
-# Specific test class
-pytest tests/test_agents.py::TestPlanningAgent -v
+# Web-wiring and dependency ordering
+pytest tests/test_agentic_web_wiring.py -v
 
-# Benchmarks
-pytest tests/test_agents.py -m benchmark -v
+# Specific class
+pytest tests/test_agents.py::TestPlanningAgent -v
 
 # With coverage
 pytest tests/test_agents.py --cov=src/agents --cov-report=html
 ```
+
+### Tier 2 — Integration tests (requires Docker: Qdrant + Neo4j, and Playwright)
+
+```bash
+pytest tests/integration/test_full_e2e.py -v -m integration
+```
+
+Runs a full ingest → retrieve → synthesise pipeline against a local test HTML page. Skipped automatically if `OPENAI_API_KEY` is absent.
+
+### Tier 3 — Real-web smoke test (requires live internet + Docker + OPENAI_API_KEY)
+
+```bash
+pytest tests/integration/test_real_web.py -v -m real_web
+```
+
+Crawls a live public website and verifies grounded factual answers from the agentic pipeline.
 
 ## Demo
 
