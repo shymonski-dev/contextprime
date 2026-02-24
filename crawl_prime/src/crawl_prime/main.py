@@ -10,7 +10,7 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "doctags_rag"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "doctags_rag"))
 
 from src.processing.web.crawler import WebCrawler
 from src.processing.web.mapper import WebDocTagsMapper

@@ -1655,6 +1655,30 @@
       "created_at": "2026-02-24T14:52:47.540245",
       "last_accessed": "2026-02-24T14:52:47.540245",
       "metadata": {}
+    },
+    {
+      "entry_id": "ltm_138",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-24T15:02:53.288423",
+      "last_accessed": "2026-02-24T15:02:53.288424",
+      "metadata": {}
+    },
+    {
+      "entry_id": "promoted_139",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-24T15:02:53.290447",
+      "last_accessed": "2026-02-24T15:02:53.290447",
+      "metadata": {}
     }
   ]
 }

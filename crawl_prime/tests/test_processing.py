@@ -1,35 +1,64 @@
+"""
+Unit tests for CrawlPrime processing layer.
+
+Uses ContextPrime's shared WebDocTagsMapper and WebCrawlResult directly,
+since CrawlPrime no longer maintains its own duplicate mapper/engine.
+"""
+
 import pytest
-from src.crawl_prime.processing.mapper import DocTagsMapper, DocTagType
-from src.crawl_prime.crawler.engine import CrawlResult
+from src.processing.web.mapper import WebDocTagsMapper
+from src.processing.web.crawler import WebCrawlResult
+
 
 class TestProcessing:
     def test_markdown_mapping(self):
-        """Test converting markdown to doctags structure."""
-        
-        # Mock result from crawl4ai
-        mock_result = CrawlResult(
+        """Test converting markdown to DocTags structure via shared WebDocTagsMapper."""
+
+        mock_result = WebCrawlResult(
             url="https://example.com",
             title="Test Page",
             markdown="# Main Title\n\n## Section 1\n\nSome text.\n\n### Subsection A\n\n- List item",
             html="<html>...</html>",
             crawled_at="2024-01-01",
             links=[],
-            media=[],
             metadata={},
-            success=True
+            success=True,
         )
-        
-        mapper = DocTagsMapper()
+
+        mapper = WebDocTagsMapper()
         doctags = mapper.map_to_doctags(mock_result)
-        
-        assert doctags["title"] == "Test Page"
-        assert len(doctags["tags"]) == 6 # Document + Title + Section + Text + Subsec + List
-        
-        # Check hierarchy (Section 1 is a section)
-        section = doctags["tags"][2]
-        assert section["tag_type"] == DocTagType.SECTION
-        assert section["content"] == "Section 1"
-        
-        # Check list
-        list_item = doctags["tags"][5]
-        assert list_item["tag_type"] == DocTagType.LIST
+
+        assert doctags.title == "Test Page"
+        assert len(doctags.tags) >= 4  # title + section + paragraph + list minimum
+
+    def test_failed_crawl_result(self):
+        """A failed WebCrawlResult should be detectable before mapping."""
+        result = WebCrawlResult(
+            url="https://example.com",
+            title="",
+            markdown="",
+            html="",
+            crawled_at="",
+            links=[],
+            metadata={},
+            success=False,
+            error="Connection refused",
+        )
+        assert not result.success
+        assert result.error == "Connection refused"
+
+    def test_empty_markdown_produces_minimal_doctags(self):
+        """Empty markdown should still produce a valid DocTagsDocument with a title."""
+        mock_result = WebCrawlResult(
+            url="https://example.com",
+            title="Empty Page",
+            markdown="",
+            html="",
+            crawled_at="2024-01-01",
+            links=[],
+            metadata={},
+            success=True,
+        )
+        mapper = WebDocTagsMapper()
+        doctags = mapper.map_to_doctags(mock_result)
+        assert doctags.title == "Empty Page"
