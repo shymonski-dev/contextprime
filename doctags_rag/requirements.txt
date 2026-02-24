@@ -88,7 +88,7 @@ flake8==7.0.0
 mypy==1.8.0
 pre-commit==3.6.0
 
-# Web Crawling (ContextWeb)
-crawl4ai>=0.8.0,<0.9.0
-playwright==1.49.1
+# Web Crawling utilities (shared with CrawlPrime — install crawl4ai in CrawlPrime's venv)
+# crawl4ai and playwright are NOT required to run ContextPrime document RAG.
+# Install them only if you import src/processing/web directly.
 python-slugify==8.0.1

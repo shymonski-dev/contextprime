@@ -114,30 +114,3 @@ async def document_details(document_id: str) -> DocumentDetailResponse:
     )
 
 
-class WebIngestRequest(BaseModel):
-    url: str
-    legal_metadata: Optional[dict] = None
-
-
-@router.post("/web", summary="Ingest a URL into the knowledge base")
-async def ingest_web_url(request: WebIngestRequest):
-    """Crawl a URL and ingest its content into the knowledge base."""
-    try:
-        from src.pipelines.web_ingestion import WebIngestionPipeline
-        from src.core.config import LegalMetadataConfig
-    except ImportError as exc:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Web ingestion unavailable: missing dependency ({exc})",
-        )
-    try:
-        pipeline = WebIngestionPipeline()
-        legal = LegalMetadataConfig(**request.legal_metadata) if request.legal_metadata else None
-        report = await pipeline.ingest_url(request.url, legal_metadata=legal)
-        return {
-            "status": "ok",
-            "chunks_ingested": report.chunks_ingested,
-            "failed": report.failed_documents,
-        }
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))

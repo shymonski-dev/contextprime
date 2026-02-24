@@ -32,9 +32,6 @@ try:
 except Exception:  # pragma: no cover - optional in unit tests
     get_settings = None  # type: ignore[assignment]
 
-_URL_RE = re.compile(r'https?://\S+')
-
-
 class StepType(Enum):
     """Types of plan steps."""
     RETRIEVAL = "retrieval"
@@ -44,7 +41,6 @@ class StepType(Enum):
     RAPTOR_QUERY = "raptor_query"
     RERANKING = "reranking"
     SYNTHESIS = "synthesis"
-    WEB_INGESTION = "web_ingestion"
 
 
 class ExecutionMode(Enum):
@@ -635,25 +631,9 @@ class PlanningAgent(BaseAgent):
         steps = []
         step_counter = 0
 
-        # Web ingestion step — insert first if query contains a URL
-        web_step_id: Optional[str] = None
-        url_match = _URL_RE.search(query)
-        if url_match:
-            web_step_id = f"step_{step_counter}"
-            steps.append(PlanStep(
-                step_id=web_step_id,
-                step_type=StepType.WEB_INGESTION,
-                description=f"Ingest web content from {url_match.group()}",
-                parameters={"url": url_match.group()},
-                dependencies=[],
-                execution_mode=ExecutionMode.SEQUENTIAL,
-            ))
-            step_counter += 1
-
         # Track the first retrieval step ID so downstream steps (graph, RAPTOR, community)
-        # can depend on retrieval completing — not on web ingestion.
+        # can depend on retrieval completing.
         first_retrieval_step_id = f"step_{step_counter}"
-        retrieval_deps = [web_step_id] if web_step_id else []
 
         # Initial retrieval steps
         if sub_queries:
@@ -668,7 +648,7 @@ class PlanningAgent(BaseAgent):
                         "strategy": strategy,
                         "top_k": 10
                     },
-                    dependencies=retrieval_deps,
+                    dependencies=[],
                     execution_mode=ExecutionMode.PARALLEL,
                     estimated_time_ms=500.0,
                     estimated_cost=0.01
@@ -686,7 +666,7 @@ class PlanningAgent(BaseAgent):
                     "strategy": strategy,
                     "top_k": 10
                 },
-                dependencies=retrieval_deps,
+                dependencies=[],
                 execution_mode=ExecutionMode.SEQUENTIAL,
                 estimated_time_ms=500.0,
                 estimated_cost=0.01
