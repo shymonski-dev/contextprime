@@ -83,7 +83,7 @@ class WebCrawler:
         try:
             # crawl4ai 0.8.x pattern: BrowserConfig + CrawlerRunConfig
             run_cfg = CrawlerRunConfig()
-            async with AsyncWebCrawler(browser_config=self._browser_config) as crawler:
+            async with AsyncWebCrawler(config=self._browser_config) as crawler:
                 result = await crawler.arun(url=url, config=run_cfg)
                 
                 if not result.success:
