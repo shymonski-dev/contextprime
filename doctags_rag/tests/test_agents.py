@@ -190,7 +190,12 @@ class TestExecutionAgent:
 
     @pytest.mark.asyncio
     async def test_step_execution(self):
-        """Test executing a single step."""
+        """Test executing a single step without a configured retrieval pipeline.
+
+        With simulation removed, an unconfigured executor returns 0 results but
+        still succeeds — the step itself did not error, there is simply nothing
+        to retrieve.
+        """
         executor = ExecutionAgent()
 
         from src.agents.planning_agent import PlanStep, StepType
@@ -206,7 +211,8 @@ class TestExecutionAgent:
 
         assert result.success
         assert result.step_id == "test_step"
-        assert len(result.results) > 0
+        # No retrieval pipeline configured — honest empty result, not simulated content
+        assert result.results == []
 
     @pytest.mark.asyncio
     async def test_retry_logic(self):

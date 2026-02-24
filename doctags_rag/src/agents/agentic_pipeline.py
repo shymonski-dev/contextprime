@@ -97,7 +97,8 @@ class AgenticPipeline:
         web_pipeline: Optional[Any] = None,
         mode: AgenticMode = AgenticMode.STANDARD,
         enable_learning: bool = True,
-        storage_path: Optional[Path] = None
+        storage_path: Optional[Path] = None,
+        enable_synthesis: bool = False,
     ):
         """
         Initialize agentic pipeline.
@@ -110,6 +111,8 @@ class AgenticPipeline:
             mode: Operating mode
             enable_learning: Enable reinforcement learning
             storage_path: Path for persistent storage
+            enable_synthesis: Force LLM answer synthesis on regardless of env var.
+                              Requires OPENAI_API_KEY to be set.
         """
         self.mode = mode
         self.enable_learning = enable_learning
@@ -190,9 +193,25 @@ class AgenticPipeline:
         self._llm_answer_client = None
         self._initialize_answer_generator()
 
+        # Constructor-level override: force synthesis on even if env var is unset.
+        if enable_synthesis and not self._llm_synthesis_enabled:
+            self._llm_synthesis_enabled = True
+            if self._llm_answer_client is None and OpenAI is not None:
+                try:
+                    api_key = str(os.getenv("OPENAI_API_KEY", "")).strip()
+                    if api_key:
+                        self._llm_answer_client = OpenAI(
+                            api_key=api_key,
+                            timeout=30.0,
+                            max_retries=0,
+                        )
+                except Exception as err:
+                    logger.warning(f"enable_synthesis=True but client init failed: {err}")
+                    self._llm_synthesis_enabled = False
+
         logger.info(
             f"Agentic pipeline initialized in {mode.value} mode "
-            f"(learning: {enable_learning})"
+            f"(learning: {enable_learning}, synthesis: {self._llm_synthesis_enabled})"
         )
 
     def _initialize_answer_generator(self) -> None:
