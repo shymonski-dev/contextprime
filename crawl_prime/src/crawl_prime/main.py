@@ -1,16 +1,20 @@
 """
 CLI Entry point for CrawlPrime.
+
+Delegates to the shared web modules in doctags_rag to avoid code duplication.
 """
 
 import asyncio
 import argparse
 import json
-import os
+import sys
 from pathlib import Path
-from loguru import logger
 
-from .crawler.engine import WebCrawlerEngine
-from .processing.mapper import DocTagsMapper
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "doctags_rag"))
+
+from src.processing.web.crawler import WebCrawler
+from src.processing.web.mapper import WebDocTagsMapper
+
 
 async def main():
     parser = argparse.ArgumentParser(description="CrawlPrime: Web to DocTags Crawler")
@@ -18,34 +22,27 @@ async def main():
     parser.add_argument("--output", default="data/output", help="Output directory")
     args = parser.parse_args()
 
-    # Ensure output dir exists
-    output_dir = Path(args.output)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    Path(args.output).mkdir(parents=True, exist_ok=True)
 
-    # 1. Crawl
-    logger.info(f"Crawling {args.url}...")
-    crawler = WebCrawlerEngine()
+    crawler = WebCrawler()
     result = await crawler.crawl_url(args.url)
-
     if not result.success:
-        logger.error(f"Crawl failed: {result.error}")
+        print(f"Crawl failed: {result.error}")
         return
 
-    # 2. Map
-    logger.info("Mapping to DocTags format...")
-    mapper = DocTagsMapper()
+    mapper = WebDocTagsMapper()
     doctags = mapper.map_to_doctags(result)
 
-    # 3. Save
-    safe_filename = "".join(x for x in result.title if x.isalnum() or x in "._- ") or "doc"
-    filename = f"{safe_filename[:50]}.json"
-    output_path = output_dir / filename
+    safe = "".join(x for x in result.title if x.isalnum() or x in "._- ") or "doc"
+    out = Path(args.output) / f"{safe[:50]}.json"
+    out.write_text(
+        json.dumps(
+            doctags.__dict__ if hasattr(doctags, "__dict__") else str(doctags),
+            indent=2,
+        )
+    )
+    print(f"Saved to {out}")
 
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(doctags, f, indent=2, ensure_ascii=False)
-
-    logger.success(f"Saved structured output to {output_path}")
-    logger.info(f"Total Tags: {len(doctags['tags'])}")
 
 if __name__ == "__main__":
     asyncio.run(main())

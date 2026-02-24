@@ -525,3 +525,10 @@ def get_settings() -> Settings:
             if _settings is None:
                 _settings = Settings.load_from_yaml()
     return _settings
+
+
+def reset_settings() -> None:
+    """Reset the cached settings singleton. Intended for testing only."""
+    global _settings
+    with _settings_lock:
+        _settings = None

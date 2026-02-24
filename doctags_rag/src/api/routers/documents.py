@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
 from fastapi.concurrency import run_in_threadpool
+from pydantic import BaseModel
 
 from src.core.config import get_settings
 
@@ -111,3 +112,32 @@ async def document_details(document_id: str) -> DocumentDetailResponse:
         doctags=stored.doctags,
         message=stored.message,
     )
+
+
+class WebIngestRequest(BaseModel):
+    url: str
+    legal_metadata: Optional[dict] = None
+
+
+@router.post("/web", summary="Ingest a URL into the knowledge base")
+async def ingest_web_url(request: WebIngestRequest):
+    """Crawl a URL and ingest its content into the knowledge base."""
+    try:
+        from src.pipelines.web_ingestion import WebIngestionPipeline
+        from src.core.config import LegalMetadataConfig
+    except ImportError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Web ingestion unavailable: missing dependency ({exc})",
+        )
+    try:
+        pipeline = WebIngestionPipeline()
+        legal = LegalMetadataConfig(**request.legal_metadata) if request.legal_metadata else None
+        report = await pipeline.ingest_url(request.url, legal_metadata=legal)
+        return {
+            "status": "ok",
+            "chunks_ingested": report.chunks_ingested,
+            "failed": report.failed_documents,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))

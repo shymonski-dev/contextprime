@@ -37,6 +37,7 @@ from ..core.config import get_settings
 from ..core.safety_guard import PromptInjectionGuard
 from ..retrieval.hybrid_retriever import HybridRetriever, SearchStrategy as HybridSearchStrategy
 from ..embeddings import OpenAIEmbeddingModel
+from ..pipelines.web_ingestion import WebIngestionPipeline
 
 
 class AgenticMode(Enum):
@@ -93,6 +94,7 @@ class AgenticPipeline:
         graph_queries: Optional[Any] = None,
         raptor_pipeline: Optional[Any] = None,
         community_pipeline: Optional[Any] = None,
+        web_pipeline: Optional[Any] = None,
         mode: AgenticMode = AgenticMode.STANDARD,
         enable_learning: bool = True,
         storage_path: Optional[Path] = None
@@ -133,6 +135,13 @@ class AgenticPipeline:
                 logger.warning(f"Embedding model unavailable: {err}")
                 embedding_model = None
 
+        if web_pipeline is None:
+            try:
+                web_pipeline = WebIngestionPipeline()
+            except Exception as err:
+                logger.warning(f"Web ingestion pipeline unavailable: {err}")
+                web_pipeline = None
+
         # Initialize agents
         self.planner = PlanningAgent()
         self.executor = ExecutionAgent(
@@ -141,6 +150,7 @@ class AgenticPipeline:
             raptor_pipeline=raptor_pipeline,
             community_pipeline=community_pipeline,
             embedding_model=embedding_model,
+            web_pipeline=web_pipeline,
         )
         self.evaluator = EvaluationAgent()
         self.learner = LearningAgent(

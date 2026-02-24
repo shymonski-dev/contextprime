@@ -7,6 +7,7 @@ Reuses the core DocumentIngestionPipeline logic for storage (Qdrant/Neo4j).
 
 from __future__ import annotations
 
+import asyncio
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -132,9 +133,10 @@ class WebIngestionPipeline:
         # We delegate this to the synchronous storage pipeline.
         # Since ingest_processing_results is CPU-bound (embeddings) or I/O bound (DB),
         # and not async, we call it directly. Ideally, we'd run this in a thread if blocking.
-        report = self.storage_pipeline.ingest_processing_results(
-            [processing_result], 
-            legal_metadata=legal_metadata
+        report = await asyncio.to_thread(
+            self.storage_pipeline.ingest_processing_results,
+            [processing_result],
+            legal_metadata=legal_metadata,
         )
         
         return report

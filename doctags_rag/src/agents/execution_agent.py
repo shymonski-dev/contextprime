@@ -12,7 +12,7 @@ The execution agent:
 
 import time
 import asyncio
-from typing import Dict, List, Any, Optional, Callable
+from typing import Dict, List, Any, Optional, Callable, Set
 from dataclasses import dataclass, field
 from datetime import datetime
 from loguru import logger
@@ -210,14 +210,10 @@ class ExecutionAgent(BaseAgent):
                 results = await self._execute_reranking(step.parameters)
             elif step.step_type == StepType.SYNTHESIS:
                 results = await self._execute_synthesis(step.parameters)
-            elif step.step_type.value == "web_ingestion": # Handle custom/string types if needed
+            elif step.step_type == StepType.WEB_INGESTION:
                 results = await self._execute_web_ingestion(step.parameters)
             else:
-                # Fallback for dynamic types
-                if step.step_type.value == "web_ingestion":
-                     results = await self._execute_web_ingestion(step.parameters)
-                else:
-                     raise ValueError(f"Unknown step type: {step.step_type}")
+                raise ValueError(f"Unknown step type: {step.step_type}")
 
             # Calculate confidence
             confidence = self._calculate_confidence(results)
