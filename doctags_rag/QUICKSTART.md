@@ -1,9 +1,14 @@
-# DocTags Processing Pipeline - Quick Start Guide
+# ContextPrime — Quick Start Guide
 
 ## Installation
 
 ```bash
 cd doctags_rag
+
+# Option A — install as package (importable as `import contextprime`)
+pip install -e .
+
+# Option B — install from requirements
 pip install -r requirements.txt
 ```
 
@@ -12,7 +17,7 @@ pip install -r requirements.txt
 ### Process a Single Document
 
 ```python
-from src.processing import create_pipeline
+from contextprime.processing import create_pipeline
 
 # Create pipeline
 pipeline = create_pipeline(
@@ -52,7 +57,7 @@ print(f"Processed {successful}/{len(files)} files")
 ### Save Outputs
 
 ```python
-from src.processing import PipelineConfig, DocumentProcessingPipeline
+from contextprime.processing import PipelineConfig, DocumentProcessingPipeline
 from pathlib import Path
 
 # Configure with output saving
@@ -78,7 +83,7 @@ result = pipeline.process_file("document.pdf")
 ## Output Formats
 
 ```python
-from src.processing import DocTagsConverter
+from contextprime.processing import DocTagsConverter
 
 # Get DocTags document
 doctags = result.doctags_doc
@@ -95,7 +100,7 @@ doctags.save_json(Path("output.json"))
 ## Configuration Options
 
 ```python
-from src.processing import PipelineConfig
+from contextprime.processing import PipelineConfig
 
 config = PipelineConfig(
     # Chunking
@@ -212,14 +217,17 @@ print(f"Avg time: {stats['avg_processing_time']:.2f}s")
 ## Testing
 
 ```bash
-# Run all tests
-pytest tests/test_processing.py -v
+# Unit tests (no Docker needed)
+venv/bin/python -m pytest tests/ --ignore=tests/integration -v
 
-# Run specific test
-pytest tests/test_processing.py::TestDocumentParser -v
+# Integration tests (requires Docker — Qdrant + Neo4j)
+venv/bin/python -m pytest tests/ -m integration -v
+
+# Real-web smoke test (requires live internet + Docker + OPENAI_API_KEY)
+venv/bin/python -m pytest tests/ -m real_web -v
 
 # Run with coverage
-pytest tests/test_processing.py --cov=src.processing
+venv/bin/python -m pytest tests/ --ignore=tests/integration --cov=contextprime
 ```
 
 ## Demo Scripts
@@ -247,7 +255,7 @@ results = pipeline.process_directory(
 ### Streaming Large Files
 
 ```python
-from src.processing import StreamingPipeline
+from contextprime.processing import StreamingPipeline
 
 streaming = StreamingPipeline(config)
 
@@ -264,7 +272,7 @@ streaming.process_file_streaming(
 ### Custom Chunking
 
 ```python
-from src.processing import StructurePreservingChunker
+from contextprime.processing import StructurePreservingChunker
 
 # Custom chunker
 chunker = StructurePreservingChunker(
@@ -308,7 +316,7 @@ pip install pdfplumber
 config.max_workers = 2
 
 # Use streaming for large files
-from src.processing import StreamingPipeline
+from contextprime.processing import StreamingPipeline
 streaming = StreamingPipeline(config)
 ```
 
@@ -340,8 +348,8 @@ Attach regulatory lifecycle metadata at ingestion time. The fields are stored in
 
 ```python
 from pathlib import Path
-from src.core.config import LegalMetadataConfig
-from src.pipelines import DocumentIngestionPipeline
+from contextprime.core.config import LegalMetadataConfig
+from contextprime.pipelines import DocumentIngestionPipeline
 
 pipeline = DocumentIngestionPipeline()
 
@@ -367,7 +375,7 @@ pipeline.close()
 During ingestion the pipeline automatically extracts legal cross-references from chunk text (e.g. `"pursuant to Article 6"`, `"subject to Schedule 2"`) and stores them as `(:Chunk)-[:REFERENCES]->(:Chunk)` edges in Neo4j. These edges can be traversed in graph queries to follow regulatory citations across a document corpus.
 
 ```python
-from src.processing.cross_reference_extractor import extract_cross_references
+from contextprime.processing.cross_reference_extractor import extract_cross_references
 
 refs = extract_cross_references(
     chunk_id="gdpr_chunk_0042",
@@ -392,7 +400,7 @@ playwright install chromium
 
 ```python
 import asyncio
-from src.pipelines.web_ingestion import WebIngestionPipeline
+from contextprime.pipelines.web_ingestion import WebIngestionPipeline
 
 async def main():
     pipeline = WebIngestionPipeline()
@@ -407,10 +415,10 @@ asyncio.run(main())
 
 ```python
 import asyncio
-from src.agents.agentic_pipeline import AgenticPipeline
-from src.retrieval.hybrid_retriever import HybridRetriever
-from src.retrieval.qdrant_manager import QdrantManager
-from src.core.config import QdrantConfig
+from contextprime.agents.agentic_pipeline import AgenticPipeline
+from contextprime.retrieval.hybrid_retriever import HybridRetriever
+from contextprime.retrieval.qdrant_manager import QdrantManager
+from contextprime.core.config import QdrantConfig
 
 async def main():
     qdrant_cfg = QdrantConfig(host="localhost", port=6333, collection_name="web_kb")
@@ -469,7 +477,7 @@ You can test the pipeline through the bundled FastAPI web UI without writing cod
 
 ```bash
 cd doctags_rag
-uvicorn src.api.main:app --reload
+uvicorn contextprime.api.main:app --reload
 ```
 
 Open http://127.0.0.1:8000/ in your browser to access the interface. Upload a document, adjust chunking settings, and inspect the generated DocTags metadata, chunk previews, and markdown reconstruction on the right-hand side. Processed documents are stored in memory for the current session only.
