@@ -44,8 +44,10 @@ async def main():
     out = Path(args.output) / f"{safe[:50]}.json"
     out.write_text(
         json.dumps(
+            doctags.model_dump() if hasattr(doctags, "model_dump") else
             doctags.__dict__ if hasattr(doctags, "__dict__") else str(doctags),
             indent=2,
+            default=str,
         )
     )
     print(f"Saved to {out}")
