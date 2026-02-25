@@ -12,7 +12,7 @@ The execution agent:
 
 import time
 import asyncio
-from typing import Dict, List, Any, Optional, Callable
+from typing import Dict, List, Any, Optional, Callable, Set
 from dataclasses import dataclass, field
 from datetime import datetime
 from loguru import logger
@@ -122,7 +122,8 @@ class ExecutionAgent(BaseAgent):
                 content={
                     "action": "step_completed",
                     "result": result.__dict__
-                }
+                },
+                parent_message_id=message.id,
             )
         elif action == "execute_plan":
             steps = content.get("steps", [])
@@ -133,7 +134,8 @@ class ExecutionAgent(BaseAgent):
                 content={
                     "action": "plan_completed",
                     "results": [r.__dict__ for r in results]
-                }
+                },
+                parent_message_id=message.id,
             )
 
         return None
@@ -383,21 +385,13 @@ class ExecutionAgent(BaseAgent):
                     ]
             except Exception as err:  # pragma: no cover - network/driver errors
                 logger.warning(
-                    "Hybrid retrieval failed (%s); falling back to simulated results",
+                    "Hybrid retrieval failed (%s); returning no results",
                     err,
                 )
+                return []
 
-        logger.warning("Retrieval pipeline not configured, using simulated results")
-
-        simulated = []
-        for i in range(min(top_k, 5)):
-            simulated.append({
-                "content": f"Retrieved content {i} for query: {query}",
-                "score": 0.9 - (i * 0.1),
-                "metadata": {"source": f"doc_{i}", "strategy": strategy}
-            })
-
-        return simulated
+        logger.warning("Retrieval pipeline not configured — returning no results")
+        return []
 
     def _resolve_strategy(self, strategy: Any) -> SearchStrategy:
         if isinstance(strategy, SearchStrategy):

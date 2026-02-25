@@ -10,7 +10,7 @@ The coordinator:
 """
 
 import asyncio
-from typing import Dict, List, Any, Optional, Set
+from typing import Dict, List, Any, Optional, Set, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
 from loguru import logger
@@ -213,24 +213,35 @@ class AgentCoordinator(BaseAgent):
                 agent_id = agent_ids[0]
                 agent = self.agents[agent_id]
 
-                # Send message to agent
+                # Send message and deliver into the agent's inbox
                 message = await self.send_message(
                     recipient_id=agent_id,
                     content={
                         "action": action,
                         **parameters
                     },
-                    requires_response=True
+                    requires_response=True,
                 )
+                await self.route_message(message)
 
-                # Wait for response (simplified - in production use proper async)
-                await asyncio.sleep(0.1)
+                # Drive the agent to process its inbox; capture actual response
+                try:
+                    responses = await asyncio.wait_for(
+                        agent.process_inbox(),
+                        timeout=30.0,
+                    )
+                except asyncio.TimeoutError:
+                    conflicts.append(
+                        f"Agent {agent_id} timed out on action '{action}'"
+                    )
+                    continue
 
-                # Store result
+                response_content = responses[0].content if responses else {}
                 agent_results[agent_id] = {
                     "role": agent_role,
                     "action": action,
-                    "status": "completed"
+                    "status": "completed" if responses else "no_response",
+                    "result": response_content,
                 }
 
             # Build consensus if multiple results
@@ -281,6 +292,70 @@ class AgentCoordinator(BaseAgent):
         }
 
         return consensus
+
+    async def coordinate_parallel(
+        self,
+        tasks: List[Dict[str, Any]],
+        timeout: float = 30.0,
+    ) -> Dict[str, Any]:
+        """
+        Send tasks to multiple agents simultaneously and collect all responses.
+
+        Each task dict must contain ``agent_id`` and ``content`` keys.  Messages
+        are delivered to all agent inboxes first, then all agents process their
+        inboxes concurrently via asyncio.gather.
+
+        Args:
+            tasks: List of ``{"agent_id": str, "content": dict}`` dicts
+            timeout: Per-agent processing timeout in seconds
+
+        Returns:
+            ``{agent_id: {"status": "completed"|"timeout", "result": dict}}``
+        """
+        # Phase 1: deliver all messages before anyone starts processing
+        delivered: List[Tuple[str, AgentMessage]] = []
+        for task in tasks:
+            agent_id = task.get("agent_id", "")
+            if agent_id not in self.agents:
+                logger.warning(
+                    f"coordinate_parallel: unknown agent {agent_id!r}, skipping"
+                )
+                continue
+            message = await self.send_message(
+                recipient_id=agent_id,
+                content=task.get("content", {}),
+                requires_response=True,
+            )
+            await self.route_message(message)
+            delivered.append((agent_id, message))
+
+        # Phase 2: drive all agents concurrently
+        async def _process_one(
+            agent_id: str,
+        ) -> Tuple[str, List[AgentMessage]]:
+            try:
+                responses = await asyncio.wait_for(
+                    self.agents[agent_id].process_inbox(),
+                    timeout=timeout,
+                )
+                return agent_id, responses
+            except asyncio.TimeoutError:
+                logger.warning(
+                    f"coordinate_parallel: {agent_id} timed out after {timeout}s"
+                )
+                return agent_id, []
+
+        all_responses = await asyncio.gather(
+            *[_process_one(aid) for aid, _ in delivered]
+        )
+
+        return {
+            agent_id: {
+                "status": "completed" if responses else "timeout",
+                "result": responses[0].content if responses else {},
+            }
+            for agent_id, responses in all_responses
+        }
 
     async def broadcast_message(
         self,

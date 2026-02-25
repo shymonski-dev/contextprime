@@ -121,7 +121,7 @@ class TestPlanningAgent:
         """Test query decomposition."""
         planner = PlanningAgent()
 
-        sub_queries = planner._decompose_query(
+        sub_queries = await planner._decompose_query(
             "What is machine learning and how does it differ from deep learning?"
         )
 
@@ -158,12 +158,44 @@ class TestPlanningAgent:
         assert strategy == "community_based"
 
 
+    @pytest.mark.asyncio
+    async def test_query_type_simple_in_metadata(self):
+        planner = PlanningAgent()
+        plan = await planner.create_plan("What is Article 6?", context=None)
+        assert plan.metadata["query_type"] == "simple"
+
+    @pytest.mark.asyncio
+    async def test_query_type_analytical_for_complex_reasoning(self):
+        planner = PlanningAgent()
+        query = (
+            "Please explain why the data controller must obtain consent "
+            "and document the reasons for the legal basis under the regulation"
+        )
+        plan = await planner.create_plan(query, context=None)
+        assert plan.metadata["query_type"] == "analytical"
+
+    @pytest.mark.asyncio
+    async def test_query_type_multi_hop_for_comparison(self):
+        planner = PlanningAgent()
+        query = (
+            "Compare the obligations of data controllers versus data processors "
+            "under the regulation and summarise the key differences"
+        )
+        plan = await planner.create_plan(query, context=None)
+        assert plan.metadata["query_type"] == "multi_hop"
+
+
 class TestExecutionAgent:
     """Test execution agent functionality."""
 
     @pytest.mark.asyncio
     async def test_step_execution(self):
-        """Test executing a single step."""
+        """Test executing a single step without a configured retrieval pipeline.
+
+        With simulation removed, an unconfigured executor returns 0 results but
+        still succeeds — the step itself did not error, there is simply nothing
+        to retrieve.
+        """
         executor = ExecutionAgent()
 
         from src.agents.planning_agent import PlanStep, StepType
@@ -179,7 +211,8 @@ class TestExecutionAgent:
 
         assert result.success
         assert result.step_id == "test_step"
-        assert len(result.results) > 0
+        # No retrieval pipeline configured — honest empty result, not simulated content
+        assert result.results == []
 
     @pytest.mark.asyncio
     async def test_retry_logic(self):
@@ -692,6 +725,222 @@ class TestPerformance:
             # Should process queries reasonably fast
             qps = 5 / elapsed
             assert qps > 0.5  # At least 0.5 queries per second
+
+
+from types import SimpleNamespace as _SimpleNamespace
+
+
+class _FakeCompletion:
+    """Fake OpenAI completion object. Accepts configurable response content."""
+    def __init__(self, content: str = "answer"):
+        self.choices = [_SimpleNamespace(message=_SimpleNamespace(content=content))]
+
+
+class _FakeLLMClient:
+    """Fake LLM client that captures all call arguments and returns configurable content."""
+    def __init__(self, response_content: str = "answer"):
+        self.last_call = {}
+        self._response_content = response_content
+
+    @property
+    def chat(self):
+        return self
+
+    @property
+    def completions(self):
+        return self
+
+    def create(self, **kwargs):
+        self.last_call = kwargs
+        return _FakeCompletion(self._response_content)
+
+
+class TestSynthesisPromptConstruction:
+    """Test _synthesize_answer_with_model prompt order, CoT injection, and token limits."""
+
+    def _make_pipeline(self, tmp_path):
+        import tempfile
+        from pathlib import Path
+        pipeline = AgenticPipeline(
+            retrieval_pipeline=None,
+            storage_path=Path(tmp_path),
+        )
+        pipeline._llm_synthesis_enabled = True
+        client = _FakeLLMClient()
+        pipeline._llm_answer_client = client
+        return pipeline, client
+
+    def test_evidence_precedes_question_in_user_prompt(self, tmp_path):
+        pipeline, client = self._make_pipeline(tmp_path)
+        results = [{"content": "Article 6 requires consent.", "score": 0.9}]
+        pipeline._synthesize_answer_with_model("What does Article 6 require?", results)
+        user_content = client.last_call["messages"][1]["content"]
+        assert user_content.index("Evidence:") < user_content.index("Question:")
+
+    def test_cot_appended_for_analytical(self, tmp_path):
+        pipeline, client = self._make_pipeline(tmp_path)
+        results = [{"content": "Article 6 requires consent.", "score": 0.9}]
+        pipeline._synthesize_answer_with_model(
+            "Why is consent needed?", results, query_type="analytical"
+        )
+        system_content = client.last_call["messages"][0]["content"]
+        assert "Reason step by step" in system_content
+
+    def test_cot_appended_for_multi_hop(self, tmp_path):
+        pipeline, client = self._make_pipeline(tmp_path)
+        results = [{"content": "Article 6 requires consent.", "score": 0.9}]
+        pipeline._synthesize_answer_with_model(
+            "What are the differences?", results, query_type="multi_hop"
+        )
+        system_content = client.last_call["messages"][0]["content"]
+        assert "Reason step by step" in system_content
+
+    def test_cot_not_appended_for_simple(self, tmp_path):
+        pipeline, client = self._make_pipeline(tmp_path)
+        results = [{"content": "Article 6 requires consent.", "score": 0.9}]
+        pipeline._synthesize_answer_with_model(
+            "What is Article 6?", results, query_type="simple"
+        )
+        system_content = client.last_call["messages"][0]["content"]
+        assert "Reason step by step" not in system_content
+
+    def test_max_tokens_1600_for_analytical(self, tmp_path):
+        pipeline, client = self._make_pipeline(tmp_path)
+        results = [{"content": "Article 6 requires consent.", "score": 0.9}]
+        pipeline._synthesize_answer_with_model(
+            "Why is consent needed?", results, query_type="analytical"
+        )
+        assert client.last_call["max_tokens"] == 1600
+
+    def test_max_tokens_default_for_simple(self, tmp_path):
+        pipeline, client = self._make_pipeline(tmp_path)
+        results = [{"content": "Article 6 requires consent.", "score": 0.9}]
+        pipeline._synthesize_answer_with_model(
+            "What is Article 6?", results, query_type="simple"
+        )
+        assert client.last_call["max_tokens"] < 1600
+
+
+# ---------------------------------------------------------------------------
+# Coordinator workflow tests
+# ---------------------------------------------------------------------------
+
+class _EchoAgent(BaseAgent):
+    """Fake agent that echoes back the content it receives as a response."""
+
+    def __init__(self, agent_id: str = "echo"):
+        super().__init__(
+            agent_id=agent_id,
+            role=AgentRole.EXECUTOR,
+            capabilities={"echo"},
+        )
+
+    async def process_message(self, message: AgentMessage):
+        return await self.send_message(
+            recipient_id=message.sender_id,
+            content={"echoed": message.content, "action": "echo_response"},
+            parent_message_id=message.id,
+        )
+
+    async def execute_action(self, action_type: str, parameters):
+        return {}
+
+
+class TestCoordinatorWorkflow:
+    """Tests for AgentCoordinator.coordinate_workflow and coordinate_parallel."""
+
+    @pytest.mark.asyncio
+    async def test_coordinate_workflow_captures_real_response(self):
+        coordinator = AgentCoordinator()
+        echo = _EchoAgent("echo1")
+        coordinator.register_agent(echo)
+
+        result = await coordinator.coordinate_workflow(
+            [{"agent_role": "executor", "action": "ping", "parameters": {}}]
+        )
+
+        assert result.success
+        agent_result = result.agent_results["echo1"]
+        assert agent_result["status"] == "completed"
+        assert agent_result["result"].get("action") == "echo_response"
+
+    @pytest.mark.asyncio
+    async def test_coordinate_workflow_records_conflict_on_missing_role(self):
+        coordinator = AgentCoordinator()
+        # No agents registered for "planner" role
+        result = await coordinator.coordinate_workflow(
+            [{"agent_role": "planner", "action": "create_plan", "parameters": {}}]
+        )
+
+        assert len(result.conflicts) >= 1
+        assert not result.success
+
+    @pytest.mark.asyncio
+    async def test_coordinate_parallel_runs_all_agents(self):
+        coordinator = AgentCoordinator()
+        echo_a = _EchoAgent("echo_a")
+        echo_b = _EchoAgent("echo_b")
+        coordinator.register_agent(echo_a)
+        coordinator.register_agent(echo_b)
+
+        results = await coordinator.coordinate_parallel(
+            [
+                {"agent_id": "echo_a", "content": {"msg": "hello a"}},
+                {"agent_id": "echo_b", "content": {"msg": "hello b"}},
+            ]
+        )
+
+        assert "echo_a" in results
+        assert "echo_b" in results
+        assert results["echo_a"]["status"] == "completed"
+        assert results["echo_b"]["status"] == "completed"
+
+
+# ---------------------------------------------------------------------------
+# LLM decomposition tests
+# ---------------------------------------------------------------------------
+
+class TestLLMQueryDecomposition:
+    """Tests for PlanningAgent LLM-backed _decompose_query fallback."""
+
+    def test_llm_decomposition_disabled_by_default(self):
+        planner = PlanningAgent()
+        assert planner._llm_decomposition_enabled is False
+        assert planner._llm_decomposition_client is None
+
+    @pytest.mark.asyncio
+    async def test_llm_decomposition_uses_llm_when_heuristics_fail(self):
+        """When heuristics return [query], the LLM client is called."""
+        planner = PlanningAgent()
+        planner._llm_decomposition_enabled = True
+
+        # Inject a fake client that returns a valid JSON array
+        planner._llm_decomposition_client = _FakeLLMClient(
+            response_content='["What are the Article 6 lawful bases?", "When does consent apply?"]'
+        )
+
+        # Plain prose — heuristics won't split it
+        result = await planner._decompose_query(
+            "Explain the lawful bases for processing under Article 6"
+        )
+
+        assert result == [
+            "What are the Article 6 lawful bases?",
+            "When does consent apply?",
+        ]
+
+    @pytest.mark.asyncio
+    async def test_llm_decomposition_fallback_on_parse_error(self):
+        """A non-JSON LLM response falls back to the original query, no exception."""
+        planner = PlanningAgent()
+        planner._llm_decomposition_enabled = True
+        planner._llm_decomposition_client = _FakeLLMClient(
+            response_content="not valid JSON"
+        )
+
+        query = "Explain the lawful bases"
+        result = await planner._decompose_query(query)
+        assert result == [query]
 
 
 if __name__ == "__main__":

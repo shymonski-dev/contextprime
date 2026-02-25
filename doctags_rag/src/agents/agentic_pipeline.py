@@ -95,7 +95,8 @@ class AgenticPipeline:
         community_pipeline: Optional[Any] = None,
         mode: AgenticMode = AgenticMode.STANDARD,
         enable_learning: bool = True,
-        storage_path: Optional[Path] = None
+        storage_path: Optional[Path] = None,
+        enable_synthesis: bool = False,
     ):
         """
         Initialize agentic pipeline.
@@ -108,6 +109,8 @@ class AgenticPipeline:
             mode: Operating mode
             enable_learning: Enable reinforcement learning
             storage_path: Path for persistent storage
+            enable_synthesis: Force LLM answer synthesis on regardless of env var.
+                              Requires OPENAI_API_KEY to be set.
         """
         self.mode = mode
         self.enable_learning = enable_learning
@@ -180,9 +183,25 @@ class AgenticPipeline:
         self._llm_answer_client = None
         self._initialize_answer_generator()
 
+        # Constructor-level override: force synthesis on even if env var is unset.
+        if enable_synthesis and not self._llm_synthesis_enabled:
+            self._llm_synthesis_enabled = True
+            if self._llm_answer_client is None and OpenAI is not None:
+                try:
+                    api_key = str(os.getenv("OPENAI_API_KEY", "")).strip()
+                    if api_key:
+                        self._llm_answer_client = OpenAI(
+                            api_key=api_key,
+                            timeout=30.0,
+                            max_retries=0,
+                        )
+                except Exception as err:
+                    logger.warning(f"enable_synthesis=True but client init failed: {err}")
+                    self._llm_synthesis_enabled = False
+
         logger.info(
             f"Agentic pipeline initialized in {mode.value} mode "
-            f"(learning: {enable_learning})"
+            f"(learning: {enable_learning}, synthesis: {self._llm_synthesis_enabled})"
         )
 
     def _initialize_answer_generator(self) -> None:
@@ -392,11 +411,13 @@ class AgenticPipeline:
             )
 
             # Generate answer
+            _query_type = plan.metadata.get("query_type") if plan and plan.metadata else None
             answer = await asyncio.to_thread(
                 self._generate_answer,
                 query,
                 all_results,
                 assessment,
+                _query_type,
             )
 
             # Record performance
@@ -721,7 +742,8 @@ class AgenticPipeline:
         self,
         query: str,
         results: List[Dict[str, Any]],
-        assessment: QualityAssessment
+        assessment: QualityAssessment,
+        query_type: Optional[str] = None,
     ) -> str:
         """
         Generate final answer from results.
@@ -729,7 +751,7 @@ class AgenticPipeline:
         if not results:
             return "No results found for the query."
 
-        synthesized = self._synthesize_answer_with_model(query, results)
+        synthesized = self._synthesize_answer_with_model(query, results, query_type=query_type)
         if synthesized:
             answer = synthesized
         else:
@@ -741,6 +763,7 @@ class AgenticPipeline:
         self,
         query: str,
         results: List[Dict[str, Any]],
+        query_type: Optional[str] = None,
     ) -> Optional[str]:
         if not self._llm_synthesis_enabled or self._llm_answer_client is None:
             return None
@@ -762,10 +785,19 @@ class AgenticPipeline:
             "If evidence is insufficient, say what is missing. "
             "Cite evidence using [number] references."
         )
+        complex_types = {"multi_hop", "analytical"}
+        is_complex = (query_type or "").lower() in complex_types
+        if is_complex:
+            system_prompt += (
+                " Reason step by step: (1) identify the relevant provision, "
+                "(2) check any applicable exceptions or conditions, "
+                "(3) apply the facts to each element, "
+                "(4) state your conclusion with citations."
+            )
         user_prompt = (
-            f"Question:\n{query}\n\n"
             "Evidence:\n"
             + "\n\n".join(evidence_lines)
+            + f"\n\nQuestion:\n{query}"
             + "\n\nReturn a concise grounded answer with citations."
         )
 
@@ -777,7 +809,7 @@ class AgenticPipeline:
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=self._llm_synthesis_temperature,
-                max_tokens=self._llm_synthesis_max_tokens,
+                max_tokens=1600 if is_complex else self._llm_synthesis_max_tokens,
             )
         except Exception as err:
             logger.warning(f"Model synthesis failed; falling back to template answer: {err}")

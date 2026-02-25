@@ -860,5 +860,106 @@ class TestPerformance:
         assert avg_latency < 100  # Should be under 100ms on average
 
 
+from src.processing.cross_reference_extractor import CrossRef
+
+
+class TestNeo4jCrossReferenceEdges:
+    """Integration tests for store_cross_references in Neo4jManager.
+
+    Requires a live Neo4j connection (run via Docker / full test suite).
+    Each test uses UUID-suffixed node IDs to avoid state leakage.
+    """
+
+    def _create_chunk_nodes(self, manager, doc_id, chunk_ids):
+        """Create Chunk nodes for test setup."""
+        for cid in chunk_ids:
+            manager.execute_write_query(
+                "MERGE (:Chunk {chunk_id: $cid, doc_id: $did, content: $content})",
+                {"cid": cid, "did": doc_id, "content": "article_6 provision"},
+            )
+
+    def _cleanup(self, manager, doc_id):
+        """Remove all Chunk nodes (and their relationships) for the given doc_id."""
+        manager.execute_write_query(
+            "MATCH (n:Chunk {doc_id: $did}) DETACH DELETE n",
+            {"did": doc_id},
+        )
+
+    def test_store_cross_references_creates_edge(self, neo4j_manager):
+        suffix = str(uuid4())[:8]
+        doc_id = f"xref_test_{suffix}"
+        src_id = f"src_chunk_{suffix}"
+        tgt_id = f"tgt_chunk_{suffix}"
+        try:
+            self._create_chunk_nodes(neo4j_manager, doc_id, [src_id, tgt_id])
+            ref = CrossRef(
+                source_chunk_id=src_id,
+                target_label="article_6",
+                ref_type="article",
+                doc_id=doc_id,
+            )
+            count = neo4j_manager.store_cross_references([ref])
+            assert count >= 1
+
+            result = neo4j_manager.execute_query(
+                "MATCH ()-[r:REFERENCES {target_label: $label}]->() "
+                "RETURN count(r) AS cnt",
+                {"label": "article_6"},
+            )
+            assert result[0]["cnt"] >= 1
+        finally:
+            self._cleanup(neo4j_manager, doc_id)
+
+    def test_store_cross_references_is_idempotent(self, neo4j_manager):
+        suffix = str(uuid4())[:8]
+        doc_id = f"xref_idem_{suffix}"
+        src_id = f"src_idem_{suffix}"
+        tgt_id = f"tgt_idem_{suffix}"
+        try:
+            self._create_chunk_nodes(neo4j_manager, doc_id, [src_id, tgt_id])
+            ref = CrossRef(
+                source_chunk_id=src_id,
+                target_label="article_6",
+                ref_type="article",
+                doc_id=doc_id,
+            )
+            neo4j_manager.store_cross_references([ref])
+            neo4j_manager.store_cross_references([ref])  # second call — MERGE, not CREATE
+
+            result = neo4j_manager.execute_query(
+                "MATCH (s:Chunk {chunk_id: $sid})-[r:REFERENCES {target_label: 'article_6'}]->() "
+                "RETURN count(r) AS cnt",
+                {"sid": src_id},
+            )
+            assert result[0]["cnt"] == 1
+        finally:
+            self._cleanup(neo4j_manager, doc_id)
+
+    def test_store_cross_references_empty_returns_zero(self, neo4j_manager):
+        count = neo4j_manager.store_cross_references([])
+        assert count == 0
+
+    def test_store_cross_references_unresolvable_target_skipped(self, neo4j_manager):
+        suffix = str(uuid4())[:8]
+        doc_id = f"xref_unres_{suffix}"
+        src_id = f"src_unres_{suffix}"
+        try:
+            # Create only the source chunk — no matching target exists
+            neo4j_manager.execute_write_query(
+                "MERGE (:Chunk {chunk_id: $cid, doc_id: $did, content: $content})",
+                {"cid": src_id, "did": doc_id, "content": "no article reference here"},
+            )
+            ref = CrossRef(
+                source_chunk_id=src_id,
+                target_label="article_99",
+                ref_type="article",
+                doc_id=doc_id,
+            )
+            count = neo4j_manager.store_cross_references([ref])
+            assert count == 0
+        finally:
+            self._cleanup(neo4j_manager, doc_id)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

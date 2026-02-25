@@ -654,6 +654,73 @@ class Neo4jManager:
             raise ValueError(f"Invalid relationship type: {raw_type}")
         return rel_type
 
+    def store_cross_references(
+        self,
+        refs: List[Any],
+        batch_size: int = 500,
+    ) -> int:
+        """Store cross-reference edges between Chunk nodes.
+
+        Creates (:Chunk {chunk_id: source})-[:REFERENCES {ref_type, target_label}]->
+        (:Chunk {chunk_id: target}) edges using MERGE to remain idempotent.
+
+        When the target chunk does not yet exist in Neo4j (e.g. it is referenced
+        but not yet ingested) the relationship is silently skipped so the ingestion
+        pipeline never fails on unresolvable references.
+
+        Args:
+            refs:       List of CrossRef dataclass instances
+                        (duck-typed: needs .source_chunk_id, .target_label,
+                         .ref_type, .doc_id attributes).
+            batch_size: Number of edges to write per transaction.
+
+        Returns:
+            Number of edges created or merged.
+        """
+        if not refs:
+            return 0
+
+        # Build parameter list
+        params_list = [
+            {
+                "source_chunk_id": ref.source_chunk_id,
+                "target_label": ref.target_label,
+                "ref_type": ref.ref_type,
+                "doc_id": ref.doc_id,
+            }
+            for ref in refs
+        ]
+
+        total_merged = 0
+        for i in range(0, len(params_list), batch_size):
+            batch = params_list[i : i + batch_size]
+            query = """
+            UNWIND $batch AS ref
+            MATCH (src:Chunk {chunk_id: ref.source_chunk_id, doc_id: ref.doc_id})
+            MATCH (tgt:Chunk {doc_id: ref.doc_id})
+            WHERE elementId(src) <> elementId(tgt)
+              AND (
+                tgt.content STARTS WITH ref.target_label
+                OR tgt.chunk_id CONTAINS ref.target_label
+                OR (tgt.metadata IS NOT NULL AND tgt.metadata CONTAINS ref.target_label)
+              )
+            MERGE (src)-[r:REFERENCES {ref_type: ref.ref_type, target_label: ref.target_label}]->(tgt)
+            RETURN count(r) AS merged
+            """
+            try:
+                result = self.execute_write_query(query, {"batch": batch})
+                if result:
+                    total_merged += int(result[0].get("merged", 0))
+            except Exception as exc:
+                logger.warning(
+                    "store_cross_references batch {} failed (skipping): {}",
+                    i // batch_size,
+                    exc,
+                )
+
+        logger.info("Stored {} cross-reference edges", total_merged)
+        return total_merged
+
     def traverse_graph(
         self,
         start_node_id: str,

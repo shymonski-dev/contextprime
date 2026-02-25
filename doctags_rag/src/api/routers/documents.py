@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
 from fastapi.concurrency import run_in_threadpool
+from pydantic import BaseModel
 
 from src.core.config import get_settings
 
@@ -111,3 +112,5 @@ async def document_details(document_id: str) -> DocumentDetailResponse:
         doctags=stored.doctags,
         message=stored.message,
     )
+
+

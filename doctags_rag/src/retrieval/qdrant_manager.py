@@ -189,6 +189,7 @@ class QdrantManager:
                 port=self.config.port,
                 api_key=self.config.api_key,
                 timeout=30,
+                check_compatibility=False,
             )
             # Test connection
             self.client.get_collections()
@@ -447,17 +448,7 @@ class QdrantManager:
             filter_obj = self._build_filter(filters)
 
         try:
-            if hasattr(self.client, "search"):
-                results = self.client.search(
-                    collection_name=collection_name,
-                    query_vector=query_vector,
-                    limit=top_k,
-                    query_filter=filter_obj,
-                    score_threshold=score_threshold,
-                    with_payload=True,
-                    with_vectors=False,
-                )
-            elif hasattr(self.client, "query_points"):
+            if hasattr(self.client, "query_points"):
                 query_response = self.client.query_points(
                     collection_name=collection_name,
                     query=query_vector,
@@ -468,9 +459,19 @@ class QdrantManager:
                     with_vectors=False,
                 )
                 results = query_response.points
+            elif hasattr(self.client, "search"):
+                results = self.client.search(
+                    collection_name=collection_name,
+                    query_vector=query_vector,
+                    limit=top_k,
+                    query_filter=filter_obj,
+                    score_threshold=score_threshold,
+                    with_payload=True,
+                    with_vectors=False,
+                )
             else:
                 raise AttributeError(
-                    "Qdrant client does not provide search or query_points"
+                    "Qdrant client does not provide query_points or search"
                 )
 
             return [

@@ -152,6 +152,26 @@ class StructurePreservingChunker:
 
                 current_subsection = tag.content
 
+            elif tag.tag_type in [DocTagType.ARTICLE, DocTagType.SCHEDULE]:
+                # Flush accumulated content - legal article/schedule boundary
+                if accumulated_content:
+                    new_chunks = self._create_chunks_from_content(
+                        accumulated_content,
+                        accumulated_tags,
+                        doc.doc_id,
+                        chunk_index,
+                        current_section,
+                        current_subsection,
+                        context_hierarchy
+                    )
+                    chunks.extend(new_chunks)
+                    chunk_index += len(new_chunks)
+                    accumulated_content = []
+                    accumulated_tags = []
+
+                current_section = tag.content
+                current_subsection = None
+
             # Handle special tags that should be kept intact
             elif tag.tag_type in [DocTagType.TABLE, DocTagType.CODE, DocTagType.EQUATION]:
                 # Flush accumulated content first
@@ -241,7 +261,7 @@ class StructurePreservingChunker:
         current_subsection = None
 
         for tag in doc.tags:
-            if tag.tag_type == DocTagType.SECTION:
+            if tag.tag_type in [DocTagType.SECTION, DocTagType.ARTICLE, DocTagType.SCHEDULE]:
                 current_section = tag.tag_id
                 hierarchy['sections'][tag.tag_id] = {
                     'title': tag.content,
