@@ -20,3 +20,16 @@ if env_path.exists():
     print(f"Loaded environment from {env_path}")
 else:
     print(f"Warning: .env file not found at {env_path}")
+
+# .env sets QDRANT_HOST=qdrant (Docker-internal service name).
+# Override to localhost so integration tests can reach the container directly.
+os.environ["QDRANT_HOST"] = "localhost"
+os.environ["QDRANT_PORT"] = "6333"
+
+# Reset the settings singleton so the override takes effect before any test
+# module imports get_settings() and caches the docker-internal hostname.
+try:
+    from contextprime.core.config import reset_settings
+    reset_settings()
+except Exception:
+    pass
