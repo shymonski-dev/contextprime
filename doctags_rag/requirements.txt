@@ -15,7 +15,7 @@ lxml>=5.0.0
 
 # OCR and Image Processing
 pillow~=10.4
-opencv-python==4.6.0.66
+opencv-python==4.13.0.92
 pytesseract==0.3.10
 
 # Graph Database
