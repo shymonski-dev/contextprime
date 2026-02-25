@@ -18,7 +18,7 @@ class Neo4jConfig(BaseModel):
     uri: str = Field(default="bolt://localhost:7687")
     username: str = Field(default="neo4j")
     password: str = Field(default="")
-    database: str = Field(default="doctags")
+    database: str = Field(default="neo4j")
     max_connection_pool_size: int = Field(default=50)
     connection_timeout: int = Field(default=30)
 
@@ -294,8 +294,12 @@ class Settings(BaseSettings):
             "QDRANT__PORT": ("qdrant", "port"),
             "NEO4J_URI": ("neo4j", "uri"),
             "NEO4J__URI": ("neo4j", "uri"),
+            "NEO4J_USERNAME": ("neo4j", "username"),
             "NEO4J__USERNAME": ("neo4j", "username"),
+            "NEO4J_PASSWORD": ("neo4j", "password"),
             "NEO4J__PASSWORD": ("neo4j", "password"),
+            "NEO4J_DATABASE": ("neo4j", "database"),
+            "NEO4J__DATABASE": ("neo4j", "database"),
             "API__RATE_LIMIT": ("api", "rate_limit"),
             "API_RATE_LIMIT": ("api", "rate_limit"),
             "API__RATE_LIMIT_WINDOW_SECONDS": ("api", "rate_limit_window_seconds"),
