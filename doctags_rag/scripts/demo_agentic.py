@@ -15,8 +15,8 @@ import time
 from pathlib import Path
 from loguru import logger
 
-from src.agents.agentic_pipeline import AgenticPipeline, AgenticMode
-from src.agents.base_agent import AgentState
+from contextprime.agents.agentic_pipeline import AgenticPipeline, AgenticMode
+from contextprime.agents.base_agent import AgentState
 
 
 def print_section(title: str):

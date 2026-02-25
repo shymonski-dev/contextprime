@@ -14,7 +14,7 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.processing import (
+from contextprime.processing import (
     create_pipeline,
     PipelineConfig,
     DocTagsConverter,
@@ -201,7 +201,7 @@ def demo_save_outputs():
         output_dir=output_dir
     )
 
-    from src.processing import DocumentProcessingPipeline
+    from contextprime.processing import DocumentProcessingPipeline
     pipeline = DocumentProcessingPipeline(config)
 
     # Process file
@@ -275,7 +275,7 @@ def demo_structure_analysis():
 
     # Section analysis
     logger.info("\nSections:")
-    from src.processing.doctags_processor import DocTagType
+    from contextprime.processing.doctags_processor import DocTagType
 
     sections = [t for t in doctags_doc.tags if t.tag_type == DocTagType.SECTION]
     for section in sections:

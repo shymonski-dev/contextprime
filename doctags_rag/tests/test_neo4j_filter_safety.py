@@ -1,6 +1,6 @@
 import pytest
 
-from src.knowledge_graph.neo4j_manager import GraphNode, Neo4jManager
+from contextprime.knowledge_graph.neo4j_manager import GraphNode, Neo4jManager
 
 
 def test_build_safe_property_filters_uses_parameterized_values():

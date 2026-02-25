@@ -28,7 +28,7 @@ for col in collections:
 
 # Test 2: Check Neo4j
 print("\n2. Checking Neo4j documents...")
-from src.knowledge_graph.neo4j_manager import Neo4jManager
+from contextprime.knowledge_graph.neo4j_manager import Neo4jManager
 neo = Neo4jManager()
 docs = neo.execute_query("MATCH (d:Document) RETURN d.doc_id AS id, d.title AS title LIMIT 5")
 print(f"  Found {len(docs)} documents")
@@ -38,7 +38,7 @@ neo.close()
 
 # Test 3: Direct Qdrant search in doctags_vectors
 print("\n3. Direct search in doctags_vectors collection...")
-from src.embeddings import OpenAIEmbeddingModel
+from contextprime.embeddings import OpenAIEmbeddingModel
 embedder = OpenAIEmbeddingModel("text-embedding-3-small")
 query = "onboarding"
 vector = embedder.encode([query])[0]
@@ -61,7 +61,7 @@ else:
 print("\n4. Testing retrieval with QdrantManager...")
 print("  (Skipped - QdrantManager uses config collection name)")
 
-from src.retrieval.hybrid_retriever import HybridRetriever, SearchStrategy
+from contextprime.retrieval.hybrid_retriever import HybridRetriever, SearchStrategy
 print("\n4. Testing HybridRetriever...")
 try:
     retriever = HybridRetriever()
@@ -79,7 +79,7 @@ except Exception as e:
 # Test 5: Try basic agentic query
 print("\n5. Testing basic agentic query...")
 try:
-    from src.agents.agentic_pipeline import AgenticPipeline, AgenticMode
+    from contextprime.agents.agentic_pipeline import AgenticPipeline, AgenticMode
 
     async def run_query():
         agentic = AgenticPipeline(mode=AgenticMode.FAST)

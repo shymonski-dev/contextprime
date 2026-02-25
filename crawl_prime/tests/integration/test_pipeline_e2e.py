@@ -19,13 +19,16 @@ import os
 import sys
 from pathlib import Path
 
-_DOCTAGS_ROOT = Path(__file__).resolve().parents[3] / "doctags_rag"
-if str(_DOCTAGS_ROOT) not in sys.path:
-    sys.path.insert(0, str(_DOCTAGS_ROOT))
+try:
+    import contextprime  # noqa: F401 — check if installed
+except ImportError:
+    _DOCTAGS_ROOT = Path(__file__).resolve().parents[3] / "doctags_rag"
+    if _DOCTAGS_ROOT.exists() and str(_DOCTAGS_ROOT) not in sys.path:
+        sys.path.insert(0, str(_DOCTAGS_ROOT))
 
 import pytest
 from .conftest import requires_services
-from src.crawl_prime.pipeline import CrawlPrimePipeline
+from crawl_prime.pipeline import CrawlPrimePipeline
 
 pytestmark = pytest.mark.integration
 

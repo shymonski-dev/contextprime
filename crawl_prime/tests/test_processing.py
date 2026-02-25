@@ -6,8 +6,8 @@ since CrawlPrime no longer maintains its own duplicate mapper/engine.
 """
 
 import pytest
-from src.processing.web.mapper import WebDocTagsMapper
-from src.processing.web.crawler import WebCrawlResult
+from contextprime.processing.web.mapper import WebDocTagsMapper
+from contextprime.processing.web.crawler import WebCrawlResult
 
 
 class TestProcessing:

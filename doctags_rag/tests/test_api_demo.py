@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.main import app
-from src.core.config import get_settings
+from contextprime.api.main import app
+from contextprime.core.config import get_settings
 
 
 @pytest.fixture(scope="module")

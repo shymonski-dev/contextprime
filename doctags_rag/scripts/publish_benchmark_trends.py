@@ -13,7 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.retrieval.benchmark_trends import (
+from contextprime.retrieval.benchmark_trends import (
     append_trend_records,
     extract_trend_records,
     load_benchmark_report,

@@ -20,7 +20,7 @@ def check_imports():
     print("Checking imports...")
 
     try:
-        from src.agents import (
+        from contextprime.agents import (
             BaseAgent, AgentRole, AgentMessage, AgentState,
             PlanningAgent, QueryPlan, PlanStep,
             ExecutionAgent, ExecutionResult,
@@ -45,7 +45,7 @@ def check_basic_functionality():
     print("\nChecking basic functionality...")
 
     try:
-        from src.agents import PlanningAgent, ExecutionAgent, EvaluationAgent
+        from contextprime.agents import PlanningAgent, ExecutionAgent, EvaluationAgent
 
         # Create agents
         planner = PlanningAgent(agent_id="test_planner")
@@ -81,7 +81,7 @@ def check_async_functionality():
 
     try:
         import asyncio
-        from src.agents import PlanningAgent
+        from contextprime.agents import PlanningAgent
 
         async def test_async():
             planner = PlanningAgent()

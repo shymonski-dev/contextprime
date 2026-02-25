@@ -19,14 +19,14 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.retrieval.policy_benchmark import (
+from contextprime.retrieval.policy_benchmark import (
     aggregate_policy_metrics,
     evaluate_policy_sample,
     load_benchmark_samples,
     metrics_to_dict,
     sample_metrics_to_dict,
 )
-from src.retrieval.benchmark_trends import (
+from contextprime.retrieval.benchmark_trends import (
     append_trend_records,
     extract_trend_records,
     load_trend_history,
@@ -122,8 +122,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    from src.embeddings import OpenAIEmbeddingModel
-    from src.retrieval.hybrid_retriever import (
+    from contextprime.embeddings import OpenAIEmbeddingModel
+    from contextprime.retrieval.hybrid_retriever import (
         GraphRetrievalPolicy,
         HybridRetriever,
         SearchStrategy,

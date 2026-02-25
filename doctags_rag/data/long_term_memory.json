@@ -1679,6 +1679,102 @@
       "created_at": "2026-02-24T15:02:53.290447",
       "last_accessed": "2026-02-24T15:02:53.290447",
       "metadata": {}
+    },
+    {
+      "entry_id": "ltm_140",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-25T14:30:15.461476",
+      "last_accessed": "2026-02-25T14:30:15.461476",
+      "metadata": {}
+    },
+    {
+      "entry_id": "promoted_141",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-25T14:30:15.464724",
+      "last_accessed": "2026-02-25T14:30:15.464725",
+      "metadata": {}
+    },
+    {
+      "entry_id": "ltm_142",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-25T14:52:42.008578",
+      "last_accessed": "2026-02-25T14:52:42.008578",
+      "metadata": {}
+    },
+    {
+      "entry_id": "promoted_143",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-25T14:52:42.010395",
+      "last_accessed": "2026-02-25T14:52:42.010395",
+      "metadata": {}
+    },
+    {
+      "entry_id": "ltm_144",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-25T14:58:20.979090",
+      "last_accessed": "2026-02-25T14:58:20.979090",
+      "metadata": {}
+    },
+    {
+      "entry_id": "promoted_145",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-25T14:58:20.982249",
+      "last_accessed": "2026-02-25T14:58:20.982249",
+      "metadata": {}
+    },
+    {
+      "entry_id": "ltm_146",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-25T14:59:23.301545",
+      "last_accessed": "2026-02-25T14:59:23.301545",
+      "metadata": {}
+    },
+    {
+      "entry_id": "promoted_147",
+      "memory_type": "long",
+      "content": {
+        "data": "important"
+      },
+      "importance": 0.9,
+      "access_count": 0,
+      "created_at": "2026-02-25T14:59:23.304261",
+      "last_accessed": "2026-02-25T14:59:23.304261",
+      "metadata": {}
     }
   ]
 }

@@ -30,15 +30,15 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
-from src.agents.base_agent import (
+from contextprime.agents.base_agent import (
     AgentMessage,
     AgentRole,
     AgentState,
     BaseAgent,
     MessagePriority,
 )
-from src.agents.coordinator import AgentCoordinator
-from src.agents.planning_agent import PlanStep, PlanningAgent, StepType, ExecutionMode
+from contextprime.agents.coordinator import AgentCoordinator
+from contextprime.agents.planning_agent import PlanStep, PlanningAgent, StepType, ExecutionMode
 
 
 # ---------------------------------------------------------------------------

@@ -6,14 +6,14 @@ import pytest
 import numpy as np
 from typing import List, Dict, Any
 
-from src.summarization.cluster_manager import (
+from contextprime.summarization.cluster_manager import (
     ClusterManager, ClusteringMethod, Cluster, ClusteringResult
 )
-from src.summarization.summary_generator import (
+from contextprime.summarization.summary_generator import (
     SummaryGenerator, SummaryLevel, Summary
 )
-from src.summarization.tree_builder import TreeBuilder, TreeNode, TreeStats
-from src.summarization.tree_visualizer import TreeVisualizer
+from contextprime.summarization.tree_builder import TreeBuilder, TreeNode, TreeStats
+from contextprime.summarization.tree_visualizer import TreeVisualizer
 
 
 # Test Fixtures

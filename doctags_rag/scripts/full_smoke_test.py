@@ -19,8 +19,8 @@ def test_ingestion():
     print("STEP 1: DOCUMENT INGESTION TEST")
     print("="*60)
 
-    from src.embeddings import OpenAIEmbeddingModel
-    from src.pipelines.document_ingestion import DocumentIngestionPipeline
+    from contextprime.embeddings import OpenAIEmbeddingModel
+    from contextprime.pipelines.document_ingestion import DocumentIngestionPipeline
 
     embedder = OpenAIEmbeddingModel("text-embedding-3-small")
     pipeline = DocumentIngestionPipeline(embeddings_model=embedder)
@@ -85,7 +85,7 @@ def test_neo4j():
     print("STEP 3: NEO4J GRAPH DATABASE TEST")
     print("="*60)
 
-    from src.knowledge_graph.neo4j_manager import Neo4jManager
+    from contextprime.knowledge_graph.neo4j_manager import Neo4jManager
 
     neo = Neo4jManager()
     docs = neo.execute_query("MATCH (d:Document) RETURN d.doc_id AS id, d.title AS title")
@@ -107,8 +107,8 @@ def test_hybrid_search():
     print("STEP 4: HYBRID SEARCH TEST")
     print("="*60)
 
-    from src.retrieval.hybrid_retriever import HybridRetriever, SearchStrategy
-    from src.embeddings import OpenAIEmbeddingModel
+    from contextprime.retrieval.hybrid_retriever import HybridRetriever, SearchStrategy
+    from contextprime.embeddings import OpenAIEmbeddingModel
 
     embedder = OpenAIEmbeddingModel("text-embedding-3-small")
     query = "What's covered in the onboarding materials?"
@@ -151,7 +151,7 @@ async def test_agentic():
     print("STEP 5: AGENTIC PROCESSING TEST")
     print("="*60)
 
-    from src.agents.agentic_pipeline import AgenticPipeline, AgenticMode
+    from contextprime.agents.agentic_pipeline import AgenticPipeline, AgenticMode
 
     agentic = AgenticPipeline(mode=AgenticMode.FAST)
 

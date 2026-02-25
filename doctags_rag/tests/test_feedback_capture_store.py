@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from src.retrieval.feedback_capture_store import FeedbackCaptureStore
+from contextprime.retrieval.feedback_capture_store import FeedbackCaptureStore
 
 
 def test_feedback_capture_store_records_query_and_feedback(tmp_path):

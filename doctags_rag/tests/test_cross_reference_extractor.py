@@ -4,7 +4,7 @@ Pure unit tests — no external dependencies, no fixtures.
 """
 
 import pytest
-from src.processing.cross_reference_extractor import extract_cross_references, CrossRef
+from contextprime.processing.cross_reference_extractor import extract_cross_references, CrossRef
 
 
 class TestExtractCrossReferences:

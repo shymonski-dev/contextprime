@@ -7,13 +7,13 @@ import pytest
 from pathlib import Path
 import time
 
-from src.processing.pipeline import DocumentProcessingPipeline
-from src.retrieval.qdrant_manager import QdrantManager
-from src.knowledge_graph.neo4j_manager import Neo4jManager
-from src.knowledge_graph.kg_pipeline import KnowledgeGraphPipeline
-from src.retrieval.hybrid_retriever import HybridRetriever, SearchStrategy
-from src.retrieval.advanced_pipeline import AdvancedRetrievalPipeline
-from src.core.config import Neo4jConfig, QdrantConfig, get_settings
+from contextprime.processing.pipeline import DocumentProcessingPipeline
+from contextprime.retrieval.qdrant_manager import QdrantManager
+from contextprime.knowledge_graph.neo4j_manager import Neo4jManager
+from contextprime.knowledge_graph.kg_pipeline import KnowledgeGraphPipeline
+from contextprime.retrieval.hybrid_retriever import HybridRetriever, SearchStrategy
+from contextprime.retrieval.advanced_pipeline import AdvancedRetrievalPipeline
+from contextprime.core.config import Neo4jConfig, QdrantConfig, get_settings
 
 
 @pytest.fixture

@@ -12,22 +12,22 @@ from typing import Dict, Optional, Tuple, Any, List
 
 from loguru import logger
 
-from src.core.config import get_settings
-from src.core.safety_guard import (
+from contextprime.core.config import get_settings
+from contextprime.core.safety_guard import (
     PromptInjectionGuard,
     RuntimeComplianceGate,
 )
-from src.embeddings import OpenAIEmbeddingModel
-from src.retrieval.hybrid_retriever import (
+from contextprime.embeddings import OpenAIEmbeddingModel
+from contextprime.retrieval.hybrid_retriever import (
     HybridRetriever,
     SearchStrategy as HybridStrategy,
     HybridSearchResult,
     SearchMetrics as HybridMetrics,
 )
-from src.retrieval.query_expansion import QueryExpander
-from src.retrieval.rerankers import MonoT5Reranker
-from src.retrieval.context_selector import TrainableContextSelector
-from src.agents.agentic_pipeline import AgenticPipeline, AgenticMode, AgenticResult
+from contextprime.retrieval.query_expansion import QueryExpander
+from contextprime.retrieval.rerankers import MonoT5Reranker
+from contextprime.retrieval.context_selector import TrainableContextSelector
+from contextprime.agents.agentic_pipeline import AgenticPipeline, AgenticMode, AgenticResult
 
 from ..models import AdvancedQueryRequest, AgenticQueryRequest
 

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from src.retrieval.policy_benchmark import (
+from contextprime.retrieval.policy_benchmark import (
     BenchmarkSample,
     aggregate_policy_metrics,
     compute_term_coverage,

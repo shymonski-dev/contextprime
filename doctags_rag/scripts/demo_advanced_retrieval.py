@@ -18,12 +18,12 @@ from typing import List, Dict, Any
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.retrieval.confidence_scorer import ConfidenceScorer
-from src.retrieval.query_router import QueryRouter
-from src.retrieval.query_expansion import QueryExpander
-from src.retrieval.reranker import Reranker
-from src.retrieval.cache_manager import CacheManager
-from src.retrieval.iterative_refiner import IterativeRefiner
+from contextprime.retrieval.confidence_scorer import ConfidenceScorer
+from contextprime.retrieval.query_router import QueryRouter
+from contextprime.retrieval.query_expansion import QueryExpander
+from contextprime.retrieval.reranker import Reranker
+from contextprime.retrieval.cache_manager import CacheManager
+from contextprime.retrieval.iterative_refiner import IterativeRefiner
 
 from loguru import logger
 

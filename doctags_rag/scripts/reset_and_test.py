@@ -31,7 +31,7 @@ def reset_qdrant():
 def reset_neo4j():
     """Clear Neo4j database"""
     print("\nResetting Neo4j database...")
-    from src.knowledge_graph.neo4j_manager import Neo4jManager
+    from contextprime.knowledge_graph.neo4j_manager import Neo4jManager
 
     neo = Neo4jManager()
     # Clear all nodes and relationships
@@ -46,7 +46,7 @@ def test_ingestion():
     print("DOCUMENT INGESTION TEST")
     print("="*60)
 
-    from src.pipelines.document_ingestion import DocumentIngestionPipeline
+    from contextprime.pipelines.document_ingestion import DocumentIngestionPipeline
 
     pipeline = DocumentIngestionPipeline()
 
@@ -71,8 +71,8 @@ def test_hybrid_search():
     print("HYBRID SEARCH TEST")
     print("="*60)
 
-    from src.retrieval.hybrid_retriever import HybridRetriever, SearchStrategy
-    from src.embeddings import OpenAIEmbeddingModel
+    from contextprime.retrieval.hybrid_retriever import HybridRetriever, SearchStrategy
+    from contextprime.embeddings import OpenAIEmbeddingModel
 
     embedder = OpenAIEmbeddingModel("text-embedding-3-small")
     query = "What's covered in the onboarding materials?"
@@ -112,7 +112,7 @@ async def test_agentic():
     print("AGENTIC PROCESSING TEST")
     print("="*60)
 
-    from src.agents.agentic_pipeline import AgenticPipeline, AgenticMode
+    from contextprime.agents.agentic_pipeline import AgenticPipeline, AgenticMode
 
     agentic = AgenticPipeline(mode=AgenticMode.FAST)
 

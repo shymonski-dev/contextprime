@@ -3,9 +3,9 @@ import asyncio
 from unittest.mock import MagicMock, AsyncMock
 from pathlib import Path
 
-from src.pipelines.web_ingestion import WebIngestionPipeline, WebIngestionConfig
-from src.processing.web.crawler import WebCrawlResult
-from src.pipelines.document_ingestion import IngestionReport
+from contextprime.pipelines.web_ingestion import WebIngestionPipeline, WebIngestionConfig
+from contextprime.processing.web.crawler import WebCrawlResult
+from contextprime.pipelines.document_ingestion import IngestionReport
 
 class TestWebIngestionPipeline:
     """Tests for WebIngestionPipeline."""

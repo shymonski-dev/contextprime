@@ -16,25 +16,25 @@ import numpy as np
 from pathlib import Path
 import tempfile
 
-from src.retrieval.confidence_scorer import (
+from contextprime.retrieval.confidence_scorer import (
     ConfidenceScorer, ConfidenceLevel, CorrectiveAction
 )
-from src.retrieval.query_router import (
+from contextprime.retrieval.query_router import (
     QueryRouter, QueryType, QueryComplexity, RetrievalStrategy, QueryAnalysis
 )
-from src.retrieval.query_expansion import QueryExpander, ExpandedQuery
-from src.retrieval.reranker import Reranker
-from src.retrieval.cache_manager import CacheManager, LRUCache, SemanticQueryCache
-from src.retrieval.iterative_refiner import IterativeRefiner
-from src.retrieval.hybrid_retriever import (
+from contextprime.retrieval.query_expansion import QueryExpander, ExpandedQuery
+from contextprime.retrieval.reranker import Reranker
+from contextprime.retrieval.cache_manager import CacheManager, LRUCache, SemanticQueryCache
+from contextprime.retrieval.iterative_refiner import IterativeRefiner
+from contextprime.retrieval.hybrid_retriever import (
     HybridRetriever,
     HybridSearchResult,
     SearchMetrics as HybridSearchMetrics,
     SearchStrategy as HybridSearchStrategy,
     QueryType as HybridQueryType,
 )
-from src.retrieval.context_selector import TrainableContextSelector, SelectorExample
-from src.retrieval.advanced_pipeline import (
+from contextprime.retrieval.context_selector import TrainableContextSelector, SelectorExample
+from contextprime.retrieval.advanced_pipeline import (
     AdvancedRetrievalPipeline,
     PipelineConfig,
 )
@@ -479,7 +479,7 @@ class TestIterativeRefiner:
         ]
 
         # Mock confidence scores
-        from src.retrieval.confidence_scorer import ConfidenceScore, ConfidenceSignals, ConfidenceLevel
+        from contextprime.retrieval.confidence_scorer import ConfidenceScore, ConfidenceSignals, ConfidenceLevel
 
         conf_scores = [
             ConfidenceScore(

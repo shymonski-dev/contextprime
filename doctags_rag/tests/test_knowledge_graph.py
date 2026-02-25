@@ -13,7 +13,7 @@ Tests cover:
 import pytest
 from typing import List
 
-from src.knowledge_graph import (
+from contextprime.knowledge_graph import (
     EntityExtractor,
     RelationshipExtractor,
     EntityResolver,
@@ -56,7 +56,7 @@ def test_pipeline_handles_unavailable_neo4j(monkeypatch):
         raise RuntimeError("Neo4j not reachable")
 
     monkeypatch.setattr(
-        "src.knowledge_graph.neo4j_manager.Neo4jManager.__init__",
+        "contextprime.knowledge_graph.neo4j_manager.Neo4jManager.__init__",
         fail_init,
     )
 
@@ -255,7 +255,7 @@ class TestEntityResolver:
 
     def test_exact_match_resolution(self):
         """Test resolution of exact duplicate entities."""
-        from src.knowledge_graph.entity_extractor import Entity
+        from contextprime.knowledge_graph.entity_extractor import Entity
 
         entities = [
             Entity(text="Microsoft", type="ORGANIZATION", start_char=0, end_char=9, confidence=0.9),
@@ -272,7 +272,7 @@ class TestEntityResolver:
 
     def test_fuzzy_match_resolution(self):
         """Test resolution of similar entities."""
-        from src.knowledge_graph.entity_extractor import Entity
+        from contextprime.knowledge_graph.entity_extractor import Entity
 
         entities = [
             Entity(text="Microsoft Corp", type="ORGANIZATION", start_char=0, end_char=14, confidence=0.9),
@@ -291,7 +291,7 @@ class TestEntityResolver:
 
     def test_type_based_resolution(self):
         """Test that entities of different types aren't merged."""
-        from src.knowledge_graph.entity_extractor import Entity
+        from contextprime.knowledge_graph.entity_extractor import Entity
 
         entities = [
             Entity(text="Washington", type="PERSON", start_char=0, end_char=10, confidence=0.9),
@@ -306,7 +306,7 @@ class TestEntityResolver:
 
     def test_cross_document_resolution(self):
         """Test entity resolution across documents."""
-        from src.knowledge_graph.entity_extractor import Entity
+        from contextprime.knowledge_graph.entity_extractor import Entity
 
         doc1_entities = [
             Entity(text="Apple Inc", type="ORGANIZATION", start_char=0, end_char=9, confidence=0.9),
@@ -377,7 +377,7 @@ class TestGraphBuilder:
 
     def test_entity_node_creation(self, mock_neo4j_manager):
         """Test entity node creation."""
-        from src.knowledge_graph.entity_extractor import Entity
+        from contextprime.knowledge_graph.entity_extractor import Entity
 
         builder = GraphBuilder(
             neo4j_manager=mock_neo4j_manager,

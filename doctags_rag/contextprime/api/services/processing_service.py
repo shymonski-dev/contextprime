@@ -13,9 +13,9 @@ import os
 
 from loguru import logger
 
-from src.processing import DocumentProcessingPipeline, PipelineConfig
-from src.processing.pipeline import ProcessingResult
-from src.processing.doctags_processor import DocTagsConverter
+from contextprime.processing import DocumentProcessingPipeline, PipelineConfig
+from contextprime.processing.pipeline import ProcessingResult
+from contextprime.processing.doctags_processor import DocTagsConverter
 
 from ..models import (
     DocumentInfo,

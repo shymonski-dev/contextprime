@@ -32,7 +32,10 @@ for _name in _STUBS:
     if _name not in sys.modules:
         sys.modules[_name] = ModuleType(_name)
 
-# ── Add doctags_rag to sys.path ────────────────────────────────────────────
-_DOCTAGS_ROOT = Path(__file__).resolve().parents[2] / "doctags_rag"
-if str(_DOCTAGS_ROOT) not in sys.path:
-    sys.path.insert(0, str(_DOCTAGS_ROOT))
+# ── Add doctags_rag to sys.path (dev-mode fallback) ───────────────────────
+try:
+    import contextprime  # noqa: F401 — check if installed
+except ImportError:
+    _DOCTAGS_ROOT = Path(__file__).resolve().parents[2] / "doctags_rag"
+    if _DOCTAGS_ROOT.exists() and str(_DOCTAGS_ROOT) not in sys.path:
+        sys.path.insert(0, str(_DOCTAGS_ROOT))

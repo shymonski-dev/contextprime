@@ -10,10 +10,17 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "doctags_rag"))
+# Dev-mode fallback: if contextprime is not installed as a package,
+# add the sibling doctags_rag directory to sys.path.
+try:
+    import contextprime  # noqa: F401 — check if installed
+except ImportError:
+    _DOCTAGS_ROOT = Path(__file__).resolve().parents[3] / "doctags_rag"
+    if _DOCTAGS_ROOT.exists() and str(_DOCTAGS_ROOT) not in sys.path:
+        sys.path.insert(0, str(_DOCTAGS_ROOT))
 
-from src.processing.web.crawler import WebCrawler
-from src.processing.web.mapper import WebDocTagsMapper
+from contextprime.processing.web.crawler import WebCrawler
+from contextprime.processing.web.mapper import WebDocTagsMapper
 
 
 async def main():

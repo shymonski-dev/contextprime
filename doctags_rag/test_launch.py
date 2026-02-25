@@ -43,7 +43,7 @@ print("\nChecking module imports:")
 
 if deps_status.get('loguru'):
     try:
-        from src.core.config import get_settings
+        from contextprime.core.config import get_settings
         print("  ✓ Configuration module")
     except Exception as e:
         print(f"  ✗ Configuration module: {e}")

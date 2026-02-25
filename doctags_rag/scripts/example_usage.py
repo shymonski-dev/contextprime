@@ -18,9 +18,9 @@ import random
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from loguru import logger
-from src.knowledge_graph.neo4j_manager import Neo4jManager, GraphNode, GraphRelationship
-from src.retrieval.qdrant_manager import QdrantManager, VectorPoint
-from src.retrieval.hybrid_retriever import HybridRetriever, SearchStrategy
+from contextprime.knowledge_graph.neo4j_manager import Neo4jManager, GraphNode, GraphRelationship
+from contextprime.retrieval.qdrant_manager import QdrantManager, VectorPoint
+from contextprime.retrieval.hybrid_retriever import HybridRetriever, SearchStrategy
 
 
 def generate_dummy_embedding(dimension: int = 1536) -> List[float]:

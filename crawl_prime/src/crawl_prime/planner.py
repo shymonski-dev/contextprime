@@ -17,11 +17,16 @@ from pathlib import Path
 from enum import Enum
 from typing import Optional
 
-_DOCTAGS_ROOT = Path(__file__).resolve().parents[3] / "doctags_rag"
-if str(_DOCTAGS_ROOT) not in sys.path:
-    sys.path.insert(0, str(_DOCTAGS_ROOT))
+# Dev-mode fallback: if contextprime is not installed as a package,
+# add the sibling doctags_rag directory to sys.path.
+try:
+    import contextprime  # noqa: F401 — check if installed
+except ImportError:
+    _DOCTAGS_ROOT = Path(__file__).resolve().parents[3] / "doctags_rag"
+    if _DOCTAGS_ROOT.exists() and str(_DOCTAGS_ROOT) not in sys.path:
+        sys.path.insert(0, str(_DOCTAGS_ROOT))
 
-from src.agents.planning_agent import PlanStep, StepType, ExecutionMode
+from contextprime.agents.planning_agent import PlanStep, StepType, ExecutionMode
 
 _URL_RE = re.compile(r'https?://\S+')
 

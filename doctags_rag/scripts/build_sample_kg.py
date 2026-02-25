@@ -21,7 +21,7 @@ from typing import List, Dict, Any
 
 from loguru import logger
 
-from src.knowledge_graph import (
+from contextprime.knowledge_graph import (
     KnowledgeGraphPipeline,
     PipelineConfig,
     GraphQueryInterface,

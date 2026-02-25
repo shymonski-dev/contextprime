@@ -1,17 +1,17 @@
 from types import SimpleNamespace
 from pathlib import Path
-from src.core.config import LegalMetadataConfig
+from contextprime.core.config import LegalMetadataConfig
 
 import numpy as np
 
-from src.pipelines.document_ingestion import (
+from contextprime.pipelines.document_ingestion import (
     DocumentIngestionConfig,
     DocumentIngestionPipeline,
 )
-from src.knowledge_graph.graph_ingestor import GraphIngestionStats
-from src.processing.chunker import Chunk
-from src.processing.doctags_processor import DocTagsDocument
-from src.processing.pipeline import ProcessingResult, ProcessingStage
+from contextprime.knowledge_graph.graph_ingestor import GraphIngestionStats
+from contextprime.processing.chunker import Chunk
+from contextprime.processing.doctags_processor import DocTagsDocument
+from contextprime.processing.pipeline import ProcessingResult, ProcessingStage
 
 
 class DummyEmbedder:

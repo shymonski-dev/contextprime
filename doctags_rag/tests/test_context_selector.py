@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from src.retrieval.context_selector import (
+from contextprime.retrieval.context_selector import (
     SelectorExample,
     TrainableContextSelector,
 )

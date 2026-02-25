@@ -16,9 +16,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from loguru import logger
-from src.core.config import get_settings
-from src.knowledge_graph.neo4j_manager import Neo4jManager
-from src.retrieval.qdrant_manager import QdrantManager
+from contextprime.core.config import get_settings
+from contextprime.knowledge_graph.neo4j_manager import Neo4jManager
+from contextprime.retrieval.qdrant_manager import QdrantManager
 
 
 def setup_neo4j(manager: Neo4jManager) -> bool:

@@ -15,8 +15,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.retrieval.context_selector import SelectorExample, TrainableContextSelector
-from src.retrieval.feedback_dataset import (
+from contextprime.retrieval.context_selector import SelectorExample, TrainableContextSelector
+from contextprime.retrieval.feedback_dataset import (
     build_selector_examples_from_events,
     load_jsonl_records,
     save_selector_examples,

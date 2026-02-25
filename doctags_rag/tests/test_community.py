@@ -19,17 +19,17 @@ from pathlib import Path
 import tempfile
 import os
 
-from src.community.community_detector import (
+from contextprime.community.community_detector import (
     CommunityDetector,
     CommunityAlgorithm,
     CommunityResult
 )
-from src.community.graph_analyzer import GraphAnalyzer, GraphMetrics
-from src.community.community_summarizer import CommunitySummarizer
-from src.community.document_clusterer import DocumentClusterer, ClusteringMethod
-from src.community.cross_document_analyzer import CrossDocumentAnalyzer
-from src.community.global_query_handler import GlobalQueryHandler
-from src.community.community_visualizer import CommunityVisualizer
+from contextprime.community.graph_analyzer import GraphAnalyzer, GraphMetrics
+from contextprime.community.community_summarizer import CommunitySummarizer
+from contextprime.community.document_clusterer import DocumentClusterer, ClusteringMethod
+from contextprime.community.cross_document_analyzer import CrossDocumentAnalyzer
+from contextprime.community.global_query_handler import GlobalQueryHandler
+from contextprime.community.community_visualizer import CommunityVisualizer
 
 
 class TestCommunityDetector:

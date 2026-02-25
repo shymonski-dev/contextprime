@@ -8,7 +8,7 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.processing import (
+from contextprime.processing import (
     create_pipeline,
     FileTypeDetector,
     TextCleaner,

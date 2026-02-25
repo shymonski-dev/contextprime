@@ -1,4 +1,4 @@
-from src.api.services.metrics_store import OperationalMetricsStore
+from contextprime.api.services.metrics_store import OperationalMetricsStore
 
 
 def test_metrics_store_persists_counters_across_instances(tmp_path):

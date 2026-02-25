@@ -10,7 +10,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 
-from src.core.config import get_settings
+from contextprime.core.config import get_settings
 
 from ..models import (
     ChunkSummary,

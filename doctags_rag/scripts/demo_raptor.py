@@ -20,18 +20,18 @@ import numpy as np
 from loguru import logger
 from sentence_transformers import SentenceTransformer
 
-from src.processing.chunker import Chunk
-from src.processing.doctags_processor import DocTagsDocument, DocTag, DocTagType
-from src.knowledge_graph.neo4j_manager import Neo4jManager
-from src.retrieval.qdrant_manager import QdrantManager
-from src.summarization.cluster_manager import ClusterManager, ClusteringMethod
-from src.summarization.summary_generator import SummaryGenerator
-from src.summarization.tree_builder import TreeBuilder
-from src.summarization.tree_storage import TreeStorage
-from src.summarization.hierarchical_retriever import HierarchicalRetriever, RetrievalStrategy
-from src.summarization.raptor_pipeline import RAPTORPipeline, PipelineConfig
-from src.summarization.tree_visualizer import TreeVisualizer
-from src.core.config import get_settings
+from contextprime.processing.chunker import Chunk
+from contextprime.processing.doctags_processor import DocTagsDocument, DocTag, DocTagType
+from contextprime.knowledge_graph.neo4j_manager import Neo4jManager
+from contextprime.retrieval.qdrant_manager import QdrantManager
+from contextprime.summarization.cluster_manager import ClusterManager, ClusteringMethod
+from contextprime.summarization.summary_generator import SummaryGenerator
+from contextprime.summarization.tree_builder import TreeBuilder
+from contextprime.summarization.tree_storage import TreeStorage
+from contextprime.summarization.hierarchical_retriever import HierarchicalRetriever, RetrievalStrategy
+from contextprime.summarization.raptor_pipeline import RAPTORPipeline, PipelineConfig
+from contextprime.summarization.tree_visualizer import TreeVisualizer
+from contextprime.core.config import get_settings
 
 
 def create_sample_document() -> DocTagsDocument:
@@ -236,7 +236,7 @@ def demo_tree_building(doc, embeddings_model):
     )
 
     # Chunk document
-    from src.processing.chunker import StructurePreservingChunker
+    from contextprime.processing.chunker import StructurePreservingChunker
 
     chunker = StructurePreservingChunker(chunk_size=300, chunk_overlap=50)
     chunks = chunker.chunk_document(doc)

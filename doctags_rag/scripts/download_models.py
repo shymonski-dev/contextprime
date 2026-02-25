@@ -39,7 +39,7 @@ def _resolve_base_dir(explicit_dir: str | None) -> Path:
     if explicit_dir:
         base = Path(explicit_dir).expanduser()
     else:
-        from src.core.config import get_settings
+        from contextprime.core.config import get_settings
 
         settings = get_settings()
         base = Path(settings.paths.models_dir)

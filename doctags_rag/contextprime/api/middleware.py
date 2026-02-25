@@ -17,7 +17,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
-from src.core.config import get_settings
+from contextprime.core.config import get_settings
 from .services.request_limit_store import SharedSlidingWindowRateLimiter
 
 

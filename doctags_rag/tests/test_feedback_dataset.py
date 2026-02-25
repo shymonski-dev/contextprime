@@ -1,4 +1,4 @@
-from src.retrieval.feedback_dataset import build_selector_examples_from_events
+from contextprime.retrieval.feedback_dataset import build_selector_examples_from_events
 
 
 def test_build_selector_examples_from_events():

@@ -20,14 +20,14 @@ import networkx as nx
 import numpy as np
 from loguru import logger
 
-from src.community.community_detector import CommunityDetector, CommunityAlgorithm
-from src.community.graph_analyzer import GraphAnalyzer
-from src.community.community_summarizer import CommunitySummarizer
-from src.community.document_clusterer import DocumentClusterer
-from src.community.cross_document_analyzer import CrossDocumentAnalyzer
-from src.community.global_query_handler import GlobalQueryHandler
-from src.community.community_pipeline import CommunityPipeline
-from src.community.community_visualizer import CommunityVisualizer
+from contextprime.community.community_detector import CommunityDetector, CommunityAlgorithm
+from contextprime.community.graph_analyzer import GraphAnalyzer
+from contextprime.community.community_summarizer import CommunitySummarizer
+from contextprime.community.document_clusterer import DocumentClusterer
+from contextprime.community.cross_document_analyzer import CrossDocumentAnalyzer
+from contextprime.community.global_query_handler import GlobalQueryHandler
+from contextprime.community.community_pipeline import CommunityPipeline
+from contextprime.community.community_visualizer import CommunityVisualizer
 
 
 def create_sample_knowledge_graph():

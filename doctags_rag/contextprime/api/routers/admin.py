@@ -16,7 +16,7 @@ from ..models import (
     Neo4jPasswordRecoveryRequest,
     Neo4jPasswordRecoveryResponse,
 )
-from src.core.config import get_settings
+from contextprime.core.config import get_settings
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
