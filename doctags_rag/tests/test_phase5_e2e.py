@@ -24,7 +24,7 @@ def test_docs_dir():
 
 @pytest.fixture(scope="module")
 def qdrant_manager():
-    """Qdrant manager for tests."""
+    """Qdrant manager for tests — skips if Qdrant is unreachable."""
     settings = get_settings()
     config = QdrantConfig(
         host=settings.qdrant.host,
@@ -32,7 +32,10 @@ def qdrant_manager():
         collection_name="phase5_e2e_test",
         vector_size=384,
     )
-    manager = QdrantManager(config)
+    try:
+        manager = QdrantManager(config)
+    except Exception as exc:
+        pytest.skip(f"Qdrant not available: {exc}")
     yield manager
     # Cleanup
     try:
@@ -75,6 +78,7 @@ def phase5_collection(qdrant_manager):
         pass
 
 
+@pytest.mark.integration
 class TestPhase5SingleDocumentRAG:
     """Test 1: Single Document RAG - Index → Query → Retrieve → Answer."""
 
@@ -169,6 +173,7 @@ class TestPhase5SingleDocumentRAG:
         print(f"Quality check: {relevant_count}/{len(quality_results)} results relevant ({relevance_ratio:.0%})")
 
 
+@pytest.mark.integration
 class TestPhase5MultiDocumentKnowledgeGraph:
     """Test 2: Multi-Document RAG with Knowledge Graph."""
 
@@ -268,6 +273,7 @@ class TestPhase5MultiDocumentKnowledgeGraph:
         # Note: Don't close hybrid here as it would close the shared qdrant_manager fixture
 
 
+@pytest.mark.integration
 class TestPhase5ComplexQueries:
     """Test 5: Complex Multi-Step Analytical Queries."""
 
@@ -363,6 +369,7 @@ class TestPhase5ComplexQueries:
                   f"avg score: {avg_score:.3f}, {query_time:.0f}ms")
 
 
+@pytest.mark.integration
 class TestPhase5Performance:
     """Performance and quality metrics for Phase 5."""
 

@@ -56,7 +56,7 @@ def neo4j_manager():
 
 @pytest.fixture(scope="module")
 def qdrant_manager():
-    """Create Qdrant manager for testing."""
+    """Create Qdrant manager for testing — skips if Qdrant is unreachable."""
     from contextprime.core.config import get_settings
     settings = get_settings()
     config = QdrantConfig(
@@ -65,15 +65,19 @@ def qdrant_manager():
         collection_name="test_collection",
         vector_size=384,  # Small dimension for testing
     )
-    manager = QdrantManager(config)
-
-    # Create test collection
-    manager.create_collection(recreate=True)
+    try:
+        manager = QdrantManager(config)
+        manager.create_collection(recreate=True)
+    except Exception as exc:
+        pytest.skip(f"Qdrant not available: {exc}")
 
     yield manager
 
     # Cleanup
-    manager.delete_collection()
+    try:
+        manager.delete_collection()
+    except Exception:
+        pass
     manager.close()
 
 
@@ -334,6 +338,7 @@ class TestNeo4jManager:
 
 # Qdrant Manager Tests
 
+@pytest.mark.integration
 class TestQdrantManager:
     """Test suite for Qdrant manager."""
 
@@ -522,6 +527,7 @@ class TestQdrantManager:
 
 # Hybrid Retriever Tests
 
+@pytest.mark.integration
 class TestHybridRetriever:
     """Test suite for hybrid retriever."""
 
@@ -726,6 +732,7 @@ class TestHybridRetriever:
 
 # Integration Tests
 
+@pytest.mark.integration
 class TestIntegration:
     """Integration tests for the complete system."""
 
@@ -808,6 +815,7 @@ class TestIntegration:
 
 # Performance Tests
 
+@pytest.mark.integration
 class TestPerformance:
     """Performance tests for the system."""
 
