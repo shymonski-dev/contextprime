@@ -96,6 +96,31 @@ curl -X POST http://localhost:8001/query \
   -d '{"query": "What services does the site offer?"}'
 ```
 
+## Constructor Parameters
+
+| Parameter | Default | Description |
+|---|---|---|
+| `collection` | `"crawlprime_default"` | Qdrant collection name |
+| `qdrant_host` | `"localhost"` | Qdrant host |
+| `qdrant_port` | `6333` | Qdrant port |
+| `neo4j_host` | `"localhost"` | Neo4j host (graph retrieval disabled gracefully if unreachable) |
+| `neo4j_port` | `7687` | Neo4j bolt port |
+| `neo4j_user` | `"neo4j"` | Neo4j username |
+| `neo4j_password` | `"password"` | Neo4j password |
+| `vector_weight` | `0.6` | RRF weight for vector search (60%) |
+| `graph_weight` | `0.3` | RRF weight for graph traversal (30%; drops to 0.0 if Neo4j unavailable) |
+| `lexical_weight` | `0.1` | RRF weight for BM25 lexical search (10%) |
+| `enable_synthesis` | `True` | Enable LLM answer synthesis (requires `OPENAI_API_KEY`) |
+| `storage_path` | `Path("data/crawlprime")` | Directory for RL Q-table and memory storage |
+| `raptor_pipeline` | `None` | Optional RAPTOR hierarchical summarisation pipeline |
+| `community_pipeline` | `None` | Optional community detection pipeline |
+
+**Retrieval weight rationale:** 60% vector captures semantic similarity; 30% graph
+leverages `(:Page)-[:LINKS_TO]->(:Page)` edges written by the ingestion pipeline to
+surface contextually linked pages; 10% lexical (BM25) catches exact-match terms that
+dense embeddings can miss. Neo4j is optional — if unreachable, `graph_weight`
+automatically drops to 0.0 and the remaining weight shifts to vector.
+
 ## Environment Variables
 
 ```bash
@@ -105,6 +130,9 @@ QDRANT_PORT=6333                   # Qdrant port (default: 6333)
 
 # Optional: route LLM calls through OpenRouter
 OPENAI_BASE_URL=https://openrouter.ai/api/v1
+
+# Optional: enable LLM query decomposition for complex queries
+DOCTAGS_LLM_DECOMPOSITION=true
 ```
 
 ## crawl4ai 0.8.x API

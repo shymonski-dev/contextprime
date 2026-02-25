@@ -17,10 +17,21 @@ from typing import Dict, List, Any, Optional, Tuple
 from pathlib import Path
 import hashlib
 
-from PIL import Image
 import numpy as np
-import cv2
 from loguru import logger
+
+try:
+    from PIL import Image
+    _PIL_AVAILABLE = True
+except ImportError:  # pragma: no cover
+    _PIL_AVAILABLE = False
+
+try:
+    import cv2
+    _CV2_AVAILABLE = True
+except Exception:  # pragma: no cover
+    cv2 = None  # type: ignore[assignment]
+    _CV2_AVAILABLE = False
 
 try:
     from langdetect import detect, DetectorFactory

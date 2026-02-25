@@ -13,7 +13,11 @@ from loguru import logger
 
 from ..core.config import LegalMetadataConfig, get_settings
 from ..embeddings import OpenAIEmbeddingModel
-from ..knowledge_graph import GraphIngestionManager
+try:
+    from ..knowledge_graph.graph_ingestor import GraphIngestionManager, GraphIngestionStats
+except Exception:  # pragma: no cover — optional ML stack
+    GraphIngestionManager = None  # type: ignore[assignment,misc]
+    GraphIngestionStats = None  # type: ignore[assignment]
 from ..processing.cross_reference_extractor import extract_cross_references
 from ..processing.pipeline import (
     DocumentProcessingPipeline,
@@ -96,10 +100,15 @@ class DocumentIngestionPipeline:
             self.processing_pipeline = DocumentProcessingPipeline(proc_config)
 
         self._qdrant_manager = qdrant_manager
-        self.graph_ingestor = graph_ingestor or GraphIngestionManager(
-            store_sections=self.config.store_sections,
-            store_subsections=self.config.store_subsections,
-        )
+        if graph_ingestor is not None:
+            self.graph_ingestor = graph_ingestor
+        elif GraphIngestionManager is not None:
+            self.graph_ingestor = GraphIngestionManager(
+                store_sections=self.config.store_sections,
+                store_subsections=self.config.store_subsections,
+            )
+        else:
+            self.graph_ingestor = None
 
         # If the caller passed their own graph ingestor with a managed Neo4j
         # connection we should reuse it for closing.
