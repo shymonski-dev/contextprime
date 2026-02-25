@@ -25,9 +25,9 @@ Neo4j ◄─── WebDocTagsMapper ◄─────── DocTags Hierarchy
 
 ### Components
 
-1. **WebCrawler (`src/processing/web/crawler.py`)**: Wraps `crawl4ai` 0.8.x. Manages browser sessions using `BrowserConfig` and `CrawlerRunConfig`.
-2. **WebDocTagsMapper (`src/processing/web/mapper.py`)**: Translates Markdown into Contextprime's native `DocTagsDocument`.
-3. **WebIngestionPipeline (`src/pipelines/web_ingestion.py`)**: Orchestrates the flow from URL to database storage.
+1. **WebCrawler (`contextprime/processing/web/crawler.py`)**: Wraps `crawl4ai` 0.8.x. Manages browser sessions using `BrowserConfig` and `CrawlerRunConfig`.
+2. **WebDocTagsMapper (`contextprime/processing/web/mapper.py`)**: Translates Markdown into Contextprime's native `DocTagsDocument`.
+3. **WebIngestionPipeline (`contextprime/pipelines/web_ingestion.py`)**: Orchestrates the flow from URL to database storage.
 
 ## Usage
 
@@ -35,7 +35,7 @@ Neo4j ◄─── WebDocTagsMapper ◄─────── DocTags Hierarchy
 
 ```python
 import asyncio
-from src.pipelines.web_ingestion import WebIngestionPipeline
+from contextprime.pipelines.web_ingestion import WebIngestionPipeline
 
 async def main():
     pipeline = WebIngestionPipeline()
@@ -78,10 +78,10 @@ Retrieval steps automatically declare a dependency on the web ingestion step, en
 
 ```python
 import asyncio
-from src.agents.agentic_pipeline import AgenticPipeline
-from src.retrieval.hybrid_retriever import HybridRetriever
-from src.retrieval.qdrant_manager import QdrantManager
-from src.core.config import QdrantConfig
+from contextprime.agents.agentic_pipeline import AgenticPipeline
+from contextprime.retrieval.hybrid_retriever import HybridRetriever
+from contextprime.retrieval.qdrant_manager import QdrantManager
+from contextprime.core.config import QdrantConfig
 
 async def main():
     qdrant_cfg = QdrantConfig(host="localhost", port=6333, collection_name="my_collection")
@@ -155,7 +155,7 @@ The web ingestion stack is covered across three test tiers:
 ### Tier 1 — Unit / wiring (always runs, no Docker)
 
 ```bash
-python -m pytest tests/test_agentic_web_wiring.py tests/test_web_ingestion.py -v
+venv/bin/python -m pytest tests/test_agentic_web_wiring.py tests/test_web_ingestion.py -v
 ```
 
 Tests: `WebIngestionPipeline` constructor, `ExecutionAgent` step routing, `PlanningAgent` URL detection and dependency ordering (WEB_INGESTION → RETRIEVAL → GRAPH_QUERY).
@@ -163,7 +163,7 @@ Tests: `WebIngestionPipeline` constructor, `ExecutionAgent` step routing, `Plann
 ### Tier 2 — Integration (requires Docker: Qdrant + Neo4j, and Playwright)
 
 ```bash
-python -m pytest tests/integration/test_web_e2e.py tests/integration/test_full_e2e.py \
+venv/bin/python -m pytest tests/integration/test_web_e2e.py tests/integration/test_full_e2e.py \
     -v -m integration
 ```
 
@@ -172,7 +172,7 @@ Tests: live crawl of a local test page → Qdrant → `HybridRetriever` → `Age
 ### Tier 3 — Real-web smoke test (requires live internet + Docker + OPENAI_API_KEY)
 
 ```bash
-python -m pytest tests/integration/test_real_web.py -v -m real_web
+venv/bin/python -m pytest tests/integration/test_real_web.py -v -m real_web
 ```
 
 Tests: crawls a live public website (worldwidecloud.io), verifies that factual content (service areas, technology history, FAQ differentiators) is retrievable and synthesised correctly by GPT.

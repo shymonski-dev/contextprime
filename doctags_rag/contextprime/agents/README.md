@@ -242,7 +242,7 @@ Complete orchestration layer:
 ### Basic Query Processing
 
 ```python
-from src.agents.agentic_pipeline import AgenticPipeline, AgenticMode
+from contextprime.agents.agentic_pipeline import AgenticPipeline, AgenticMode
 
 # Initialize pipeline
 pipeline = AgenticPipeline(
@@ -268,9 +268,9 @@ Pass `enable_synthesis=True` to activate GPT answer generation without needing t
 `OPENAI_API_KEY` automatically.
 
 ```python
-from src.retrieval.hybrid_retriever import HybridRetriever
-from src.retrieval.qdrant_manager import QdrantManager
-from src.core.config import QdrantConfig
+from contextprime.retrieval.hybrid_retriever import HybridRetriever
+from contextprime.retrieval.qdrant_manager import QdrantManager
+from contextprime.core.config import QdrantConfig
 
 qdrant_cfg = QdrantConfig(host="localhost", port=6333, collection_name="my_kb")
 retriever = HybridRetriever(
@@ -289,9 +289,9 @@ print(result.answer)
 ### With Custom Components
 
 ```python
-from src.retrieval.advanced_pipeline import AdvancedRetrievalPipeline
-from src.knowledge_graph.graph_queries import GraphQueries
-from src.summarization.raptor_pipeline import RAPTORPipeline
+from contextprime.retrieval.advanced_pipeline import AdvancedRetrievalPipeline
+from contextprime.knowledge_graph.graph_queries import GraphQueries
+from contextprime.summarization.raptor_pipeline import RAPTORPipeline
 
 # Initialize with existing components
 pipeline = AgenticPipeline(
@@ -388,22 +388,22 @@ learner = LearningAgent(
 
 ```bash
 # Core agent tests
-pytest tests/test_agents.py -v
+venv/bin/python -m pytest tests/test_agents.py -v
 
 # Web-wiring and dependency ordering
-pytest tests/test_agentic_web_wiring.py -v
+venv/bin/python -m pytest tests/test_agentic_web_wiring.py -v
 
 # Specific class
-pytest tests/test_agents.py::TestPlanningAgent -v
+venv/bin/python -m pytest tests/test_agents.py::TestPlanningAgent -v
 
 # With coverage
-pytest tests/test_agents.py --cov=src/agents --cov-report=html
+venv/bin/python -m pytest tests/test_agents.py --cov=contextprime/agents --cov-report=html
 ```
 
 ### Tier 2 — Integration tests (requires Docker: Qdrant + Neo4j, and Playwright)
 
 ```bash
-pytest tests/integration/test_full_e2e.py -v -m integration
+venv/bin/python -m pytest tests/integration/test_full_e2e.py -v -m integration
 ```
 
 Runs a full ingest → retrieve → synthesise pipeline against a local test HTML page. Skipped automatically if `OPENAI_API_KEY` is absent.
@@ -411,7 +411,7 @@ Runs a full ingest → retrieve → synthesise pipeline against a local test HTM
 ### Tier 3 — Real-web smoke test (requires live internet + Docker + OPENAI_API_KEY)
 
 ```bash
-pytest tests/integration/test_real_web.py -v -m real_web
+venv/bin/python -m pytest tests/integration/test_real_web.py -v -m real_web
 ```
 
 Crawls a live public website and verifies grounded factual answers from the agentic pipeline.
