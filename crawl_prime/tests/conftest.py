@@ -25,8 +25,7 @@ _STUBS = [
     "docling_core",
     "magic",
     "fitz",          # PyMuPDF
-    "PIL",
-    "PIL.Image",
+    # PIL/Pillow is NOT stubbed — crawl4ai depends on it and it is installed
 ]
 for _name in _STUBS:
     if _name not in sys.modules:

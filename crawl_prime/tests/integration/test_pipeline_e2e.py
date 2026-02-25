@@ -67,6 +67,7 @@ async def test_ingest_then_query_returns_grounded_answer(
     pipeline = CrawlPrimePipeline(
         collection=test_collection_name,
         enable_synthesis=True,
+        neo4j_password=os.getenv("NEO4J_PASSWORD", "replace_with_strong_neo4j_password"),
     )
 
     # Ingest
