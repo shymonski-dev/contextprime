@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from src.retrieval.benchmark_trends import (
+from contextprime.retrieval.benchmark_trends import (
     append_trend_records,
     extract_trend_records,
     load_trend_history,

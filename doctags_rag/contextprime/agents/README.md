@@ -81,6 +81,7 @@ Reliable action execution with error handling:
 - Summarization tasks
 - Community analysis
 - RAPTOR hierarchical queries
+- **Web ingestion** (`WEB_INGESTION` step type) — triggers `WebIngestionPipeline.ingest_url()`
 - Automatic retry with exponential backoff
 
 **Features:**
@@ -349,6 +350,7 @@ pipeline = AgenticPipeline(
     graph_queries=graph_queries,
     raptor_pipeline=raptor_pipeline,
     community_pipeline=community_pipeline,
+    web_pipeline=web_pipeline,       # Optional; auto-instantiated if crawl4ai is installed
     enable_synthesis=True,           # Force LLM synthesis on (reads OPENAI_API_KEY)
 )
 ```
@@ -388,6 +390,9 @@ learner = LearningAgent(
 # Core agent tests
 pytest tests/test_agents.py -v
 
+# Web-wiring and dependency ordering
+pytest tests/test_agentic_web_wiring.py -v
+
 # Specific class
 pytest tests/test_agents.py::TestPlanningAgent -v
 
@@ -395,13 +400,21 @@ pytest tests/test_agents.py::TestPlanningAgent -v
 pytest tests/test_agents.py --cov=src/agents --cov-report=html
 ```
 
-### Tier 2 — Integration tests (requires Docker: Qdrant + Neo4j)
+### Tier 2 — Integration tests (requires Docker: Qdrant + Neo4j, and Playwright)
 
 ```bash
-pytest tests/integration/ -v -m integration
+pytest tests/integration/test_full_e2e.py -v -m integration
 ```
 
-Runs a full ingest → retrieve → synthesise pipeline. Skipped automatically if `OPENAI_API_KEY` is absent.
+Runs a full ingest → retrieve → synthesise pipeline against a local test HTML page. Skipped automatically if `OPENAI_API_KEY` is absent.
+
+### Tier 3 — Real-web smoke test (requires live internet + Docker + OPENAI_API_KEY)
+
+```bash
+pytest tests/integration/test_real_web.py -v -m real_web
+```
+
+Crawls a live public website and verifies grounded factual answers from the agentic pipeline.
 
 ## Demo
 

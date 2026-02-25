@@ -1,13 +1,13 @@
 from dataclasses import replace
 
-from src.retrieval.hybrid_retriever import (
+from contextprime.retrieval.hybrid_retriever import (
     HybridRetriever,
     HybridSearchResult,
     SearchStrategy,
     GraphRetrievalPolicy,
     QueryType,
 )
-from src.retrieval.qdrant_manager import SearchResult as QdrantResult
+from contextprime.retrieval.qdrant_manager import SearchResult as QdrantResult
 
 
 def test_hybrid_retriever_cache():

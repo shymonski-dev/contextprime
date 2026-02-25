@@ -1,8 +1,8 @@
 import pytest
 
-from src.api.models import AdvancedQueryRequest, AgenticQueryRequest, SearchStrategy
-from src.api.services.retrieval_service import RetrievalService
-from src.retrieval.hybrid_retriever import (
+from contextprime.api.models import AdvancedQueryRequest, AgenticQueryRequest, SearchStrategy
+from contextprime.api.services.retrieval_service import RetrievalService
+from contextprime.retrieval.hybrid_retriever import (
     HybridSearchResult,
     SearchMetrics,
     SearchStrategy as HybridStrategy,

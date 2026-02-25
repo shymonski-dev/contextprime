@@ -14,24 +14,24 @@ import time
 from typing import List, Dict, Any
 from uuid import uuid4
 
-from src.knowledge_graph.neo4j_manager import (
+from contextprime.knowledge_graph.neo4j_manager import (
     Neo4jManager,
     GraphNode,
     GraphRelationship,
     SearchResult as Neo4jSearchResult,
 )
-from src.retrieval.qdrant_manager import (
+from contextprime.retrieval.qdrant_manager import (
     QdrantManager,
     VectorPoint,
     SearchResult as QdrantSearchResult,
 )
-from src.retrieval.hybrid_retriever import (
+from contextprime.retrieval.hybrid_retriever import (
     HybridRetriever,
     QueryType,
     SearchStrategy,
     HybridSearchResult,
 )
-from src.core.config import Neo4jConfig, QdrantConfig
+from contextprime.core.config import Neo4jConfig, QdrantConfig
 
 
 # Test fixtures
@@ -39,7 +39,7 @@ from src.core.config import Neo4jConfig, QdrantConfig
 @pytest.fixture(scope="module")
 def neo4j_manager():
     """Create Neo4j manager for testing."""
-    from src.core.config import get_settings
+    from contextprime.core.config import get_settings
     settings = get_settings()
     config = Neo4jConfig(
         uri=settings.neo4j.uri,
@@ -57,7 +57,7 @@ def neo4j_manager():
 @pytest.fixture(scope="module")
 def qdrant_manager():
     """Create Qdrant manager for testing."""
-    from src.core.config import get_settings
+    from contextprime.core.config import get_settings
     settings = get_settings()
     config = QdrantConfig(
         host=settings.qdrant.host,
@@ -860,7 +860,7 @@ class TestPerformance:
         assert avg_latency < 100  # Should be under 100ms on average
 
 
-from src.processing.cross_reference_extractor import CrossRef
+from contextprime.processing.cross_reference_extractor import CrossRef
 
 
 class TestNeo4jCrossReferenceEdges:

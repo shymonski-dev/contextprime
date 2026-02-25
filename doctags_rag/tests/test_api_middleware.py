@@ -8,8 +8,8 @@ from types import SimpleNamespace
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-import src.api.middleware as middleware_module
-from src.api.middleware import AccessControlAndRateLimitMiddleware
+import contextprime.api.middleware as middleware_module
+from contextprime.api.middleware import AccessControlAndRateLimitMiddleware
 
 
 def _encode_base64_json(payload) -> str:

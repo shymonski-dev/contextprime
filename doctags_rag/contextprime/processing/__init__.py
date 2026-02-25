@@ -16,24 +16,33 @@ Main Components:
 - Pipeline: Orchestrate the complete workflow
 """
 
-from .document_parser import (
-    DocumentParser,
-    ParsedDocument,
-    DocumentElement,
-    PDFParser,
-    DOCXParser,
-    HTMLParser,
-    TextParser,
-    ImageParser,
-)
+# Heavy document parsing — optional; require cv2, pytesseract, paddleocr, etc.
+try:
+    from .document_parser import (
+        DocumentParser,
+        ParsedDocument,
+        DocumentElement,
+        PDFParser,
+        DOCXParser,
+        HTMLParser,
+        TextParser,
+        ImageParser,
+    )
+except Exception:  # pragma: no cover
+    from loguru import logger as _logger
+    _logger.warning("processing: document_parser unavailable (cv2/pytesseract not installed)")
 
-from .ocr_engine import (
-    OCREngineFactory,
-    PaddleOCREngine,
-    TesseractOCREngine,
-    OCRResult,
-    OCRBox,
-)
+try:
+    from .ocr_engine import (
+        OCREngineFactory,
+        PaddleOCREngine,
+        TesseractOCREngine,
+        OCRResult,
+        OCRBox,
+    )
+except Exception:  # pragma: no cover
+    from loguru import logger as _logger
+    _logger.warning("processing: ocr_engine unavailable (paddleocr/tesseract not installed)")
 
 from .doctags_processor import (
     DocTagsProcessor,

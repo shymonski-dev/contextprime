@@ -1,7 +1,7 @@
 from pydantic import ValidationError
 import pytest
 
-from src.api.models import AdvancedQueryRequest
+from contextprime.api.models import AdvancedQueryRequest
 
 
 def test_advanced_query_filters_accept_scalar_and_list_values():

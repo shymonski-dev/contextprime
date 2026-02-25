@@ -4,10 +4,10 @@ import pytest
 from fastapi.testclient import TestClient
 from neo4j.exceptions import AuthError
 
-from src.api.main import app
-from src.api.routers import admin as admin_router
-from src.api.routers.admin import require_admin_identity
-from src.core.config import get_settings
+from contextprime.api.main import app
+from contextprime.api.routers import admin as admin_router
+from contextprime.api.routers.admin import require_admin_identity
+from contextprime.core.config import get_settings
 
 
 def _set_auth_requirement(enabled: bool):

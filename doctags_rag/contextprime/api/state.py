@@ -10,7 +10,7 @@ import os
 from .services.processing_service import ProcessingService
 from .services.retrieval_service import RetrievalService
 from .services.metrics_store import OperationalMetricsStore
-from src.retrieval.feedback_capture_store import FeedbackCaptureStore
+from contextprime.retrieval.feedback_capture_store import FeedbackCaptureStore
 
 
 class AppState:

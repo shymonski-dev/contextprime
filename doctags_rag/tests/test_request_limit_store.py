@@ -1,4 +1,4 @@
-from src.api.services.request_limit_store import SharedSlidingWindowRateLimiter
+from contextprime.api.services.request_limit_store import SharedSlidingWindowRateLimiter
 
 
 def test_sqlite_backed_limiter_denies_after_limit(tmp_path):

@@ -28,7 +28,7 @@ except Exception:  # pragma: no cover - optional dependency
 from .base_agent import BaseAgent, AgentRole, AgentMessage, AgentState
 
 try:
-    from src.core.config import get_settings
+    from contextprime.core.config import get_settings
 except Exception:  # pragma: no cover - optional in unit tests
     get_settings = None  # type: ignore[assignment]
 

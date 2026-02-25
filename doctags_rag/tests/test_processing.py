@@ -14,7 +14,7 @@ from pathlib import Path
 import tempfile
 import json
 
-from src.processing import (
+from contextprime.processing import (
     DocumentParser,
     ParsedDocument,
     DocumentElement,
@@ -309,7 +309,7 @@ class TestChunker:
 
     def create_sample_doctags_doc(self) -> DocTagsDocument:
         """Create a sample DocTags document for testing."""
-        from src.processing.doctags_processor import DocTag
+        from contextprime.processing.doctags_processor import DocTag
 
         tags = [
             DocTag(
@@ -778,7 +778,7 @@ class TestChunkerLegalBoundaries:
     """Test that ARTICLE and SCHEDULE tags trigger chunk flush boundaries."""
 
     def _make_tag(self, tag_type, content, tag_id, parent_id='tag_000000', level=None, order=0):
-        from src.processing.doctags_processor import DocTag
+        from contextprime.processing.doctags_processor import DocTag
         return DocTag(
             tag_type=tag_type,
             content=content,

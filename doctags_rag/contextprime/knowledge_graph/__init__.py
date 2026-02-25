@@ -16,13 +16,19 @@ from .neo4j_manager import (
     GraphRelationship,
     SearchResult,
 )
-from .entity_extractor import EntityExtractor, Entity, EntityExtractionResult
-from .relationship_extractor import RelationshipExtractor, Relationship, RelationshipExtractionResult
-from .entity_resolver import EntityResolver, EntityCluster, ResolutionResult
-from .graph_builder import GraphBuilder, DocumentMetadata, ChunkMetadata, GraphBuildResult
-from .graph_ingestor import GraphIngestionManager, GraphIngestionStats
-from .kg_pipeline import KnowledgeGraphPipeline, PipelineConfig, PipelineResult
 from .graph_queries import GraphQueryInterface, QueryResult
+
+# Heavy ML/NLP imports — optional; require sentence-transformers, spacy, etc.
+try:
+    from .entity_extractor import EntityExtractor, Entity, EntityExtractionResult
+    from .relationship_extractor import RelationshipExtractor, Relationship, RelationshipExtractionResult
+    from .entity_resolver import EntityResolver, EntityCluster, ResolutionResult
+    from .graph_builder import GraphBuilder, DocumentMetadata, ChunkMetadata, GraphBuildResult
+    from .graph_ingestor import GraphIngestionManager, GraphIngestionStats
+    from .kg_pipeline import KnowledgeGraphPipeline, PipelineConfig, PipelineResult
+except Exception:  # pragma: no cover
+    from loguru import logger as _logger
+    _logger.warning("knowledge_graph: optional ML components unavailable (sentence-transformers/spacy not installed)")
 
 __all__ = [
     "Neo4jManager",

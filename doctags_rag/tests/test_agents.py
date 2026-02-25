@@ -15,19 +15,19 @@ import asyncio
 from pathlib import Path
 import tempfile
 
-from src.agents.base_agent import (
+from contextprime.agents.base_agent import (
     BaseAgent, AgentRole, AgentMessage, AgentState, MessagePriority
 )
-from src.agents.planning_agent import PlanningAgent, StepType
-from src.agents.execution_agent import ExecutionAgent
-from src.agents.evaluation_agent import EvaluationAgent, QualityLevel, QualityAssessment
-from src.agents.learning_agent import LearningAgent
-from src.agents.coordinator import AgentCoordinator
-from src.agents.feedback_aggregator import FeedbackAggregator
-from src.agents.reinforcement_learning import RLModule, RLState
-from src.agents.memory_system import MemorySystem, ShortTermMemory, LongTermMemory
-from src.agents.performance_monitor import PerformanceMonitor
-from src.agents.agentic_pipeline import AgenticPipeline, AgenticMode
+from contextprime.agents.planning_agent import PlanningAgent, StepType
+from contextprime.agents.execution_agent import ExecutionAgent
+from contextprime.agents.evaluation_agent import EvaluationAgent, QualityLevel, QualityAssessment
+from contextprime.agents.learning_agent import LearningAgent
+from contextprime.agents.coordinator import AgentCoordinator
+from contextprime.agents.feedback_aggregator import FeedbackAggregator
+from contextprime.agents.reinforcement_learning import RLModule, RLState
+from contextprime.agents.memory_system import MemorySystem, ShortTermMemory, LongTermMemory
+from contextprime.agents.performance_monitor import PerformanceMonitor
+from contextprime.agents.agentic_pipeline import AgenticPipeline, AgenticMode
 
 
 class TestBaseAgent:
@@ -198,7 +198,7 @@ class TestExecutionAgent:
         """
         executor = ExecutionAgent()
 
-        from src.agents.planning_agent import PlanStep, StepType
+        from contextprime.agents.planning_agent import PlanStep, StepType
 
         step = PlanStep(
             step_id="test_step",
@@ -221,7 +221,7 @@ class TestExecutionAgent:
         executor.max_retries = 2
 
         # This will succeed on simulation
-        from src.agents.planning_agent import PlanStep, StepType
+        from contextprime.agents.planning_agent import PlanStep, StepType
 
         step = PlanStep(
             step_id="test_step",
@@ -373,7 +373,7 @@ class TestReinforcementLearning:
         assert action in ["hybrid", "vector_only"]
 
         # Update Q-value
-        from src.agents.reinforcement_learning import RewardSignal
+        from contextprime.agents.reinforcement_learning import RewardSignal
         reward_signal = RewardSignal(
             state=state.__dict__,
             action=action,

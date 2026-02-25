@@ -28,7 +28,7 @@ os.environ["NEO4J_URI"] = "bolt://localhost:7687"
 
 # Reset the cached singleton so the next get_settings() call uses our overrides.
 try:
-    from src.core.config import reset_settings
+    from contextprime.core.config import reset_settings
     reset_settings()
 except Exception:
     pass

@@ -25,7 +25,7 @@ from .models import (
 from .middleware import AccessControlAndRateLimitMiddleware
 from .routers import agentic, documents, search, feedback, admin
 from .state import get_app_state
-from src.core.config import get_settings
+from contextprime.core.config import get_settings
 
 settings = get_settings()
 cors_origins = [
@@ -93,7 +93,7 @@ async def startup_checks() -> None:
 
     # OCR startup probe — surface engine availability before the first document is processed.
     try:
-        from src.processing.ocr_engine import OCREngineFactory
+        from contextprime.processing.ocr_engine import OCREngineFactory
         engine = OCREngineFactory.create_engine(
             engine_type=settings.document_processing.ocr_engine
         )
