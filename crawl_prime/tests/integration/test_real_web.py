@@ -70,6 +70,7 @@ def ingested_pipeline(real_collection_name, cleanup_real_collection):
     pipeline = CrawlPrimePipeline(
         collection=real_collection_name,
         enable_synthesis=True,
+        neo4j_password=os.getenv("NEO4J_PASSWORD", "replace_with_strong_neo4j_password"),
     )
     report = asyncio.get_event_loop().run_until_complete(
         pipeline.ingest(_SITE_URL)
