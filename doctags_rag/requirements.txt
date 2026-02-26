@@ -80,7 +80,7 @@ pytest-cov==4.1.0
 
 # Monitoring and Logging
 loguru==0.7.2
-prometheus-client==0.19.0
+prometheus-client==0.24.1
 
 # Development Tools
 black==23.12.1
