@@ -27,7 +27,7 @@ qdrant-client==1.17.0
 # Embeddings and LLMs
 openai>=1.56.0
 sentence-transformers==2.6.1
-transformers==4.36.2
+transformers==5.2.0
 sentencepiece==0.1.99
 
 # Knowledge Graph Tools
