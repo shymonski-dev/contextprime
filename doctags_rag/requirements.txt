@@ -60,7 +60,7 @@ PyMuPDF==1.23.8
 nltk>=3.9.1
 
 # Caching
-redis==6.4.0
+redis==7.2.1
 
 # API Framework
 fastapi==0.129.0
